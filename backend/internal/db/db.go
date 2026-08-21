@@ -73,6 +73,7 @@ func RunMigrations(db *sql.DB) error {
 	migrationFiles := []string{
 		"migrations/000001_create_auth_tables.up.sql",
 		"migrations/000002_add_admin_role_and_user_features.up.sql",
+		"migrations/000003_create_quiz_tables.up.sql",
 	}
 
 	for _, file := range migrationFiles {

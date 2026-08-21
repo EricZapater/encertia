@@ -8,6 +8,7 @@ import (
 
 	"github.com/encertia/backend/internal/auth"
 	"github.com/encertia/backend/internal/db"
+	"github.com/encertia/backend/internal/quiz"
 	"github.com/encertia/backend/internal/shared"
 	"github.com/encertia/backend/internal/user"
 	"github.com/gin-gonic/gin"
@@ -40,6 +41,17 @@ func main() {
 	serverPort := getEnv("PORT", "8080")
 	autoMigrate := getEnv("AUTO_MIGRATE", "true")
 
+	// Storage configuration
+	storageCfg := shared.StorageConfig{
+		R2AccountID:       getEnv("R2_ACCOUNT_ID", ""),
+		R2AccessKeyID:     getEnv("R2_ACCESS_KEY_ID", ""),
+		R2SecretAccessKey: getEnv("R2_SECRET_ACCESS_KEY", ""),
+		R2BucketName:      getEnv("R2_BUCKET_NAME", ""),
+		R2PublicURL:       getEnv("R2_PUBLIC_URL", ""),
+		LocalUploadDir:    getEnv("UPLOAD_DIR", "./uploads"),
+		BaseURL:           getEnv("BASE_URL", ""),
+	}
+
 	// 2. Connect to Database
 	dbConn, err := db.Connect(dbCfg)
 	if err != nil {
@@ -57,7 +69,9 @@ func main() {
 		}
 	}
 
-	// 4. Initialize Domain Modules
+	// 4. Initialize Domain Modules & Services
+	storageSvc := shared.NewStorageService(storageCfg)
+
 	// Auth Domain
 	authRepo := auth.NewRepository(dbConn)
 	authSvc := auth.NewService(authRepo, auth.Config{
@@ -73,6 +87,11 @@ func main() {
 	userSvc := user.NewService(userRepo)
 	userHandler := user.NewHandler(userSvc)
 
+	// Quiz Domain
+	quizRepo := quiz.NewRepository(dbConn)
+	quizSvc := quiz.NewService(quizRepo)
+	quizHandler := quiz.NewHandler(quizSvc, storageSvc)
+
 	// Middleware
 	authMiddleware := shared.AuthMiddleware(authHandler.TokenValidatorAdapter())
 
@@ -82,6 +101,9 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), shared.CORSMiddleware())
+
+	// Static route for local uploads
+	router.Static("/uploads", storageCfg.LocalUploadDir)
 
 	// Health Check
 	healthHandler := func(c *gin.Context) {
@@ -95,15 +117,17 @@ func main() {
 	router.Match([]string{"GET", "HEAD"}, "/health", healthHandler)
 	router.Match([]string{"GET", "HEAD"}, "/api/health", healthHandler)
 
-	// Register routes directly at root (/auth/*, /users/*) as per OpenAPI contract
+	// Register routes directly at root (/auth/*, /users/*, /quizzes/*, /uploads/*) as per OpenAPI contract
 	rootGroup := router.Group("")
 	authHandler.RegisterRoutes(rootGroup, authMiddleware)
 	userHandler.RegisterRoutes(rootGroup, authMiddleware)
+	quizHandler.RegisterRoutes(rootGroup, authMiddleware)
 
-	// Also support /api prefix for proxy convenience (/api/auth/*, /api/users/*)
+	// Also support /api prefix for proxy convenience (/api/auth/*, /api/users/*, /api/quizzes/*, /api/uploads/*)
 	apiGroup := router.Group("/api")
 	authHandler.RegisterRoutes(apiGroup, authMiddleware)
 	userHandler.RegisterRoutes(apiGroup, authMiddleware)
+	quizHandler.RegisterRoutes(apiGroup, authMiddleware)
 
 	// 6. Start HTTP Server
 	addr := ":" + serverPort

@@ -40,6 +40,24 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
   },
   {
+    path: '/quizzes',
+    name: 'quizzes-list',
+    component: () => import('@/modules/quizzes/views/QuizzesListView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/quizzes/new',
+    name: 'quiz-create',
+    component: () => import('@/modules/quizzes/views/QuizEditorView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/quizzes/:id/edit',
+    name: 'quiz-edit',
+    component: () => import('@/modules/quizzes/views/QuizEditorView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }

@@ -5,6 +5,29 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-21
+### Added
+- **Contracte d'API**: Especificació funcional ([`contracts/quiz.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/quiz.spec.md)) i contracte OpenAPI 3.0 ([`contracts/quiz.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/quiz.openapi.yaml)) per al mòdul de jocs/qüestionaris (`quiz`).
+- **Backend (`internal/quiz` & `internal/shared/storage`)**:
+  - Migració SQL `000003_create_quiz_tables.up.sql` (`quizzes`, `quiz_questions`, `quiz_answers`, índexs i soft delete).
+  - Servei d'emmagatzematge d'imatges a Cloudflare R2 mitjançant signatura AWS SigV4 autònoma (amb fallback d'emmagatzematge local a `/app/uploads`).
+  - Endpoints REST: `GET /quizzes`, `POST /quizzes`, `GET /quizzes/:id`, `PUT /quizzes/:id`, `DELETE /quizzes/:id`, `POST /quizzes/:id/duplicate`, `POST /uploads/images`.
+  - Duplicació personalitzable de qüestionaris: permet copiar només preguntes (per defecte `includeAnswers: false`) o preguntes amb totes les seves respostes (`includeAnswers: true`).
+  - Control d'accés RBAC (usuaris només gestionen els seus propis qüestionaris privats, `admin` té accés global).
+  - Validacions de negoci d'estat publicat (mínim 1 pregunta; 2 a 6 opcions de resposta amb almenys una correcta).
+  - Suite de proves unitàries i d'integració a `service_test.go`, `handler_test.go` i `storage_test.go` amb 100% d'èxit.
+- **Frontend (`src/modules/quizzes`)**:
+  - Tipus TypeScript, client d'API Axios (`api.ts`) i store Pinia (`useQuizStore`).
+  - Vista de llistat de qüestionaris (`QuizzesListView.vue`) amb filtres de cerca, estat i tags, canvi ràpid d'estat i paginador.
+  - Modal de duplicació (`DuplicateQuizModal.vue`) amb selecció de títol i opció de copiar respostes (desactivada per defecte).
+  - Modal de configuració general (`QuizSettingsModal.vue`) amb pujada d'imatge de portada a Cloudflare R2 i etiquetatge amb PrimeVue Chips.
+  - Creador/Editor interactiu (`QuizEditorView.vue`): barra lateral de miniatures de preguntes (afegir, moure amunt/avall, duplicar, eliminar) i panell central d'edició amb 6 colors i formes Kahoot (▲ Vermell, ◆ Blau, ● Groc, ■ Verd, ★ Lila, ⬡ Taronja), selecció de 1 o múltiples correctes, límit de temps (5s-120s) i pujada d'imatge.
+  - Simulador de joc (`QuizPreviewModal.vue`) amb compte enrere interactiu per segon, selecció de respostes i pantalla de resultats.
+  - Suite de tests unitaris i de components a `__tests__/` amb 69 tests superats.
+- **Rutes i Navegació**:
+  - Rutes protegides `/quizzes`, `/quizzes/new` i `/quizzes/:id/edit`.
+  - Accés directe "Els meus Jocs" a la barra superior i al perfil d'usuari.
+
 ## [0.3.0] - 2026-08-21
 ### Added
 - **Contracte d'API**: Especificació funcional ([`contracts/user.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/user.spec.md)) i contracte OpenAPI 3.0 ([`contracts/user.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/user.openapi.yaml)) per al mòdul d'usuaris (`user`).

@@ -76,6 +76,14 @@ onMounted(() => {
         </div>
         <div class="header-actions">
           <Button
+            label="Els meus Jocs"
+            icon="pi pi-bolt"
+            severity="info"
+            size="small"
+            @click="router.push('/quizzes')"
+            data-testid="btn-nav-quizzes"
+          />
+          <Button
             v-if="authStore.isAdmin || authStore.isTeacher"
             label="Gestió d'Usuaris"
             icon="pi pi-users"
@@ -160,6 +168,11 @@ onMounted(() => {
                 Gestió global de la plataforma, usuaris, rols i configuració del sistema.
               </p>
               <div class="action-cards">
+                <div class="action-card cursor-pointer" @click="router.push('/quizzes')">
+                  <i class="pi pi-bolt action-icon"></i>
+                  <h4>Gestió de Jocs</h4>
+                  <p>Crea, edita i supervisa tots els qüestionaris interactius.</p>
+                </div>
                 <div class="action-card cursor-pointer" @click="router.push('/users')">
                   <i class="pi pi-users action-icon"></i>
                   <h4>Gestió d'Usuaris</h4>
@@ -174,20 +187,15 @@ onMounted(() => {
                 Des d'aquí pots gestionar els teus cursos, matèries, continguts i alumnes.
               </p>
               <div class="action-cards">
+                <div class="action-card cursor-pointer" @click="router.push('/quizzes')">
+                  <i class="pi pi-bolt action-icon"></i>
+                  <h4>Els meus Qüestionaris</h4>
+                  <p>Crea, edita i duplica proves interactives Kahoot per a classe.</p>
+                </div>
                 <div class="action-card cursor-pointer" @click="router.push('/users')">
                   <i class="pi pi-users action-icon"></i>
                   <h4>Gestió d'Alumnes</h4>
                   <p>Consulta la llista d'alumnes i fes importacions massives en CSV.</p>
-                </div>
-                <div class="action-card">
-                  <i class="pi pi-book action-icon"></i>
-                  <h4>Cursos i Classes</h4>
-                  <p>Gestiona les assignatures i grups.</p>
-                </div>
-                <div class="action-card">
-                  <i class="pi pi-check-square action-icon"></i>
-                  <h4>Qüestionaris</h4>
-                  <p>Crea, edita i avalua proves per als teus estudiants.</p>
                 </div>
               </div>
             </div>
@@ -198,15 +206,10 @@ onMounted(() => {
                 Accedeix als teus cursos matriculats i respon als qüestionaris actius.
               </p>
               <div class="action-cards">
-                <div class="action-card">
-                  <i class="pi pi-book action-icon"></i>
-                  <h4>Els meus Cursos</h4>
-                  <p>Revisa els materials d'estudi i activitats pendents.</p>
-                </div>
-                <div class="action-card">
-                  <i class="pi pi-chart-line action-icon"></i>
-                  <h4>Avaluacions</h4>
-                  <p>Fes els qüestionaris assignats i consulta els teus resultats.</p>
+                <div class="action-card cursor-pointer" @click="router.push('/quizzes')">
+                  <i class="pi pi-bolt action-icon"></i>
+                  <h4>Els meus Jocs</h4>
+                  <p>Crea qüestionaris d'estudi i practica amb preguntes.</p>
                 </div>
               </div>
             </div>
