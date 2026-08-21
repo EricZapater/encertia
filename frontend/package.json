@@ -28,5 +28,11 @@
     "vite": "^6.0.3",
     "vitest": "^4.1.11",
     "vue-tsc": "^2.2.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "vue-demi"
+    ]
   }
 }

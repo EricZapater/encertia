@@ -2,7 +2,7 @@
 FROM node:22-alpine AS builder
 
 # Enable pnpm via Corepack
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN pnpm config set minimum-release-age 0 && pnpm install --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source code and configuration files
 COPY . .
