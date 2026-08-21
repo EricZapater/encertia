@@ -1,0 +1,355 @@
+openapi: 3.0.3
+info:
+  title: Encertia Match API (Partides en directe)
+  description: Contracte d'API REST i WebSocket per a la creació, unió i gestió de partides en directe estil Kahoot a Encertia.
+  version: 1.0.0
+
+servers:
+  - url: https://api.encertia.ericzapater.cat
+    description: Servidor de Producció
+  - url: http://localhost:8080
+    description: Servidor de Desenvolupament Local
+
+paths:
+  /matches:
+    post:
+      summary: Crear una nova partida en directe
+      description: Inicialitza una nova partida en estat 'lobby' per a un qüestionari publicat i genera un PIN únic de 6 dígits.
+      operationId: createMatch
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMatchRequest'
+      responses:
+        '201':
+          description: Partida creada correctament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /matches/{pin}:
+    get:
+      summary: Obtenir informació pública d'una partida pel seu PIN
+      description: Retorna l'estat i informació bàsica d'una partida abans o durant la unió.
+      operationId: getMatchByPin
+      parameters:
+        - name: pin
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9]{6}$'
+          description: PIN numèric de 6 dígits
+      responses:
+        '200':
+          description: Dades bàsiques de la partida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchPublicInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /matches/{pin}/join:
+    post:
+      summary: Unir-se a una partida com a jugador
+      description: Registra l'usuari autenticat com a jugador a la partida amb el seu Nickname.
+      operationId: joinMatch
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: pin
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9]{6}$'
+          description: PIN numèric de 6 dígits
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinMatchRequest'
+      responses:
+        '200':
+          description: Unió satisfactòria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinMatchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflicte (partida ja iniciada, usuari ja registrat o expulsat)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /matches/{id}/summary:
+    get:
+      summary: Obtenir el resum final de la partida finalitzada
+      description: Retorna el podi, rànquing complet i estadístiques globals de la partida.
+      operationId: getMatchSummary
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Resum final de la partida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchSummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    MatchStatus:
+      type: string
+      enum:
+        - lobby
+        - question_preview
+        - question_active
+        - question_results
+        - leaderboard
+        - finished
+      description: Estat actual del cicle de vida de la partida.
+
+    CreateMatchRequest:
+      type: object
+      required:
+        - quizId
+      properties:
+        quizId:
+          type: string
+          format: uuid
+          description: ID del qüestionari que es jugarà.
+
+    MatchCreatedResponse:
+      type: object
+      required:
+        - id
+        - quizId
+        - hostId
+        - pin
+        - status
+        - qrCodeUrl
+        - playUrl
+      properties:
+        id:
+          type: string
+          format: uuid
+        quizId:
+          type: string
+          format: uuid
+        quizTitle:
+          type: string
+        hostId:
+          type: string
+          format: uuid
+        pin:
+          type: string
+          example: "482910"
+        status:
+          $ref: '#/components/schemas/MatchStatus'
+        qrCodeUrl:
+          type: string
+          description: URL o dades base64 del codi QR per unir-se directament.
+        playUrl:
+          type: string
+          example: "https://encertia.ericzapater.cat/play?pin=482910"
+        createdAt:
+          type: string
+          format: date-time
+
+    MatchPublicInfo:
+      type: object
+      required:
+        - id
+        - pin
+        - quizTitle
+        - hostName
+        - status
+        - playerCount
+      properties:
+        id:
+          type: string
+          format: uuid
+        pin:
+          type: string
+        quizTitle:
+          type: string
+        hostName:
+          type: string
+        status:
+          $ref: '#/components/schemas/MatchStatus'
+        playerCount:
+          type: integer
+          example: 12
+
+    JoinMatchRequest:
+      type: object
+      required:
+        - nickname
+      properties:
+        nickname:
+          type: string
+          minLength: 2
+          maxLength: 30
+          description: Nom o àlies amb què es visualitzarà el jugador.
+
+    JoinMatchResponse:
+      type: object
+      required:
+        - matchId
+        - playerId
+        - nickname
+        - pin
+        - status
+      properties:
+        matchId:
+          type: string
+          format: uuid
+        playerId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        nickname:
+          type: string
+        pin:
+          type: string
+        status:
+          $ref: '#/components/schemas/MatchStatus'
+
+    PlayerScoreItem:
+      type: object
+      required:
+        - playerId
+        - nickname
+        - score
+        - rank
+      properties:
+        playerId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        nickname:
+          type: string
+        score:
+          type: integer
+          example: 4
+        rank:
+          type: integer
+          example: 1
+        correctCount:
+          type: integer
+          example: 4
+        totalAnswered:
+          type: integer
+          example: 5
+
+    MatchSummaryResponse:
+      type: object
+      required:
+        - matchId
+        - quizTitle
+        - totalQuestions
+        - totalPlayers
+        - podium
+        - leaderboard
+      properties:
+        matchId:
+          type: string
+          format: uuid
+        quizTitle:
+          type: string
+        totalQuestions:
+          type: integer
+        totalPlayers:
+          type: integer
+        podium:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerScoreItem'
+          description: Els 3 primers classificats (1r, 2n, 3r lloc).
+        leaderboard:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerScoreItem'
+          description: Llista completa de classificació de tots els participants.
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: MATCH_NOT_FOUND
+            message:
+              type: string
+              example: La partida amb el PIN especificat no existeix o ja ha finalitzat.
+            details:
+              type: object
+
+  responses:
+    BadRequest:
+      description: Petició invàlida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: No autoritzat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurs no trobat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
