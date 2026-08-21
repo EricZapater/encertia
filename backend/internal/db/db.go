@@ -76,6 +76,7 @@ func RunMigrations(db *sql.DB) error {
 		"migrations/000003_create_quiz_tables.up.sql",
 		"migrations/000004_seed_initial_users.up.sql",
 		"migrations/000005_create_match_tables.up.sql",
+		"migrations/000006_create_evaluation_tables.up.sql",
 	}
 
 	for _, file := range migrationFiles {

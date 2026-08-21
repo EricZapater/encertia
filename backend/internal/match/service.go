@@ -15,6 +15,10 @@ import (
 )
 
 // Service defines the business logic operations for the match module.
+type MatchFinishedListener interface {
+	OnMatchFinished(matchID string) error
+}
+
 type Service interface {
 	CreateMatch(ctx context.Context, hostID, quizID uuid.UUID) (*MatchCreatedResponse, error)
 	GetMatchPublicInfo(ctx context.Context, pin string) (*MatchPublicInfo, error)
@@ -23,6 +27,7 @@ type Service interface {
 	GetMatchByID(ctx context.Context, id uuid.UUID) (*Match, error)
 	GetMatchByPIN(ctx context.Context, pin string) (*Match, error)
 	GetPlayerByMatchAndUser(ctx context.Context, matchID, userID uuid.UUID) (*MatchPlayer, error)
+	RegisterFinishedListener(listener MatchFinishedListener)
 
 	// WebSocket handling
 	HandleClientConnect(ctx context.Context, client *Client)
@@ -31,9 +36,14 @@ type Service interface {
 }
 
 type matchService struct {
-	repo    Repository
-	hub     *Hub
-	baseURL string
+	repo      Repository
+	hub       *Hub
+	baseURL   string
+	listeners []MatchFinishedListener
+}
+
+func (s *matchService) RegisterFinishedListener(listener MatchFinishedListener) {
+	s.listeners = append(s.listeners, listener)
 }
 
 // NewService creates a new instance of Service.

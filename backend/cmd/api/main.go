@@ -8,6 +8,7 @@ import (
 
 	"github.com/encertia/backend/internal/auth"
 	"github.com/encertia/backend/internal/db"
+	"github.com/encertia/backend/internal/evaluation"
 	"github.com/encertia/backend/internal/match"
 	"github.com/encertia/backend/internal/quiz"
 	"github.com/encertia/backend/internal/shared"
@@ -101,6 +102,12 @@ func main() {
 	matchSvc := match.NewService(matchRepo, matchHub, appBaseURL)
 	matchHandler := match.NewHandler(matchSvc, authHandler.TokenValidatorAdapter(), matchHub)
 
+	// Evaluation Domain
+	evalRepo := evaluation.NewRepository(dbConn)
+	evalSvc := evaluation.NewService(evalRepo, quizSvc)
+	evalHandler := evaluation.NewHandler(evalSvc)
+	matchSvc.RegisterFinishedListener(evalSvc)
+
 	// Middleware
 	authMiddleware := shared.AuthMiddleware(authHandler.TokenValidatorAdapter())
 
@@ -132,6 +139,7 @@ func main() {
 	userHandler.RegisterRoutes(rootGroup, authMiddleware)
 	quizHandler.RegisterRoutes(rootGroup, authMiddleware)
 	matchHandler.RegisterRoutes(rootGroup, authMiddleware)
+	evalHandler.RegisterRoutes(rootGroup, authMiddleware)
 
 	// Also support /api prefix for proxy convenience (/api/auth/*, /api/users/*, /api/quizzes/*, /api/matches/*, /api/uploads/*, /api/ws/match/*)
 	apiGroup := router.Group("/api")
@@ -139,6 +147,7 @@ func main() {
 	userHandler.RegisterRoutes(apiGroup, authMiddleware)
 	quizHandler.RegisterRoutes(apiGroup, authMiddleware)
 	matchHandler.RegisterRoutes(apiGroup, authMiddleware)
+	evalHandler.RegisterRoutes(apiGroup, authMiddleware)
 
 	// 6. Start HTTP Server
 	addr := ":" + serverPort

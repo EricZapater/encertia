@@ -82,6 +82,24 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
   },
   {
+    path: '/evaluations',
+    name: 'evaluations-list',
+    component: () => import('@/modules/evaluations/views/EvaluationsListView.vue'),
+    meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
+  },
+  {
+    path: '/evaluations/quizzes/:quizId',
+    name: 'quiz-evaluation',
+    component: () => import('@/modules/evaluations/views/QuizEvaluationView.vue'),
+    meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
+  },
+  {
+    path: '/evaluations/quizzes/:quizId/students/:studentId',
+    name: 'student-evaluation',
+    component: () => import('@/modules/evaluations/views/StudentEvaluationView.vue'),
+    meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }

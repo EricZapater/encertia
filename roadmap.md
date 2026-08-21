@@ -14,8 +14,8 @@ encaixa amb la resta.
    ✅ Implementat i validat (v0.4.0).
 4. **match** (partida en directe) — codi/PIN QR, unió d'alumnes, preguntes en directe amb temporitzador, WebSockets per rànquing en temps real.
    ✅ Implementat i validat (v0.5.0).
-5. **evaluation** — panell d'avaluació posterior pel professor, exportació
-   de resultats.
+5. **evaluation** — panell d'avaluació posterior pel professor, qualificació manual decimal 0-10 i estadístiques per pregunta.
+   ✅ Implementat i validat (v0.6.0).
 
 ## v2 — Ampliació a LMS (Opció B)
 

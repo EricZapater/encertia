@@ -1,0 +1,588 @@
+openapi: 3.0.3
+info:
+  title: Encertia Evaluation API
+  description: |
+    Contracte d'API REST per al mòdul d'avaluació d'Encertia.
+    Permet a professors i administradors consultar estadístiques de les partides
+    jugades, revisar les respostes individuals dels alumnes i assignar notes
+    definitives (escala 0–10 decimal) per a cada alumne i quiz.
+
+    **RBAC:**
+    - `admin`: accés complet a totes les avaluacions.
+    - `teacher`: accés complet, però restringit als quizzes que ha creat.
+    - `student`: cap accés (403 Forbidden a tots els endpoints).
+
+    **Nota calculada (`calculatedGrade`):** basada en la darrera partida de l'alumne
+    per aquell quiz → `(preguntes_encertades / total_preguntes) × 10`.
+    El professor pot sobreescriure-la amb una nota definitiva (`finalGrade`).
+  version: 1.0.0
+
+servers:
+  - url: https://api.encertia.ericzapater.cat
+    description: Servidor de Producció
+  - url: http://localhost:8080
+    description: Servidor de Desenvolupament Local
+
+paths:
+  /evaluations:
+    get:
+      summary: Llistar quizzes amb avaluació disponible
+      description: |
+        Retorna els quizzes que tenen almenys una partida finalitzada.
+        Un `teacher` només veu els seus propis quizzes; un `admin` els veu tots.
+      operationId: listEvaluations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Llista de quizzes amb resum d'avaluació
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationsListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /evaluations/quizzes/{quizId}:
+    get:
+      summary: Obtenir l'avaluació completa d'un quiz
+      description: |
+        Retorna les estadístiques globals per pregunta (taxa d'encert, temps mitjà,
+        distribució de respostes, alumnes sense resposta) i la taula d'alumnes
+        participants amb les seves notes calculades i definitives.
+      operationId: getQuizEvaluation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID del quiz a avaluar
+      responses:
+        '200':
+          description: Avaluació completa del quiz
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizEvaluationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /evaluations/quizzes/{quizId}/students/{studentId}:
+    get:
+      summary: Obtenir el detall d'un alumne per a un quiz
+      description: |
+        Retorna totes les partides en que l'alumne ha participat per aquell quiz,
+        amb el detall complet de les seves respostes per pregunta i per partida.
+        Inclou la nota calculada (darrera partida) i la nota definitiva si ja s'ha assignat.
+      operationId: getStudentEvaluation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID del quiz
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID de l'alumne (user)
+      responses:
+        '200':
+          description: Detall d'avaluació de l'alumne per al quiz
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentEvaluationDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /evaluations/quizzes/{quizId}/students/{studentId}/grade:
+    put:
+      summary: Assignar o modificar la nota definitiva d'un alumne
+      description: |
+        Permet a un professor o admin assignar o modificar la nota definitiva
+        (escala 0.00–10.00, màxim 2 decimals) per a un alumne en un quiz concret.
+        El camp `finalGrade` sobreescriu qualsevol valor anterior.
+        Una nota ja assignada pot modificar-se; `gradedBy` i `gradedAt` s'actualitzen.
+      operationId: gradeStudent
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID del quiz
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID de l'alumne (user)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeRequest'
+      responses:
+        '200':
+          description: Nota assignada o actualitzada correctament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    # ─── Llistat d'avaluacions ──────────────────────────────────────────────
+
+    EvaluationsListResponse:
+      type: object
+      required:
+        - evaluations
+      properties:
+        evaluations:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationQuizSummary'
+
+    EvaluationQuizSummary:
+      type: object
+      required:
+        - quizId
+        - quizTitle
+        - totalMatches
+        - totalStudents
+        - gradedCount
+        - lastMatchAt
+      properties:
+        quizId:
+          type: string
+          format: uuid
+          description: ID del quiz
+        quizTitle:
+          type: string
+          example: "Matemàtiques — Tema 3"
+        totalMatches:
+          type: integer
+          description: Nombre de partides finalitzades del quiz
+          example: 4
+        totalStudents:
+          type: integer
+          description: Nombre d'alumnes únics que han participat en almenys una partida
+          example: 28
+        gradedCount:
+          type: integer
+          description: Nombre d'alumnes amb nota definitiva assignada
+          example: 20
+        lastMatchAt:
+          type: string
+          format: date-time
+          description: Data i hora de la darrera partida finalitzada
+
+    # ─── Avaluació completa d'un quiz ───────────────────────────────────────
+
+    QuizEvaluationResponse:
+      type: object
+      required:
+        - quizId
+        - quizTitle
+        - totalMatches
+        - stats
+        - students
+      properties:
+        quizId:
+          type: string
+          format: uuid
+        quizTitle:
+          type: string
+          example: "Matemàtiques — Tema 3"
+        totalMatches:
+          type: integer
+          example: 4
+        stats:
+          type: array
+          description: Mètriques globals per pregunta, ordenades per order_index
+          items:
+            $ref: '#/components/schemas/QuestionStats'
+        students:
+          type: array
+          description: Llista d'alumnes participants amb les seves notes
+          items:
+            $ref: '#/components/schemas/StudentEvaluationSummary'
+
+    QuestionStats:
+      type: object
+      required:
+        - questionId
+        - questionText
+        - questionIndex
+        - hitRate
+        - avgResponseTimeMs
+        - answerDistribution
+        - noAnswerCount
+      properties:
+        questionId:
+          type: string
+          format: uuid
+        questionText:
+          type: string
+          example: "Quant és 2 + 2?"
+        questionIndex:
+          type: integer
+          description: Posició de la pregunta dins el quiz (0-based)
+          example: 0
+        hitRate:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Proporció de respostes correctes sobre el total de respostes (0.0–1.0)
+          example: 0.72
+        avgResponseTimeMs:
+          type: integer
+          description: Temps de resposta mitjà en mil·lisegons
+          example: 4350
+        answerDistribution:
+          type: array
+          description: Distribució de vots per opció de resposta
+          items:
+            $ref: '#/components/schemas/AnswerDistributionItem'
+        noAnswerCount:
+          type: integer
+          description: Nombre d'alumnes que no van respondre aquesta pregunta
+          example: 3
+
+    AnswerDistributionItem:
+      type: object
+      required:
+        - answerId
+        - answerText
+        - isCorrect
+        - count
+        - percentage
+      properties:
+        answerId:
+          type: string
+          format: uuid
+        answerText:
+          type: string
+          example: "4"
+        isCorrect:
+          type: boolean
+        count:
+          type: integer
+          description: Nombre d'alumnes que van triar aquesta opció
+          example: 32
+        percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Proporció sobre el total de respostes (0.0–1.0)
+          example: 0.72
+
+    StudentEvaluationSummary:
+      type: object
+      required:
+        - studentId
+        - studentName
+        - matchesCount
+        - calculatedGrade
+        - isGraded
+      properties:
+        studentId:
+          type: string
+          format: uuid
+        studentName:
+          type: string
+          example: "Joan Garcia"
+        matchesCount:
+          type: integer
+          description: Nombre de partides d'aquest quiz en que ha participat
+          example: 2
+        calculatedGrade:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          description: Nota auto-calculada a partir de la darrera partida (0.00–10.00)
+          example: 8.00
+        finalGrade:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          nullable: true
+          description: Nota definitiva assignada pel professor. Null si encara no s'ha qualificat.
+          example: 7.50
+        isGraded:
+          type: boolean
+          description: Indica si el professor ha assignat una nota definitiva
+          example: true
+
+    # ─── Detall d'un alumne ─────────────────────────────────────────────────
+
+    StudentEvaluationDetail:
+      type: object
+      required:
+        - evaluationId
+        - studentId
+        - studentName
+        - calculatedGrade
+        - isGraded
+        - matches
+      properties:
+        evaluationId:
+          type: string
+          format: uuid
+        studentId:
+          type: string
+          format: uuid
+        studentName:
+          type: string
+          example: "Joan Garcia"
+        calculatedGrade:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          description: Nota auto-calculada de la darrera partida (0.00–10.00)
+          example: 8.00
+        finalGrade:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          nullable: true
+          description: Nota definitiva assignada. Null si encara no s'ha qualificat.
+          example: 7.50
+        isGraded:
+          type: boolean
+          example: true
+        gradedBy:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID del professor que ha assignat la nota definitiva
+        gradedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Moment en que s'ha assignat o modificat per darrera vegada la nota definitiva
+        matches:
+          type: array
+          description: Llista de partides en que l'alumne ha participat per a aquest quiz, ordenades per data descendent
+          items:
+            $ref: '#/components/schemas/StudentMatchResult'
+
+    StudentMatchResult:
+      type: object
+      required:
+        - matchId
+        - matchDate
+        - score
+        - totalQuestions
+        - answers
+      properties:
+        matchId:
+          type: string
+          format: uuid
+        matchDate:
+          type: string
+          format: date-time
+          description: Data i hora en que va finalitzar la partida
+        score:
+          type: integer
+          description: Nombre de preguntes encertades en aquesta partida
+          example: 4
+        totalQuestions:
+          type: integer
+          description: Nombre total de preguntes del quiz
+          example: 5
+        answers:
+          type: array
+          description: Detall de les respostes de l'alumne per cada pregunta
+          items:
+            $ref: '#/components/schemas/StudentAnswerDetail'
+
+    StudentAnswerDetail:
+      type: object
+      required:
+        - questionId
+        - questionText
+        - questionIndex
+        - selectedAnswerIds
+        - correctAnswerIds
+        - isCorrect
+        - responseTimeMs
+      properties:
+        questionId:
+          type: string
+          format: uuid
+        questionText:
+          type: string
+          example: "Quant és 2 + 2?"
+        questionIndex:
+          type: integer
+          description: Posició de la pregunta dins el quiz (0-based)
+          example: 0
+        selectedAnswerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs de les opcions triades per l'alumne. Buit si no va respondre.
+        correctAnswerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs de les opcions correctes
+        isCorrect:
+          type: boolean
+          description: Si la resposta donada és correcta. False si no va respondre.
+        responseTimeMs:
+          type: integer
+          description: Temps de resposta en mil·lisegons. 0 si no va respondre.
+          example: 3200
+
+    # ─── Qualificació ───────────────────────────────────────────────────────
+
+    GradeRequest:
+      type: object
+      required:
+        - finalGrade
+      properties:
+        finalGrade:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          multipleOf: 0.01
+          description: Nota definitiva a assignar (0.00–10.00, màxim 2 decimals)
+          example: 7.50
+
+    GradeResponse:
+      type: object
+      required:
+        - evaluationId
+        - calculatedGrade
+        - finalGrade
+        - isGraded
+        - gradedBy
+        - gradedAt
+      properties:
+        evaluationId:
+          type: string
+          format: uuid
+        calculatedGrade:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          example: 8.00
+        finalGrade:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          example: 7.50
+        isGraded:
+          type: boolean
+          example: true
+        gradedBy:
+          type: string
+          format: uuid
+          description: ID del professor que ha assignat la nota
+        gradedAt:
+          type: string
+          format: date-time
+          description: Moment en que s'ha assignat o modificat la nota
+
+    # ─── Errors ─────────────────────────────────────────────────────────────
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: EVALUATION_NOT_FOUND
+            message:
+              type: string
+              example: No s'ha trobat cap avaluació per a aquest alumne i quiz.
+            details:
+              type: object
+
+  responses:
+    BadRequest:
+      description: Petició invàlida (p. ex. nota fora de rang 0–10)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: No autenticat (token absent o invàlid)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Accés prohibit (rol insuficient o quiz d'un altre professor)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurs no trobat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

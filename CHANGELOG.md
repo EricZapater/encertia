@@ -5,6 +5,23 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-21
+### Added
+- **Contracte d'API i Especificació**: Especificació funcional ([`contracts/evaluation.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/evaluation.spec.md)) i contracte OpenAPI 3.0 ([`contracts/evaluation.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/evaluation.openapi.yaml)) per al mòdul d'avaluació posterior pel professor (`evaluation`).
+- **Backend (`internal/evaluation`)**:
+  - Migració SQL `000006_create_evaluation_tables.up.sql` (taula `evaluations` amb unicitat `(quiz_id, student_id)` i claus foranes `ON DELETE CASCADE`).
+  - Lògica de recàlcul automàtic de `calculated_grade` basat en la darrera partida jugada per l'alumne, acotada al rang [0.00, 10.00] i truncada a 2 decimals.
+  - Preservació de la nota manual (`final_grade`) sense reset en noves partides.
+  - Pattern `MatchFinishedListener` a `match/service.go` per a la notificació automàtica i desacoblada en finalitzar una partida.
+  - Endpoints REST: `GET /evaluations`, `GET /evaluations/quizzes/:quizId`, `GET /evaluations/quizzes/:quizId/students/:studentId`, `PUT /evaluations/quizzes/:quizId/students/:studentId/grade`.
+  - Protecció RBAC (`admin` tot, `teacher` només els seus quizzes, `student` 403) i suites de unit tests completades.
+- **Frontend (`src/modules/evaluations`)**:
+  - Tipus TypeScript fidels al contracte OpenAPI, client d'API (`api.ts`), mock fidel (`mockData.ts`) i store Pinia (`useEvaluationStore`).
+  - Vista de llista de quizzes avaluables ([`EvaluationsListView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/evaluations/views/EvaluationsListView.vue)) a `/evaluations`.
+  - Vista d'avaluació global del quiz ([`QuizEvaluationView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/evaluations/views/QuizEvaluationView.vue)) amb estadístiques per pregunta i taula d'alumnes amb estat de qualificació.
+  - Vista de detall d'alumne ([`StudentEvaluationView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/evaluations/views/StudentEvaluationView.vue)) amb formulari de qualificació manual (0.00-10.00, 2 decimals) i desglossament de respostes per partida.
+  - Botó "Avaluar" integrat a l'editor i llistat de quizzes, i rutes protegides per rol (`admin`/`teacher`).
+
 ## [0.5.0] - 2026-08-21
 ### Added
 - **Contracte d'API i WebSocket**: Especificació funcional ([`contracts/match.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/match.spec.md)) i contracte OpenAPI 3.0 ([`contracts/match.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/match.openapi.yaml)) per al mòdul de partides multijugador en temps real (`match`).
