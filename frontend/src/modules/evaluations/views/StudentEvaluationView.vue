@@ -5,8 +5,12 @@
       <h1 class="text-2xl font-bold m-0" v-if="studentData">Avaluació de {{ studentData.studentName }}</h1>
     </div>
 
-    <Message v-if="store.error" severity="error" :closable="true" @close="store.clearError()">
+<Message v-if="store.error" severity="error" class="mb-4" :closable="true" @close="store.clearError()">
       {{ store.error }}
+    </Message>
+
+    <Message v-if="successMessage" severity="success" class="mb-4" :closable="true" @close="successMessage = null">
+      {{ successMessage }}
     </Message>
 
     <div v-if="store.isLoading" class="text-center p-4">
@@ -91,16 +95,19 @@ import InputNumber from 'primevue/inputnumber'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()
 const router = useRouter()
 const store = useEvaluationStore()
+const toast = useToast()
 
 const quizId = computed(() => route.params.quizId as string)
 const studentId = computed(() => route.params.studentId as string)
 const studentData = computed(() => store.activeStudentEvaluation)
 
 const gradeInput = ref<number | null>(null)
+const successMessage = ref<string | null>(null)
 
 onMounted(async () => {
   if (quizId.value && studentId.value) {
@@ -121,7 +128,20 @@ function initGradeInput() {
 
 async function onSaveGrade() {
   if (gradeInput.value === null || gradeInput.value === undefined) return
-  await store.saveStudentGrade(quizId.value, studentId.value, gradeInput.value)
+  successMessage.value = null
+  try {
+    const res = await store.saveStudentGrade(quizId.value, studentId.value, gradeInput.value)
+    const msg = `Nota de ${res.finalGrade.toFixed(2)} desada correctament.`
+    successMessage.value = msg
+    toast.add({
+      severity: 'success',
+      summary: 'Nota Desada',
+      detail: msg,
+      life: 4000
+    })
+  } catch (err) {
+    // Error feedback handled via store.error
+  }
 }
 
 function formatDate(isoStr: string): string {

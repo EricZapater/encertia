@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
 import AppNavbar from '@/components/AppNavbar.vue'
+import Toast from 'primevue/toast'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -17,6 +18,7 @@ const showNavbar = computed(() => {
 
 <template>
   <div id="encertia-root">
+    <Toast />
     <AppNavbar v-if="showNavbar" />
     <main class="main-content">
       <RouterView />

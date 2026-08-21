@@ -5,6 +5,13 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.7] - 2026-08-21
+### Added
+- **Frontend Student Evaluation View (`src/modules/evaluations/views/StudentEvaluationView.vue`)**:
+  - Incorporada notificació visual d'èxit via Toast de PrimeVue (`useToast()`) i de banner verd de confirmació (`<Message severity="success">`) en desar correctament una qualificació manual per a un alumne ("Nota de X.XX desada correctament.").
+- **Frontend Core Setup (`src/main.ts` & `src/App.vue`)**:
+  - Registrat `ToastService` a `main.ts` i integrat el component `<Toast />` global a `App.vue` per habilitar notificacions emergents a tota l'aplicació.
+
 ## [0.7.6] - 2026-08-21
 ### Fixed
 - **Backend Evaluation Handler (`internal/evaluation/handler.go`)**:
