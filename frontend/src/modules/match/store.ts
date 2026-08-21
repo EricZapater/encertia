@@ -4,17 +4,14 @@ import type {
   MatchStatus,
   MatchPlayer,
   MatchQuestion,
+  MatchAnswerOption,
   PlayerScoreItem,
   MatchSummaryResponse,
   MatchCreatedResponse,
-  WSMatchStateData,
   WSPlayerJoinedData,
   WSPlayerLeftData,
   WSPlayerKickedData,
-  WSQuestionPreviewData,
-  WSQuestionStartedData,
   WSAnswerStatsData,
-  WSQuestionEndedData,
   WSLeaderboardData,
   WSFinishedData
 } from './types'
@@ -123,7 +120,34 @@ export const useMatchStore = defineStore('match', () => {
       error.value = 'No es pot connectar amb el servidor de la partida.'
     })
 
-    client.on<WSMatchStateData>('match:state', (data) => {
+    function parseQuestionPayload(raw: any, existing?: MatchQuestion | null): MatchQuestion {
+      if (!raw) return existing || (null as any)
+      const qObj = raw.question || raw
+      const optionsSrc = raw.options || qObj.options || existing?.options || []
+
+      const options: MatchAnswerOption[] = optionsSrc.map((opt: any) => ({
+        id: opt.id || opt.optionId || '',
+        text: opt.text || '',
+        orderIndex: opt.orderIndex ?? 0,
+        imageUrl: opt.imageUrl,
+        isCorrect: opt.isCorrect,
+        count: opt.count,
+        percentage: opt.percentage
+      }))
+
+      return {
+        id: raw.questionId || raw.id || qObj.questionId || qObj.id || existing?.id || '',
+        orderIndex: raw.questionIndex ?? raw.orderIndex ?? qObj.questionIndex ?? qObj.orderIndex ?? existing?.orderIndex ?? 0,
+        title: raw.text || raw.title || qObj.text || qObj.title || existing?.title || '',
+        type: (raw.questionType || raw.type || qObj.questionType || qObj.type || existing?.type || 'single_choice') as any,
+        timeLimitSeconds: raw.timeLimitSeconds || qObj.timeLimitSeconds || existing?.timeLimitSeconds || 20,
+        points: raw.points || qObj.points || existing?.points || 1,
+        imageUrl: raw.imageUrl || qObj.imageUrl || existing?.imageUrl,
+        options: options
+      }
+    }
+
+    client.on<any>('match:state', (data) => {
       if (!data) return
       if (data.matchId) matchId.value = data.matchId
       if (data.pin) pin.value = data.pin
@@ -135,7 +159,9 @@ export const useMatchStore = defineStore('match', () => {
       if (data.players) players.value = data.players
       if (typeof data.currentQuestionIndex === 'number') currentQuestionIndex.value = data.currentQuestionIndex
       if (typeof data.totalQuestions === 'number') totalQuestions.value = data.totalQuestions
-      if (data.currentQuestion) currentQuestion.value = data.currentQuestion
+      if (data.currentQuestion) {
+        currentQuestion.value = parseQuestionPayload(data.currentQuestion, currentQuestion.value)
+      }
       if (typeof data.totalPlayers === 'number') totalPlayers.value = data.totalPlayers
     })
 
@@ -181,12 +207,12 @@ export const useMatchStore = defineStore('match', () => {
       }
     })
 
-    client.on<WSQuestionPreviewData>('match:question_preview', (data) => {
+    client.on<any>('match:question_preview', (data) => {
       if (!data) return
       status.value = 'question_preview'
-      currentQuestionIndex.value = data.questionIndex
-      totalQuestions.value = data.totalQuestions
-      currentQuestion.value = data.question
+      if (typeof data.questionIndex === 'number') currentQuestionIndex.value = data.questionIndex
+      if (typeof data.totalQuestions === 'number') totalQuestions.value = data.totalQuestions
+      currentQuestion.value = parseQuestionPayload(data, currentQuestion.value)
 
       // Reinicia estat de resposta per a la nova pregunta
       mySelectedAnswerIds.value = []
@@ -194,19 +220,19 @@ export const useMatchStore = defineStore('match', () => {
       lastAnswerResult.value = null
       answeredCount.value = 0
       stopLocalTimer()
-      timerSeconds.value = data.question?.timeLimitSeconds || 0
+      timerSeconds.value = currentQuestion.value?.timeLimitSeconds || data.timeLimitSeconds || 0
       initialTimeLimit.value = timerSeconds.value
     })
 
-    client.on<WSQuestionStartedData>('match:question_started', (data) => {
+    client.on<any>('match:question_started', (data) => {
       if (!data) return
       status.value = 'question_active'
-      currentQuestionIndex.value = data.questionIndex
-      totalQuestions.value = data.totalQuestions
-      if (data.question) currentQuestion.value = data.question
+      if (typeof data.questionIndex === 'number') currentQuestionIndex.value = data.questionIndex
+      if (typeof data.totalQuestions === 'number') totalQuestions.value = data.totalQuestions
+      currentQuestion.value = parseQuestionPayload(data, currentQuestion.value)
       answeredCount.value = 0
 
-      const seconds = data.timeLimitSeconds || data.question?.timeLimitSeconds || 20
+      const seconds = data.timeLimitSeconds || currentQuestion.value?.timeLimitSeconds || 20
       startLocalTimer(seconds)
     })
 
@@ -216,16 +242,27 @@ export const useMatchStore = defineStore('match', () => {
       if (data.totalPlayers) totalPlayers.value = data.totalPlayers
     })
 
-    client.on<WSQuestionEndedData>('match:question_ended', (data) => {
+    client.on<any>('match:question_ended', (data) => {
       if (!data) return
       status.value = 'question_results'
       stopLocalTimer()
 
-      if (currentQuestion.value && data.correctOptionIds) {
+      const correctOptionIds: string[] = data.correctAnswerIDs || data.correctOptionIds || []
+      const optionCounts = data.optionCounts
+
+      if (currentQuestion.value) {
         currentQuestion.value.options.forEach((opt) => {
-          opt.isCorrect = data.correctOptionIds?.includes(opt.id)
-          if (data.optionCounts && typeof data.optionCounts[opt.id] === 'number') {
-            opt.count = data.optionCounts[opt.id]
+          if (correctOptionIds.length > 0) {
+            opt.isCorrect = correctOptionIds.includes(opt.id)
+          }
+          if (Array.isArray(optionCounts)) {
+            const matchCount = optionCounts.find((item: any) => item.optionId === opt.id || item.id === opt.id)
+            if (matchCount) {
+              opt.count = matchCount.count
+              if (matchCount.isCorrect !== undefined) opt.isCorrect = matchCount.isCorrect
+            }
+          } else if (optionCounts && typeof optionCounts[opt.id] === 'number') {
+            opt.count = optionCounts[opt.id]
           }
         })
       }
@@ -235,8 +272,8 @@ export const useMatchStore = defineStore('match', () => {
           isCorrect: Boolean(data.isCorrect),
           scoreAwarded: data.scoreAwarded ?? (data.isCorrect ? 1 : 0),
           totalScore: data.totalScore ?? myScore.value,
-          correctOptionIds: data.correctOptionIds,
-          optionCounts: data.optionCounts
+          correctOptionIds: correctOptionIds,
+          optionCounts: optionCounts
         }
         if (typeof data.totalScore === 'number') {
           myScore.value = data.totalScore

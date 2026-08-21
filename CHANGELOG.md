@@ -5,6 +5,11 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-08-21
+### Fixed
+- **Frontend Match Store (`src/modules/match/store.ts`)**:
+  - Afegit la funció de parsatge i normalització `parseQuestionPayload` per als esdeveniments WebSocket `match:question_preview`, `match:question_started` i `match:state`. Corregit l'error on els camps d'enunciat, imatges i opcions venien plans a la resposta del backend i es desestimaven, deixant `currentQuestion` com a `undefined` durant la partida en directe.
+
 ## [0.7.0] - 2026-08-21
 ### Added
 - **Frontend UI & Layout Unification**:
