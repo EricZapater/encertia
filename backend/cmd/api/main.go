@@ -91,9 +91,9 @@ func main() {
 			"service":   "encertia-backend",
 		})
 	}
-	router.GET("/", healthHandler)
-	router.GET("/health", healthHandler)
-	router.GET("/api/health", healthHandler)
+	router.Match([]string{"GET", "HEAD"}, "/", healthHandler)
+	router.Match([]string{"GET", "HEAD"}, "/health", healthHandler)
+	router.Match([]string{"GET", "HEAD"}, "/api/health", healthHandler)
 
 	// Register routes directly at root (/auth/*, /users/*) as per OpenAPI contract
 	rootGroup := router.Group("")
