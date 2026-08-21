@@ -84,13 +84,16 @@ func main() {
 	router.Use(gin.Logger(), gin.Recovery(), shared.CORSMiddleware())
 
 	// Health Check
-	router.GET("/health", func(c *gin.Context) {
+	healthHandler := func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status":    "healthy",
 			"timestamp": time.Now().UTC().Format(time.RFC3339),
 			"service":   "encertia-backend",
 		})
-	})
+	}
+	router.GET("/", healthHandler)
+	router.GET("/health", healthHandler)
+	router.GET("/api/health", healthHandler)
 
 	// Register routes directly at root (/auth/*, /users/*) as per OpenAPI contract
 	rootGroup := router.Group("")

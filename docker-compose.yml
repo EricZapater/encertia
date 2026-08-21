@@ -15,6 +15,7 @@ services:
       - "traefik.http.routers.encertia-backend.rule=Host(`api.encertia.ericzapater.cat`)"
       - "traefik.http.routers.encertia-backend.entrypoints=websecure"
       - "traefik.http.routers.encertia-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.encertia-backend.service=encertia-backend"
       - "traefik.http.services.encertia-backend.loadbalancer.server.port=8080"
       - "traefik.docker.network=web"
 
