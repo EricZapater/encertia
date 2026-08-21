@@ -5,6 +5,11 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.6] - 2026-08-21
+### Fixed
+- **Backend Evaluation Handler (`internal/evaluation/handler.go`)**:
+  - Corregides les claus de lectura de context d'autenticació `userID` i `userRole`. Es feia servir `"userId"` i `"userRole"` en comptes de les constants oficials de `shared.AuthMiddleware` (`shared.CtxKeyUserID` = `"auth_user_id"` i `shared.CtxKeyUserRole` = `"auth_user_role"`). Això provocava que les consultes d'avaluació rebesten `userID = ""` i fallessin amb `INTERNAL_SERVER_ERROR` a PostgreSQL per format de UUID invàlid (`""`).
+
 ## [0.7.5] - 2026-08-21
 ### Fixed
 - **Backend Match Service (`internal/match/service.go`)**:

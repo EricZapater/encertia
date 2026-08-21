@@ -27,8 +27,8 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware gin.Handler
 }
 
 func (h *Handler) ListEvaluations(c *gin.Context) {
-	userID := c.GetString("userId")
-	role := c.GetString("userRole")
+	userID := c.GetString(shared.CtxKeyUserID)
+	role := c.GetString(shared.CtxKeyUserRole)
 
 	summaries, err := h.service.ListEvaluations(userID, role)
 	if err != nil {
@@ -45,8 +45,8 @@ func (h *Handler) ListEvaluations(c *gin.Context) {
 
 func (h *Handler) GetQuizEvaluation(c *gin.Context) {
 	quizID := c.Param("quizId")
-	userID := c.GetString("userId")
-	role := c.GetString("userRole")
+	userID := c.GetString(shared.CtxKeyUserID)
+	role := c.GetString(shared.CtxKeyUserRole)
 
 	resp, err := h.service.GetQuizEvaluation(quizID, userID, role)
 	if err != nil {
@@ -68,8 +68,8 @@ func (h *Handler) GetQuizEvaluation(c *gin.Context) {
 func (h *Handler) GetStudentEvaluation(c *gin.Context) {
 	quizID := c.Param("quizId")
 	studentID := c.Param("studentId")
-	userID := c.GetString("userId")
-	role := c.GetString("userRole")
+	userID := c.GetString(shared.CtxKeyUserID)
+	role := c.GetString(shared.CtxKeyUserRole)
 
 	resp, err := h.service.GetStudentEvaluation(quizID, studentID, userID, role)
 	if err != nil {
@@ -91,8 +91,8 @@ func (h *Handler) GetStudentEvaluation(c *gin.Context) {
 func (h *Handler) GradeStudent(c *gin.Context) {
 	quizID := c.Param("quizId")
 	studentID := c.Param("studentId")
-	userID := c.GetString("userId")
-	role := c.GetString("userRole")
+	userID := c.GetString(shared.CtxKeyUserID)
+	role := c.GetString(shared.CtxKeyUserRole)
 
 	var req GradeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
