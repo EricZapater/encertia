@@ -12,9 +12,7 @@ import {
   mockStudentDetails
 } from './mockData'
 
-const isMockEnabled =
-  import.meta.env.VITE_USE_MOCKS === 'true' ||
-  import.meta.env.VITE_USE_MOCKS === undefined
+const isMockEnabled = import.meta.env.VITE_USE_MOCKS === 'true'
 
 export async function listEvaluations(): Promise<EvaluationsListResponse> {
   if (isMockEnabled) {

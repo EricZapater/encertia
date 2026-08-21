@@ -581,6 +581,12 @@ func (s *matchService) handleHostNextQuestion(ctx context.Context, client *Clien
 			Event: ServerEventFinished,
 			Data:  summary,
 		})
+
+		for _, listener := range s.listeners {
+			if err := listener.OnMatchFinished(m.ID.String()); err != nil {
+				log.Printf("[WS Service] Error notificant listener OnMatchFinished per a la partida %s: %v", m.ID.String(), err)
+			}
+		}
 	}
 }
 

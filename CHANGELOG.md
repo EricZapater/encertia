@@ -5,6 +5,13 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.5] - 2026-08-21
+### Fixed
+- **Backend Match Service (`internal/match/service.go`)**:
+  - Afegida la crida als listeners `MatchFinishedListener` (`s.listeners`) en el moment que la partida passa a estat `StatusFinished` a `handleHostNextQuestion`. Això permet que el servei d'avaluació (`evaluation.Service`) rebi el missatge `OnMatchFinished(matchID)` i calculi/enregistri les notes automàticament a la taula `evaluations`.
+- **Frontend Evaluations API (`src/modules/evaluations/api.ts`)**:
+  - Corregida l'avaluació de `isMockEnabled` perquè només s'activi si `VITE_USE_MOCKS === 'true'` explícitament. Eliminat el fallback silenciós que retornava `mockData` quan la crida real a l'API d'avaluacions fallava o no trobava dades.
+
 ## [0.7.4] - 2026-08-21
 ### Fixed
 - **Backend Match Handler (`internal/match/handler.go`)**:
