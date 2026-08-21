@@ -291,11 +291,39 @@ function removeQuestionImage() {
 }
 
 // Actualització des de modal de configuració
-function handleSettingsSaved(updatedFields: Partial<QuizDetail>) {
+async function handleSettingsSaved(updatedFields: Partial<QuizDetail>) {
+  // Primer actualitzem l'estat local per reflectir els canvis a la UI immediatament
   Object.assign(currentQuiz.value, updatedFields)
-  feedbackMessage.value = {
-    type: 'success',
-    text: 'Configuració del qüestionari actualitzada.'
+
+  // Si el quiz ja existeix al servidor, persistim les metadades via PUT
+  if (!isNewQuiz.value && quizId.value) {
+    try {
+      const updated = await quizStore.updateQuiz(quizId.value, {
+        title: currentQuiz.value.title,
+        description: currentQuiz.value.description,
+        coverImageUrl: currentQuiz.value.coverImageUrl,
+        status: currentQuiz.value.status,
+        tags: currentQuiz.value.tags
+        // No enviem `questions` → el backend conserva les preguntes existents
+      })
+      // Sincronitzem amb la resposta del servidor
+      Object.assign(currentQuiz.value, updated)
+      feedbackMessage.value = {
+        type: 'success',
+        text: `Configuració desada. Estat: "${updated.status}".`
+      }
+    } catch (err: any) {
+      feedbackMessage.value = {
+        type: 'error',
+        text: err.message || 'Error en desar la configuració del qüestionari.'
+      }
+    }
+  } else {
+    // Quiz nou: només actualitzem l'estat local (es desarà al crear)
+    feedbackMessage.value = {
+      type: 'success',
+      text: 'Configuració del qüestionari actualitzada.'
+    }
   }
 }
 
