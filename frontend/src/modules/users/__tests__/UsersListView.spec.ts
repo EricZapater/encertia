@@ -12,6 +12,13 @@ vi.mock('vue-router', () => ({
   })
 }))
 
+vi.mock('../api', () => ({
+  listUsers: vi.fn().mockResolvedValue({
+    items: [],
+    pagination: { page: 1, pageSize: 20, totalCount: 0, totalPages: 0 }
+  })
+}))
+
 describe('UsersListView Component', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
