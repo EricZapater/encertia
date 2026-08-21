@@ -654,3 +654,90 @@ func TestDuplicateQuiz_Permissions(t *testing.T) {
 		t.Errorf("expected duplicated quiz creator to be admin (%s), got %s", adminID, resAdmin.CreatorID)
 	}
 }
+
+// 7. Temporary ID vs Valid UUID Tests
+func TestQuiz_TemporaryAndValidIDs(t *testing.T) {
+	svc, _ := setupQuizService()
+	ctx := context.Background()
+	ownerID := uuid.New()
+
+	tempQID := "new-q-0"
+	tempAnsID := "new-ans-0"
+	explicitQUUID := uuid.New().String()
+	explicitAnsUUID := uuid.New().String()
+
+	created, appErr := svc.CreateQuiz(ctx, ownerID, "teacher", quiz.CreateQuizInput{
+		Title:  "Quiz amb IDs temporals i explícits",
+		Status: quiz.StatusPublished,
+		Questions: []quiz.SaveQuestionInput{
+			{
+				ID:               &tempQID,
+				Text:             "Pregunta temporal",
+				QuestionType:     quiz.QuestionTypeSingle,
+				TimeLimitSeconds: 20,
+				Answers: []quiz.SaveAnswerInput{
+					{ID: &tempAnsID, Text: "Resposta temporal 1", IsCorrect: true, OrderIndex: 0},
+					{Text: "Resposta sense ID", IsCorrect: false, OrderIndex: 1},
+				},
+			},
+			{
+				ID:               &explicitQUUID,
+				Text:             "Pregunta amb UUID existent",
+				QuestionType:     quiz.QuestionTypeSingle,
+				TimeLimitSeconds: 20,
+				Answers: []quiz.SaveAnswerInput{
+					{ID: &explicitAnsUUID, Text: "Resposta amb UUID", IsCorrect: true, OrderIndex: 0},
+					{Text: "Resposta 2", IsCorrect: false, OrderIndex: 1},
+				},
+			},
+		},
+	})
+	if appErr != nil {
+		t.Fatalf("unexpected error creating quiz: %v", appErr)
+	}
+
+	// 1. Temporary Q ID should be replaced with a valid non-nil UUID
+	if created.Questions[0].ID == uuid.Nil {
+		t.Error("expected valid generated UUID for tempQID, got nil UUID")
+	}
+	if created.Questions[0].Answers[0].ID == uuid.Nil {
+		t.Error("expected valid generated UUID for tempAnsID, got nil UUID")
+	}
+
+	// 2. Explicit valid UUID should be preserved
+	if created.Questions[1].ID.String() != explicitQUUID {
+		t.Errorf("expected explicit UUID %s, got %s", explicitQUUID, created.Questions[1].ID.String())
+	}
+	if created.Questions[1].Answers[0].ID.String() != explicitAnsUUID {
+		t.Errorf("expected explicit UUID %s, got %s", explicitAnsUUID, created.Questions[1].Answers[0].ID.String())
+	}
+
+	// 3. Update with temporary IDs
+	tempQID2 := "new-q-1"
+	tempAnsID2 := "new-ans-1"
+	updated, appErrUp := svc.UpdateQuiz(ctx, ownerID, "teacher", created.ID, quiz.UpdateQuizInput{
+		Title: "Quiz Actualitzat amb Temp IDs",
+		Questions: []quiz.SaveQuestionInput{
+			{
+				ID:               &tempQID2,
+				Text:             "Pregunta actualitzada temporal",
+				QuestionType:     quiz.QuestionTypeSingle,
+				TimeLimitSeconds: 20,
+				Answers: []quiz.SaveAnswerInput{
+					{ID: &tempAnsID2, Text: "Resposta temporal nova", IsCorrect: true, OrderIndex: 0},
+					{Text: "Resposta 2", IsCorrect: false, OrderIndex: 1},
+				},
+			},
+		},
+	})
+	if appErrUp != nil {
+		t.Fatalf("unexpected error updating quiz: %v", appErrUp)
+	}
+
+	if updated.Questions[0].ID == uuid.Nil {
+		t.Error("expected valid generated UUID on update, got nil UUID")
+	}
+	if updated.Questions[0].Answers[0].ID == uuid.Nil {
+		t.Error("expected valid generated UUID on update answer, got nil UUID")
+	}
+}

@@ -149,7 +149,7 @@ func (m *mockRepository) CreateQuiz(ctx context.Context, creatorID uuid.UUID, in
 	}
 
 	for qIdx, qInput := range input.Questions {
-		qID := uuid.New()
+		qID := quiz.ParseOrGenerateUUID(qInput.ID)
 		timeLimit := qInput.TimeLimitSeconds
 		if timeLimit == 0 {
 			timeLimit = 20
@@ -182,7 +182,7 @@ func (m *mockRepository) CreateQuiz(ctx context.Context, creatorID uuid.UUID, in
 				ansOrderIdx = aIdx
 			}
 			ans := quiz.QuizAnswer{
-				ID:         uuid.New(),
+				ID:         quiz.ParseOrGenerateUUID(aInput.ID),
 				QuestionID: qID,
 				Text:       aInput.Text,
 				IsCorrect:  aInput.IsCorrect,
@@ -226,10 +226,7 @@ func (m *mockRepository) UpdateQuiz(ctx context.Context, id uuid.UUID, input qui
 	if input.Questions != nil {
 		qd.Questions = make([]quiz.QuizQuestion, 0, len(input.Questions))
 		for qIdx, qInput := range input.Questions {
-			qID := uuid.New()
-			if qInput.ID != nil && *qInput.ID != uuid.Nil {
-				qID = *qInput.ID
-			}
+			qID := quiz.ParseOrGenerateUUID(qInput.ID)
 			timeLimit := qInput.TimeLimitSeconds
 			if timeLimit == 0 {
 				timeLimit = 20
@@ -257,16 +254,12 @@ func (m *mockRepository) UpdateQuiz(ctx context.Context, id uuid.UUID, input qui
 			}
 
 			for aIdx, aInput := range qInput.Answers {
-				aID := uuid.New()
-				if aInput.ID != nil && *aInput.ID != uuid.Nil {
-					aID = *aInput.ID
-				}
 				ansOrderIdx := aInput.OrderIndex
 				if ansOrderIdx == 0 && aIdx > 0 {
 					ansOrderIdx = aIdx
 				}
 				ans := quiz.QuizAnswer{
-					ID:         aID,
+					ID:         quiz.ParseOrGenerateUUID(aInput.ID),
 					QuestionID: qID,
 					Text:       aInput.Text,
 					IsCorrect:  aInput.IsCorrect,

@@ -340,6 +340,12 @@ function validateQuiz(): string | null {
   return null
 }
 
+function cleanUUID(id?: string | null): string | undefined {
+  if (!id) return undefined
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  return uuidRegex.test(id) ? id : undefined
+}
+
 async function handleSaveQuiz() {
   feedbackMessage.value = null
   const validationError = validateQuiz()
@@ -350,14 +356,14 @@ async function handleSaveQuiz() {
 
   const formattedQuestions: SaveQuestionInput[] = currentQuiz.value.questions.map(
     (q, qIdx) => ({
-      id: q.id && !q.id.startsWith('q-temp-') ? q.id : undefined,
+      id: cleanUUID(q.id),
       text: q.text.trim(),
       imageUrl: q.imageUrl,
       questionType: q.questionType,
       timeLimitSeconds: q.timeLimitSeconds,
       orderIndex: qIdx,
       answers: q.answers.map((a, aIdx) => ({
-        id: a.id && !a.id.startsWith('ans-') ? a.id : undefined,
+        id: cleanUUID(a.id),
         text: a.text.trim(),
         isCorrect: a.isCorrect,
         orderIndex: aIdx

@@ -256,3 +256,97 @@ func TestHTTP_UploadImage(t *testing.T) {
 		t.Errorf("expected non-empty url and key, got url=%s, key=%s", res.URL, res.Key)
 	}
 }
+
+func TestHTTP_CreateAndUpdateQuizWithTemporaryIDs(t *testing.T) {
+	svc, _ := setupQuizService()
+	storageSvc := shared.NewStorageService(shared.StorageConfig{LocalUploadDir: t.TempDir()})
+	teacherID := uuid.New()
+	router := setupTestQuizRouter(svc, storageSvc, teacherID, "teacher", "teacher@encertia.cat")
+
+	// Raw JSON containing temporary client IDs like 'new-q-0' and 'new-ans-0'
+	createJSON := `{
+		"title": "Quiz amb IDs temporals",
+		"status": "draft",
+		"questions": [
+			{
+				"id": "new-q-0",
+				"text": "Com es diu la capital?",
+				"questionType": "single_choice",
+				"timeLimitSeconds": 20,
+				"orderIndex": 0,
+				"answers": [
+					{
+						"id": "new-ans-0",
+						"text": "Barcelona",
+						"isCorrect": true,
+						"orderIndex": 0
+					},
+					{
+						"id": "new-ans-1",
+						"text": "Girona",
+						"isCorrect": false,
+						"orderIndex": 1
+					}
+				]
+			}
+		]
+	}`
+
+	req, _ := http.NewRequest(http.MethodPost, "/quizzes", bytes.NewBufferString(createJSON))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected 201 Created for quiz with temporary IDs, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var res quiz.QuizDetail
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("failed to decode quiz detail: %v", err)
+	}
+
+	if len(res.Questions) != 1 {
+		t.Fatalf("expected 1 question, got %d", len(res.Questions))
+	}
+	if res.Questions[0].ID == uuid.Nil {
+		t.Error("expected valid generated UUID for question, got Nil")
+	}
+	if len(res.Questions[0].Answers) != 2 {
+		t.Fatalf("expected 2 answers, got %d", len(res.Questions[0].Answers))
+	}
+	if res.Questions[0].Answers[0].ID == uuid.Nil {
+		t.Error("expected valid generated UUID for answer, got Nil")
+	}
+
+	// Update with temporary IDs
+	updateJSON := `{
+		"title": "Quiz actualitzat amb IDs temporals",
+		"questions": [
+			{
+				"id": "new-q-updated-0",
+				"text": "Com es diu el riu?",
+				"questionType": "single_choice",
+				"timeLimitSeconds": 20,
+				"orderIndex": 0,
+				"answers": [
+					{
+						"id": "new-ans-updated-0",
+						"text": "Ebre",
+						"isCorrect": true,
+						"orderIndex": 0
+					}
+				]
+			}
+		]
+	}`
+
+	reqUp, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/quizzes/%s", res.ID), bytes.NewBufferString(updateJSON))
+	reqUp.Header.Set("Content-Type", "application/json")
+	wUp := httptest.NewRecorder()
+	router.ServeHTTP(wUp, reqUp)
+
+	if wUp.Code != http.StatusOK {
+		t.Fatalf("expected 200 OK for update quiz with temporary IDs, got %d: %s", wUp.Code, wUp.Body.String())
+	}
+}

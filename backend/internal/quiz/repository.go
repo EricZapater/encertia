@@ -365,7 +365,7 @@ func (r *postgresRepository) CreateQuiz(ctx context.Context, creatorID uuid.UUID
 	}
 
 	for qIdx, qInput := range input.Questions {
-		qID := uuid.New()
+		qID := ParseOrGenerateUUID(qInput.ID)
 		timeLimit := qInput.TimeLimitSeconds
 		if timeLimit == 0 {
 			timeLimit = 20
@@ -398,7 +398,7 @@ func (r *postgresRepository) CreateQuiz(ctx context.Context, creatorID uuid.UUID
 		}
 
 		for aIdx, aInput := range qInput.Answers {
-			aID := uuid.New()
+			aID := ParseOrGenerateUUID(aInput.ID)
 			ansOrderIdx := aInput.OrderIndex
 			if ansOrderIdx == 0 && aIdx > 0 {
 				ansOrderIdx = aIdx
@@ -483,10 +483,7 @@ func (r *postgresRepository) UpdateQuiz(ctx context.Context, id uuid.UUID, input
 
 		// Insert updated questions and answers
 		for qIdx, qInput := range input.Questions {
-			qID := uuid.New()
-			if qInput.ID != nil && *qInput.ID != uuid.Nil {
-				qID = *qInput.ID
-			}
+			qID := ParseOrGenerateUUID(qInput.ID)
 			timeLimit := qInput.TimeLimitSeconds
 			if timeLimit == 0 {
 				timeLimit = 20
@@ -519,10 +516,7 @@ func (r *postgresRepository) UpdateQuiz(ctx context.Context, id uuid.UUID, input
 			}
 
 			for aIdx, aInput := range qInput.Answers {
-				aID := uuid.New()
-				if aInput.ID != nil && *aInput.ID != uuid.Nil {
-					aID = *aInput.ID
-				}
+				aID := ParseOrGenerateUUID(aInput.ID)
 				ansOrderIdx := aInput.OrderIndex
 				if ansOrderIdx == 0 && aIdx > 0 {
 					ansOrderIdx = aIdx

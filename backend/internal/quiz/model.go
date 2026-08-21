@@ -82,21 +82,34 @@ type QuizDetail struct {
 
 // SaveAnswerInput is used when creating or updating question answers.
 type SaveAnswerInput struct {
-	ID         *uuid.UUID `json:"id,omitempty"`
-	Text       string     `json:"text"`
-	IsCorrect  bool       `json:"isCorrect"`
-	OrderIndex int        `json:"orderIndex"`
+	ID         *string `json:"id,omitempty"`
+	Text       string  `json:"text"`
+	IsCorrect  bool    `json:"isCorrect"`
+	OrderIndex int     `json:"orderIndex"`
 }
 
 // SaveQuestionInput is used when creating or updating quiz questions.
 type SaveQuestionInput struct {
-	ID               *uuid.UUID        `json:"id,omitempty"`
+	ID               *string           `json:"id,omitempty"`
 	Text             string            `json:"text"`
 	ImageURL         *string           `json:"imageUrl,omitempty"`
 	QuestionType     QuestionType      `json:"questionType"`
 	TimeLimitSeconds int               `json:"timeLimitSeconds"`
 	OrderIndex       int               `json:"orderIndex"`
 	Answers          []SaveAnswerInput `json:"answers"`
+}
+
+// ParseOrGenerateUUID returns the parsed UUID if valid and non-nil, or generates a new UUID.
+func ParseOrGenerateUUID(id *string) uuid.UUID {
+	if id != nil {
+		trimmed := *id
+		if trimmed != "" {
+			if parsed, err := uuid.Parse(trimmed); err == nil && parsed != uuid.Nil {
+				return parsed
+			}
+		}
+	}
+	return uuid.New()
 }
 
 // CreateQuizInput represents payload to create a new quiz.
