@@ -78,7 +78,7 @@ async function handleFileChange(event: Event) {
     const url = await quizStore.uploadImage(file)
     coverImageUrl.value = url
   } catch (err: any) {
-    errorMessage.value = err.response?.data?.error || err.message || "Error en pujar la imatge de portada."
+    errorMessage.value = err.message || "Error en pujar la imatge de portada."
   } finally {
     isUploading.value = false
     if (target) target.value = ''

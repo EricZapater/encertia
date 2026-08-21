@@ -276,7 +276,7 @@ async function handleQuestionImageChange(event: Event) {
   } catch (err: any) {
     feedbackMessage.value = {
       type: 'error',
-      text: err.response?.data?.error || err.message || "Error en pujar la imatge de la pregunta."
+      text: err.message || "Error en pujar la imatge de la pregunta."
     }
   } finally {
     isUploadingImage.value = false
