@@ -239,9 +239,16 @@ export const useQuizStore = defineStore('quiz', () => {
       const res = await quizApi.uploadImage(file)
       return res.url
     } catch (err: any) {
-      error.value =
-        err.response?.data?.error || err.message || 'Error en pujar la imatge.'
-      throw err
+      const status = err.response?.status
+      let message: string
+      if (status === 413) {
+        message = `La imatge és massa gran per ser pujada. La mida màxima permesa és de 5 MB (la teva pesa ${(file.size / (1024 * 1024)).toFixed(1)} MB).`
+      } else {
+        message = err.response?.data?.error?.message ?? err.response?.data?.error ?? err.message ?? 'Error en pujar la imatge.'
+      }
+      error.value = message
+      const uploadError = new Error(message)
+      throw uploadError
     } finally {
       isUploading.value = false
     }
