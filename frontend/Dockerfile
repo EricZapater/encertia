@@ -15,6 +15,10 @@ RUN pnpm install --no-frozen-lockfile
 # Copy source code and configuration files
 COPY . .
 
+# Environment variable for Vite build
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Build SPA distribution
 RUN pnpm build
 
