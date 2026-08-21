@@ -1,0 +1,682 @@
+openapi: 3.0.3
+info:
+  title: Encertia - User API
+  description: Contracte d'API per a la gestió d'usuaris (alumnes, professors, administradors) i altes individuals/massives d'Encertia.
+  version: 0.1.0
+paths:
+  /users:
+    get:
+      summary: Llistat d'usuaris amb filtres i paginació
+      description: Retorna una llista paginada d'usuaris. Permès per a usuaris amb rol `admin` (tots els rols) i `teacher` (només alumnes).
+      operationId: listUsers
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Número de pàgina (1-indexed).
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: pageSize
+          in: query
+          description: Quantitat d'elements per pàgina (màxim 100).
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          description: Text per cercar en nom, cognoms o email.
+          required: false
+          schema:
+            type: string
+        - name: role
+          in: query
+          description: Filtre per rol d'usuari.
+          required: false
+          schema:
+            $ref: '#/components/schemas/UserRole'
+        - name: status
+          in: query
+          description: Filtre per estat de l'usuari (active, inactive, all). Per defecte `active`.
+          required: false
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+              - all
+            default: active
+      responses:
+        '200':
+          description: Llistat d'usuaris recuperat amb èxit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+        '401':
+          description: No autenticat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: No autoritzat (rol insuficient).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error intern del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Creació individual d'un usuari des de l'aplicació
+      description: Permet a un administrador crear usuaris de qualsevol rol (admin, teacher, student) o a un professor crear exclusivament usuaris student.
+      operationId: createUser
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: Usuari creat amb èxit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Dades invàlides o contrasenya no vàlida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: No autoritzat per crear usuaris amb el rol sol·licitat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: L'adreça de correu ja existeix.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error intern del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/batch:
+    post:
+      summary: Alta massiva d'usuaris (Batch / CSV)
+      description: Permet crear múltiples usuaris d'un sol cop (principalment alumnes). Retorna un informe amb els usuaris creats i els errors de validació per fila.
+      operationId: batchCreateUsers
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchCreateUsersRequest'
+      responses:
+        '200':
+          description: Processament del lot finalitzat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchCreateUsersResponse'
+        '400':
+          description: Format del cos de la petició invàlid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: No autoritzat per fer importació massiva.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error intern del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/{id}:
+    get:
+      summary: Obtenir dades d'un usuari per ID
+      description: Retorna la informació de perfil d'un usuari específic.
+      operationId: getUserById
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador únic (UUID) de l'usuari.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Usuari trobat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: No autenticat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: No autoritzat per consultar aquest usuari.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Usuari no trobat o donat de baixa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error intern del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Modificació de dades d'un usuari
+      description: |
+        Actualitza el perfil d'un usuari.
+        - Un usuari autenticat pot modificar el seu propi perfil (`firstName`, `lastName`, `email`). Si intenta canviar `role` o `isActive`, es retorna `403 Forbidden`.
+        - Un usuari amb rol `admin` pot modificar qualsevol usuari i qualsevol camp, incloent `role` i `isActive` (reactivar/desactivar).
+        - Si el compte d'un usuari està inactiu o donat de baixa, aquest usuari no pot modificar les seves dades.
+      operationId: updateUser
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID de l'usuari a modificar.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Usuari actualitzat amb èxit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Dades invàlides.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: No autoritzat per modificar aquest usuari.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Usuari no trobat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: El correu electrònic ja està en ús per un altre usuari.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error intern del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Donar de baixa un usuari (Soft-Delete)
+      description: Aplica baixa lògica (soft-delete) a l'usuari i revoca les seves sessions. Les seves respostes i dades històriques es conserven.
+      operationId: deleteUser
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID de l'usuari a eliminar.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Usuari donat de baixa correctament.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: No autenticat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: No autoritzat per donar de baixa aquest usuari.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Usuari no trobat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error intern del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/{id}/password:
+    post:
+      summary: Reseteig administratiu de contrasenya
+      description: Permet a un administrador (o professor per als seus alumnes) canviar la contrasenya d'un usuari i revocar sessions existents.
+      operationId: resetUserPassword
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID de l'usuari.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Contrasenya actualitzada correctament.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Contrasenya no compleix els requisits mínims.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: No autoritzat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Usuari no trobat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error intern del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserRole:
+      type: string
+      enum:
+        - admin
+        - teacher
+        - student
+      description: Rol de l'usuari a la plataforma Encertia.
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+        - role
+        - isActive
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        email:
+          type: string
+          format: email
+          example: "alumne@encertia.cat"
+        firstName:
+          type: string
+          example: "Marc"
+        lastName:
+          type: string
+          example: "Rovira"
+        role:
+          $ref: '#/components/schemas/UserRole'
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-08-21T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-08-21T10:00:00Z"
+
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - firstName
+        - lastName
+        - role
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "nou.alumne@encertia.cat"
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: "Provisional123!"
+        firstName:
+          type: string
+          minLength: 1
+          example: "Laia"
+        lastName:
+          type: string
+          minLength: 1
+          example: "Sole"
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "laia.actualitzada@encertia.cat"
+        firstName:
+          type: string
+          minLength: 1
+          example: "Laia"
+        lastName:
+          type: string
+          minLength: 1
+          example: "Sole Costa"
+        role:
+          $ref: '#/components/schemas/UserRole'
+        isActive:
+          type: boolean
+          example: true
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - newPassword
+      properties:
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+          example: "NovaContrasenya456!"
+
+    BatchUserItem:
+      type: object
+      required:
+        - email
+        - firstName
+        - lastName
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          example: "estudiant1@encertia.cat"
+        firstName:
+          type: string
+          example: "Pol"
+        lastName:
+          type: string
+          example: "Vila"
+        role:
+          $ref: '#/components/schemas/UserRole'
+        password:
+          type: string
+          minLength: 8
+          description: Opcional. Si no s'especifica, s'assigna una contrasenya per defecte o generada.
+          example: "Provisional123!"
+
+    BatchCreateUsersRequest:
+      type: object
+      required:
+        - users
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchUserItem'
+          minItems: 1
+          maxItems: 500
+
+    BatchItemError:
+      type: object
+      required:
+        - row
+        - email
+        - error
+      properties:
+        row:
+          type: integer
+          description: Número de fila o índex (1-indexed).
+          example: 3
+        email:
+          type: string
+          example: "repetit@encertia.cat"
+        error:
+          type: string
+          example: "EMAIL_ALREADY_EXISTS"
+
+    BatchCreateUsersResponse:
+      type: object
+      required:
+        - totalRequested
+        - createdCount
+        - failedCount
+        - createdUsers
+        - errors
+      properties:
+        totalRequested:
+          type: integer
+          example: 25
+        createdCount:
+          type: integer
+          example: 24
+        failedCount:
+          type: integer
+          example: 1
+        createdUsers:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchItemError'
+
+    PaginationMetadata:
+      type: object
+      required:
+        - page
+        - pageSize
+        - totalCount
+        - totalPages
+      properties:
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 20
+        totalCount:
+          type: integer
+          example: 45
+        totalPages:
+          type: integer
+          example: 3
+
+    UserListResponse:
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+
+    UserResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Operació completada correctament."
+
+    ErrorDetail:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: "FORBIDDEN"
+        message:
+          type: string
+          example: "No tens permisos suficients per realitzar aquesta acció."
+        details:
+          type: object
+          additionalProperties: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetail'

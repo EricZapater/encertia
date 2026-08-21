@@ -1,0 +1,42 @@
+services:
+  encertia-backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-ericzapater}/encertia-backend:latest
+    container_name: encertia-backend
+    restart: unless-stopped
+    env_file:
+      - .env.backend
+    environment:
+      - TZ=Europe/Madrid
+    networks:
+      - postgres-network
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.encertia-backend.rule=Host(`api.encertia.ericzapater.cat`)"
+      - "traefik.http.routers.encertia-backend.entrypoints=websecure"
+      - "traefik.http.routers.encertia-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.encertia-backend.loadbalancer.server.port=8080"
+      - "traefik.docker.network=web"
+
+  encertia-frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-ericzapater}/encertia-frontend:latest
+    container_name: encertia-frontend
+    restart: unless-stopped
+    env_file:
+      - .env.frontend
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.encertia-frontend.rule=Host(`encertia.ericzapater.cat`)"
+      - "traefik.http.routers.encertia-frontend.entrypoints=websecure"
+      - "traefik.http.routers.encertia-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.encertia-frontend.service=encertia-frontend"
+      - "traefik.http.services.encertia-frontend.loadbalancer.server.port=80"
+      - "traefik.docker.network=web"
+
+networks:
+  web:
+    external: true
+  postgres-network:
+    external: true
