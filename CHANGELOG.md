@@ -5,6 +5,15 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-21
+### Added
+- **Frontend UI & Layout Unification**:
+  - Nova barra de navegació superior global ([`AppNavbar.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/components/AppNavbar.vue)) accessible en totes les pàgines de la gestió autenticada.
+  - Navegació directa entre **Jocs & Quizzes** (`/quizzes`), **Avaluacions** (`/evaluations`), **Usuaris** (`/users`), **Perfil** (`/profile`) i indicador de **Cursos (v2 LMS)**.
+  - Filtrat dinàmic de navegació segons el rol de l'usuari (`Admin`, `Professor`, `Alumne`).
+  - Ocultació automàtica de la barra de navegació durant les pantalles de joc en directe estil Kahoot (`/play` i `/matches/:id/host`).
+  - Tests unitaris a [`AppNavbar.spec.ts`](file:///Users/eric.zapater/Developer/encertia/frontend/src/components/__tests__/AppNavbar.spec.ts).
+
 ## [0.6.1] - 2026-08-21
 ### Fixed
 - **Backend (`internal/match` & `internal/evaluation`)**:

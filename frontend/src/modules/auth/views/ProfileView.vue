@@ -68,43 +68,6 @@ onMounted(() => {
 
 <template>
   <div class="profile-container">
-    <header class="app-header">
-      <div class="header-content">
-        <div class="brand">
-          <span class="brand-name">Encertia</span>
-          <span class="brand-badge">Educació</span>
-        </div>
-        <div class="header-actions">
-          <Button
-            label="Els meus Jocs"
-            icon="pi pi-bolt"
-            severity="info"
-            size="small"
-            @click="router.push('/quizzes')"
-            data-testid="btn-nav-quizzes"
-          />
-          <Button
-            v-if="authStore.isAdmin || authStore.isTeacher"
-            label="Gestió d'Usuaris"
-            icon="pi pi-users"
-            severity="primary"
-            size="small"
-            @click="router.push('/users')"
-            data-testid="btn-nav-users"
-          />
-          <Button
-            label="Tancar Sessió"
-            icon="pi pi-sign-out"
-            severity="secondary"
-            outlined
-            size="small"
-            :loading="isLoggingOut"
-            @click="handleLogout"
-          />
-        </div>
-      </div>
-    </header>
-
     <main class="profile-main">
       <div class="profile-wrapper">
         <Message v-if="successMessage" severity="success" class="mb-4">

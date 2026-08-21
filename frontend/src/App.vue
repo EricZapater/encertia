@@ -1,10 +1,26 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import { useAuthStore } from '@/modules/auth/store'
+import AppNavbar from '@/components/AppNavbar.vue'
+
+const route = useRoute()
+const authStore = useAuthStore()
+
+const showNavbar = computed(() => {
+  if (!authStore.isAuthenticated) return false
+  if (route.meta.hideNavbar) return false
+  if (route.path.startsWith('/play') || route.path.startsWith('/matches/')) return false
+  return true
+})
 </script>
 
 <template>
   <div id="encertia-root">
-    <RouterView />
+    <AppNavbar v-if="showNavbar" />
+    <main class="main-content">
+      <RouterView />
+    </main>
   </div>
 </template>
 
@@ -39,5 +55,11 @@ body {
 
 #encertia-root {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
 }
 </style>
