@@ -5,6 +5,13 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-08-21
+### Fixed
+- **Backend Match Handler (`internal/match/handler.go`)**:
+  - Permesa l'especificació explícita del rol (`?role=player` o `?role=host`) en obrir la connexió WebSocket. Si un usuari `admin` o `teacher` s'uneix com a jugador a una partida que ha creat ell mateix des d'un altre dispositiu (ex. telèfon mòbil), el backend el registra com a **Jugador** (`isHost = false`) en lloc d'unir-lo com a moderador, perllongant així la capacitat d'enviar respostes des del dispositiu mòbil.
+- **Frontend Match WS Client & Store (`src/modules/match`)**:
+  - `connectAsHost` i `connectAsPlayer` ara envien `role=host` i `role=player` a la URL de connexió WebSocket.
+
 ## [0.7.3] - 2026-08-21
 ### Fixed
 - **Frontend Match Store (`src/modules/match/store.ts`)**:

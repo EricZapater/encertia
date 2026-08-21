@@ -5,6 +5,7 @@ export type WSEventHandler<T = any> = (data: T) => void
 
 export interface WSClientOptions {
   pin: string
+  role?: 'host' | 'player'
   token?: string
   autoReconnect?: boolean
   maxReconnectAttempts?: number
@@ -13,6 +14,7 @@ export interface WSClientOptions {
 
 export class MatchWSClient {
   private pin: string
+  private role?: 'host' | 'player'
   private token: string | null = null
   private ws: WebSocket | null = null
   private listeners: Map<string, Set<WSEventHandler>> = new Map()
@@ -27,6 +29,7 @@ export class MatchWSClient {
 
   constructor(options: WSClientOptions) {
     this.pin = options.pin
+    this.role = options.role
     this.token = options.token || (typeof window !== 'undefined' ? localStorage.getItem(ACCESS_TOKEN_KEY) : null)
     this.autoReconnect = options.autoReconnect ?? true
     this.maxReconnectAttempts = options.maxReconnectAttempts ?? 5
@@ -54,8 +57,9 @@ export class MatchWSClient {
     const token = this.token || (typeof window !== 'undefined' ? localStorage.getItem(ACCESS_TOKEN_KEY) || '' : '')
     const cleanPin = encodeURIComponent(this.pin)
     const cleanToken = encodeURIComponent(token)
+    const roleParam = this.role ? `&role=${encodeURIComponent(this.role)}` : ''
 
-    return `${baseUrl}/api/ws/match/${cleanPin}?token=${cleanToken}`
+    return `${baseUrl}/api/ws/match/${cleanPin}?token=${cleanToken}${roleParam}`
   }
 
   /**

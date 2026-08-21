@@ -360,7 +360,7 @@ export const useMatchStore = defineStore('match', () => {
       wsClient.disconnect()
     }
 
-    wsClient = new MatchWSClient({ pin: targetPin })
+    wsClient = new MatchWSClient({ pin: targetPin, role: 'host' })
     setupWebSocketListeners(wsClient)
     await wsClient.connect()
   }
@@ -429,7 +429,7 @@ export const useMatchStore = defineStore('match', () => {
       wsClient.disconnect()
     }
 
-    wsClient = new MatchWSClient({ pin: targetPin })
+    wsClient = new MatchWSClient({ pin: targetPin, role: 'player' })
     setupWebSocketListeners(wsClient)
     await wsClient.connect()
   }

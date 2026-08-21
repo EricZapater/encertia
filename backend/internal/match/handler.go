@@ -212,22 +212,47 @@ func (h *Handler) HandleWebSocket(c *gin.Context) {
 	}
 
 	// 3. Determine role (Host vs Player)
-	isHost := m.HostID == userID
+	requestedRole := strings.ToLower(strings.TrimSpace(c.Query("role")))
+	var isHost bool
 	var playerID *uuid.UUID
 	nickname := "Host"
 
-	if !isHost {
+	if requestedRole == "host" {
+		if m.HostID != userID {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Només el creador de la partida pot connectar-se com a moderador (Host)."})
+			return
+		}
+		isHost = true
+	} else if requestedRole == "player" {
 		player, err := h.service.GetPlayerByMatchAndUser(c.Request.Context(), m.ID, userID)
 		if err != nil || player == nil {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Cal unir-se a la partida mitjançant l'endpoint REST abans d'iniciar el WebSocket."})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Cal unir-se a la partida mitjançant l'endpoint REST abans d'iniciar el WebSocket com a jugador."})
 			return
 		}
 		if player.IsKicked {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Has estat expulsat d'aquesta partida."})
 			return
 		}
+		isHost = false
 		playerID = &player.ID
 		nickname = player.Nickname
+	} else {
+		// Default fallback if role is not explicitly specified in URL
+		player, err := h.service.GetPlayerByMatchAndUser(c.Request.Context(), m.ID, userID)
+		if err == nil && player != nil {
+			if player.IsKicked {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Has estat expulsat d'aquesta partida."})
+				return
+			}
+			isHost = false
+			playerID = &player.ID
+			nickname = player.Nickname
+		} else if m.HostID == userID {
+			isHost = true
+		} else {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Cal unir-se a la partida mitjançant l'endpoint REST abans d'iniciar el WebSocket."})
+			return
+		}
 	}
 
 	// 4. Upgrade connection to WebSocket
