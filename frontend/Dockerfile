@@ -1,5 +1,5 @@
 # Stage 1: Build frontend with Node and pnpm
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Enable pnpm via Corepack
 RUN corepack enable && corepack prepare pnpm@latest --activate
