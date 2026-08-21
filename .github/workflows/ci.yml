@@ -93,6 +93,8 @@ jobs:
 
       - name: Validate Docker Compose Configuration
         run: |
+          cp .env.backend.example .env.backend
+          cp .env.frontend.example .env.frontend
           docker network create web || true
           docker network create postgres-network || true
           docker compose config --quiet
