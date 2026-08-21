@@ -201,26 +201,34 @@ export class MatchWSClient {
 
   private handleMessage(rawData: any): void {
     try {
-      let parsed: WSEvent
       if (typeof rawData === 'string') {
-        parsed = JSON.parse(rawData)
+        const lines = rawData.split('\n').filter((l) => l.trim().length > 0)
+        for (const line of lines) {
+          try {
+            const parsed = JSON.parse(line)
+            this.processSingleMessage(parsed)
+          } catch (err) {
+            console.error('[MatchWSClient] Error parsejant línia WebSocket:', err, line)
+          }
+        }
       } else {
-        parsed = rawData
+        this.processSingleMessage(rawData)
       }
-
-      if (!parsed || !parsed.event) {
-        return
-      }
-
-      // Si és resposta de keep-alive
-      if (parsed.event === 'pong') {
-        return
-      }
-
-      this.dispatchInternal(parsed.event, parsed.data)
     } catch (err) {
       console.error('[MatchWSClient] Error parsejant missatge WebSocket:', err, rawData)
     }
+  }
+
+  private processSingleMessage(parsed: any): void {
+    if (!parsed || !parsed.event) {
+      return
+    }
+
+    if (parsed.event === 'pong') {
+      return
+    }
+
+    this.dispatchInternal(parsed.event, parsed.data)
   }
 
   private dispatchInternal(event: string, data: any): void {

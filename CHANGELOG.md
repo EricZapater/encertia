@@ -5,6 +5,14 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-08-21
+### Fixed
+- **Backend Match Service & Model (`internal/match`)**:
+  - Actualitzada l'estructura `MatchStatePayload` a `model.go` i `HandleClientConnect` a `service.go` per incloure les opcions de resposta (`Options`) al camp `CurrentQuestion` quan qualsevol jugador es connecta o es re-sincronitza a la partida (`match:state`).
+- **Frontend Match WS Client & Store (`src/modules/match`)**:
+  - Actualitzat `wsClient.ts` per processar trampes WebSocket que continguin múltiples missatges JSON separats per salts de línia (`\n`).
+  - Protegit `parseQuestionPayload` a `store.ts` per evitar que un payload parcial d'esdeveniment buidi les opcions de resposta prèviament carregades.
+
 ## [0.7.1] - 2026-08-21
 ### Fixed
 - **Frontend Match Store (`src/modules/match/store.ts`)**:

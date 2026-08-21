@@ -212,11 +212,20 @@ func (s *matchService) HandleClientConnect(ctx context.Context, client *Client) 
 		_ = s.repo.UpdatePlayerConnection(ctx, *client.PlayerID, true)
 	}
 
-	// Prepare current question preview if during active phases
-	var currQ *QuestionPreviewPayload
+	// Prepare current question details (including options) if during active phases
+	var currQ interface{}
 	if m.CurrentQuestionIndex >= 0 && m.CurrentQuestionIndex < len(qDetail.Questions) {
 		q := qDetail.Questions[m.CurrentQuestionIndex]
-		currQ = &QuestionPreviewPayload{
+		options := make([]QuestionOptionPayload, len(q.Answers))
+		for i, a := range q.Answers {
+			options[i] = QuestionOptionPayload{
+				ID:         a.ID,
+				Text:       a.Text,
+				OrderIndex: a.OrderIndex,
+			}
+		}
+
+		currQ = QuestionStartedPayload{
 			QuestionIndex:    m.CurrentQuestionIndex,
 			TotalQuestions:   len(qDetail.Questions),
 			QuestionID:       q.ID,
@@ -224,6 +233,7 @@ func (s *matchService) HandleClientConnect(ctx context.Context, client *Client) 
 			ImageURL:         q.ImageURL,
 			QuestionType:     string(q.QuestionType),
 			TimeLimitSeconds: q.TimeLimitSeconds,
+			Options:          options,
 		}
 	}
 

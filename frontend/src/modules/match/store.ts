@@ -123,7 +123,8 @@ export const useMatchStore = defineStore('match', () => {
     function parseQuestionPayload(raw: any, existing?: MatchQuestion | null): MatchQuestion {
       if (!raw) return existing || (null as any)
       const qObj = raw.question || raw
-      const optionsSrc = raw.options || qObj.options || existing?.options || []
+      const rawOptions = raw.options && raw.options.length > 0 ? raw.options : qObj.options && qObj.options.length > 0 ? qObj.options : null
+      const optionsSrc = rawOptions || existing?.options || []
 
       const options: MatchAnswerOption[] = optionsSrc.map((opt: any) => ({
         id: opt.id || opt.optionId || '',

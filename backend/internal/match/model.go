@@ -183,16 +183,16 @@ type SubmitAnswerPayload struct {
 
 // MatchStatePayload represents the state synchronization payload.
 type MatchStatePayload struct {
-	MatchID              uuid.UUID               `json:"matchId"`
-	PIN                  string                  `json:"pin"`
-	QuizTitle            string                  `json:"quizTitle"`
-	Status               MatchStatus             `json:"status"`
-	CurrentQuestionIndex int                     `json:"currentQuestionIndex"`
-	TotalQuestions       int                     `json:"totalQuestions"`
-	Role                 string                  `json:"role"` // "host" or "player"
-	Player               *MatchPlayer            `json:"player,omitempty"`
-	Players              []MatchPlayer           `json:"players,omitempty"`
-	CurrentQuestion      *QuestionPreviewPayload `json:"currentQuestion,omitempty"`
+	MatchID              uuid.UUID     `json:"matchId"`
+	PIN                  string        `json:"pin"`
+	QuizTitle            string        `json:"quizTitle"`
+	Status               MatchStatus   `json:"status"`
+	CurrentQuestionIndex int           `json:"currentQuestionIndex"`
+	TotalQuestions       int           `json:"totalQuestions"`
+	Role                 string        `json:"role"` // "host" or "player"
+	Player               *MatchPlayer  `json:"player,omitempty"`
+	Players              []MatchPlayer `json:"players,omitempty"`
+	CurrentQuestion      interface{}   `json:"currentQuestion,omitempty"`
 }
 
 // PlayerJoinedPayload represents match:player_joined broadcast.
