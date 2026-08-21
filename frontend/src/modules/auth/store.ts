@@ -10,11 +10,42 @@ import type {
 import * as authApi from './api'
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/api/client'
 
+const getStorageItem = (key: string): string | null => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(key)
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+const setStorageItem = (key: string, value: string): void => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(key, value)
+    }
+  } catch {
+    // ignore
+  }
+}
+
+const removeStorageItem = (key: string): void => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key)
+    }
+  } catch {
+    // ignore
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   // State
   const user = ref<User | null>(null)
-  const accessToken = ref<string | null>(localStorage.getItem(ACCESS_TOKEN_KEY))
-  const refreshToken = ref<string | null>(localStorage.getItem(REFRESH_TOKEN_KEY))
+  const accessToken = ref<string | null>(getStorageItem(ACCESS_TOKEN_KEY))
+  const refreshToken = ref<string | null>(getStorageItem(REFRESH_TOKEN_KEY))
   const isLoading = ref(false)
   const isInitialized = ref(false)
   const error = ref<string | null>(null)
@@ -34,8 +65,8 @@ export const useAuthStore = defineStore('auth', () => {
   function setTokens(tokens: TokenPair) {
     accessToken.value = tokens.accessToken
     refreshToken.value = tokens.refreshToken
-    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken)
-    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken)
+    setStorageItem(ACCESS_TOKEN_KEY, tokens.accessToken)
+    setStorageItem(REFRESH_TOKEN_KEY, tokens.refreshToken)
   }
 
   function setUser(newUser: User | null) {
@@ -47,8 +78,8 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken.value = null
     refreshToken.value = null
     error.value = null
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
+    removeStorageItem(ACCESS_TOKEN_KEY)
+    removeStorageItem(REFRESH_TOKEN_KEY)
   }
 
   async function login(credentials: LoginRequest): Promise<AuthResponse> {

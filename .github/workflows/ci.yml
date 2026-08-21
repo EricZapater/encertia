@@ -75,6 +75,9 @@ jobs:
       - name: Run TypeScript type-check
         run: pnpm run type-check
 
+      - name: Run Frontend Tests
+        run: pnpm test
+
       - name: Run Frontend Build
         run: pnpm run build
 
@@ -89,4 +92,8 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Validate Docker Compose Configuration
-        run: docker compose config --quiet
+        run: |
+          docker network create web || true
+          docker network create postgres-network || true
+          docker compose config --quiet
+          docker compose -f docker-compose.local.yml config --quiet

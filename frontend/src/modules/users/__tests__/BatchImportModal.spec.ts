@@ -16,7 +16,13 @@ describe('BatchImportModal Component', () => {
         visible: true
       },
       global: {
-        plugins: [PrimeVue]
+        plugins: [PrimeVue],
+        stubs: {
+          Dialog: {
+            template: '<div v-if="visible" class="p-dialog"><slot name="header" /><slot /><slot name="footer" /></div>',
+            props: ['visible']
+          }
+        }
       }
     })
 

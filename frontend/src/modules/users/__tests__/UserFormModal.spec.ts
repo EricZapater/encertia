@@ -4,8 +4,14 @@ import { createPinia, setActivePinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import UserFormModal from '../views/UserFormModal.vue'
 import { useAuthStore } from '@/modules/auth/store'
-import { useUserStore } from '../store'
 import type { User } from '../types'
+
+const dialogStub = {
+  Dialog: {
+    template: '<div v-if="visible" class="p-dialog"><slot name="header" /><slot /><slot name="footer" /></div>',
+    props: ['visible']
+  }
+}
 
 describe('UserFormModal Component', () => {
   beforeEach(() => {
@@ -30,12 +36,12 @@ describe('UserFormModal Component', () => {
         user: null
       },
       global: {
-        plugins: [PrimeVue]
+        plugins: [PrimeVue],
+        stubs: dialogStub
       }
     })
 
     expect(wrapper.exists()).toBe(true)
-    // When user is teacher, role selector is disabled/fixed to student
     const roleSelect = wrapper.find('[data-testid="select-role"]')
     expect(roleSelect.exists()).toBe(true)
   })
@@ -57,7 +63,8 @@ describe('UserFormModal Component', () => {
         user: null
       },
       global: {
-        plugins: [PrimeVue]
+        plugins: [PrimeVue],
+        stubs: dialogStub
       }
     })
 
@@ -93,7 +100,8 @@ describe('UserFormModal Component', () => {
         user: userToEdit
       },
       global: {
-        plugins: [PrimeVue]
+        plugins: [PrimeVue],
+        stubs: dialogStub
       }
     })
 
