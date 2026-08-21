@@ -1,0 +1,615 @@
+openapi: 3.0.3
+info:
+  title: Encertia Quiz API
+  description: API per a la creació, gestió i configuració de jocs/qüestionaris (Kahoot-style), preguntes, respostes i pujada d'imatges (Cloudflare R2).
+  version: 1.0.0
+servers:
+  - url: /api
+    description: Base URL de l'API
+
+paths:
+  /quizzes:
+    get:
+      summary: Llista els qüestionaris de l'usuari amb filtres i paginació
+      operationId: listQuizzes
+      tags:
+        - Quizzes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 12
+            minimum: 1
+            maximum: 50
+        - name: search
+          in: query
+          required: false
+          description: Cerca per títol o descripció
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/QuizStatus'
+        - name: tag
+          in: query
+          required: false
+          description: Filtra per una etiqueta específica
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Llistat de qüestionaris obtingut amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizListResponse'
+        '401':
+          $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Crea un nou qüestionari
+      operationId: createQuiz
+      tags:
+        - Quizzes
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuizRequest'
+      responses:
+        '201':
+          description: Qüestionari creat amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizDetail'
+        '400':
+          $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/schemas/ErrorResponse'
+
+  /quizzes/{id}:
+    get:
+      summary: Obté el detall complet d'un qüestionari amb les seves preguntes i respostes
+      operationId: getQuizById
+      tags:
+        - Quizzes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detall del qüestionari
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizDetail'
+        '401':
+          $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Actualitza les metadades i contingut d'un qüestionari
+      operationId: updateQuiz
+      tags:
+        - Quizzes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateQuizRequest'
+      responses:
+        '200':
+          description: Qüestionari actualitzat amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizDetail'
+        '400':
+          $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Elimina un qüestionari (soft delete)
+      operationId: deleteQuiz
+      tags:
+        - Quizzes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Qüestionari eliminat amb èxit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Qüestionari eliminat correctament
+        '401':
+          $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/schemas/ErrorResponse'
+
+  /quizzes/{id}/duplicate:
+    post:
+      summary: Duplica un qüestionari existent amb les seves preguntes (i opcionalment respostes)
+      operationId: duplicateQuiz
+      tags:
+        - Quizzes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DuplicateQuizRequest'
+      responses:
+        '201':
+          description: Còpia del qüestionari creada amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizDetail'
+        '401':
+          $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/schemas/ErrorResponse'
+
+  /uploads/images:
+    post:
+      summary: Puja una imatge a Cloudflare R2 (portada o pregunta)
+      operationId: uploadImage
+      tags:
+        - Uploads
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Fitxer d'imatge (PNG, JPG, JPEG, WEBP, GIF, màx 5MB)
+      responses:
+        '200':
+          description: Imatge pujada amb èxit a R2
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadImageResponse'
+        '400':
+          $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    QuizStatus:
+      type: string
+      enum:
+        - draft
+        - published
+        - archived
+      example: published
+
+    QuestionType:
+      type: string
+      enum:
+        - single_choice
+        - multiple_choice
+      example: single_choice
+
+    QuizAnswer:
+      type: object
+      required:
+        - id
+        - text
+        - isCorrect
+        - orderIndex
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+        text:
+          type: string
+          example: Barcelona
+        isCorrect:
+          type: boolean
+          example: true
+        orderIndex:
+          type: integer
+          minimum: 0
+          maximum: 5
+          example: 0
+
+    QuizQuestion:
+      type: object
+      required:
+        - id
+        - text
+        - questionType
+        - timeLimitSeconds
+        - orderIndex
+        - answers
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        text:
+          type: string
+          example: Quina és la capital de Catalunya?
+        imageUrl:
+          type: string
+          nullable: true
+          example: https://pub-r2.encertia.cat/questions/img-123.jpg
+        questionType:
+          $ref: '#/components/schemas/QuestionType'
+        timeLimitSeconds:
+          type: integer
+          default: 20
+          enum: [5, 10, 20, 30, 60, 90, 120]
+          example: 20
+        orderIndex:
+          type: integer
+          example: 0
+        answers:
+          type: array
+          minItems: 2
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/QuizAnswer'
+
+    Quiz:
+      type: object
+      required:
+        - id
+        - creatorId
+        - title
+        - status
+        - tags
+        - questionCount
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d
+        creatorId:
+          type: string
+          format: uuid
+          example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        creatorName:
+          type: string
+          example: Pau Casals
+        title:
+          type: string
+          example: Geografia de Catalunya
+        description:
+          type: string
+          nullable: true
+          example: Qüestionari interactiu sobre capitals i comarques catalanes.
+        coverImageUrl:
+          type: string
+          nullable: true
+          example: https://pub-r2.encertia.cat/covers/catalunya.jpg
+        status:
+          $ref: '#/components/schemas/QuizStatus'
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["geografia", "primaria", "catalunya"]
+        questionCount:
+          type: integer
+          example: 10
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-08-21T12:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-08-21T12:30:00Z'
+
+    QuizDetail:
+      allOf:
+        - $ref: '#/components/schemas/Quiz'
+        - type: object
+          required:
+            - questions
+          properties:
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/QuizQuestion'
+
+    SaveAnswerInput:
+      type: object
+      required:
+        - text
+        - isCorrect
+        - orderIndex
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
+        text:
+          type: string
+          minLength: 1
+          maxLength: 300
+          example: Barcelona
+        isCorrect:
+          type: boolean
+          example: true
+        orderIndex:
+          type: integer
+          minimum: 0
+          maximum: 5
+          example: 0
+
+    SaveQuestionInput:
+      type: object
+      required:
+        - text
+        - questionType
+        - timeLimitSeconds
+        - orderIndex
+        - answers
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: true
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+          example: Quina és la capital de Catalunya?
+        imageUrl:
+          type: string
+          nullable: true
+          example: https://pub-r2.encertia.cat/questions/img-123.jpg
+        questionType:
+          $ref: '#/components/schemas/QuestionType'
+        timeLimitSeconds:
+          type: integer
+          default: 20
+          enum: [5, 10, 20, 30, 60, 90, 120]
+          example: 20
+        orderIndex:
+          type: integer
+          minimum: 0
+          example: 0
+        answers:
+          type: array
+          minItems: 2
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/SaveAnswerInput'
+
+    CreateQuizRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 150
+          example: Geografia de Catalunya
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          example: Qüestionari interactiu sobre comarques i capitals.
+        coverImageUrl:
+          type: string
+          nullable: true
+          example: https://pub-r2.encertia.cat/covers/catalunya.jpg
+        status:
+          $ref: '#/components/schemas/QuizStatus'
+          default: draft
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["geografia", "catalunya"]
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaveQuestionInput'
+
+    UpdateQuizRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 150
+          example: Geografia de Catalunya (Edició 2026)
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          example: Qüestionari actualitzat amb noves preguntes.
+        coverImageUrl:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/QuizStatus'
+        tags:
+          type: array
+          items:
+            type: string
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaveQuestionInput'
+
+    QuizListResponse:
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Quiz'
+        pagination:
+          type: object
+          required:
+            - page
+            - pageSize
+            - totalCount
+            - totalPages
+          properties:
+            page:
+              type: integer
+              example: 1
+            pageSize:
+              type: integer
+              example: 12
+            totalCount:
+              type: integer
+              example: 35
+            totalPages:
+              type: integer
+              example: 3
+
+    DuplicateQuizRequest:
+      type: object
+      properties:
+        includeAnswers:
+          type: boolean
+          default: false
+          description: Si és true, copia les preguntes amb les seves respostes. Si és false (per defecte), només es copien els enunciats i paràmetres de les preguntes sense les opcions de resposta.
+          example: false
+        title:
+          type: string
+          maxLength: 150
+          nullable: true
+          description: Títol personalitzat per a la còpia (opcional, per defecte "[Còpia] " + títol_original)
+          example: Geografia de Catalunya (Examen Grup B)
+
+    UploadImageResponse:
+      type: object
+      required:
+        - url
+        - key
+      properties:
+        url:
+          type: string
+          example: https://pub-r2.encertia.cat/uploads/2026/08/quiz-cover-uuid.webp
+        key:
+          type: string
+          example: uploads/2026/08/quiz-cover-uuid.webp
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: No s'ha trobat el qüestionari sol·licitat
+        code:
+          type: string
+          example: QUIZ_NOT_FOUND
+        details:
+          type: array
+          items:
+            type: string
