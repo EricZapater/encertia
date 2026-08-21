@@ -95,7 +95,7 @@ func (r *sqlRepository) CreateMatch(ctx context.Context, m *Match) error {
 func (r *sqlRepository) GetMatchByID(ctx context.Context, id uuid.UUID) (*Match, error) {
 	query := `
 		SELECT m.id, m.quiz_id, m.host_id, m.pin, m.status, m.current_question_index, m.question_started_at,
-		       m.created_at, m.updated_at, m.deleted_at, q.title, u.nickname,
+		       m.created_at, m.updated_at, m.deleted_at, q.title, TRIM(CONCAT(u.first_name, ' ', u.last_name)),
 		       (SELECT COUNT(*) FROM match_players mp WHERE mp.match_id = m.id AND mp.is_kicked = FALSE) as player_count
 		FROM matches m
 		JOIN quizzes q ON m.quiz_id = q.id
@@ -120,7 +120,7 @@ func (r *sqlRepository) GetMatchByID(ctx context.Context, id uuid.UUID) (*Match,
 func (r *sqlRepository) GetMatchByPIN(ctx context.Context, pin string) (*Match, error) {
 	query := `
 		SELECT m.id, m.quiz_id, m.host_id, m.pin, m.status, m.current_question_index, m.question_started_at,
-		       m.created_at, m.updated_at, m.deleted_at, q.title, u.nickname,
+		       m.created_at, m.updated_at, m.deleted_at, q.title, TRIM(CONCAT(u.first_name, ' ', u.last_name)),
 		       (SELECT COUNT(*) FROM match_players mp WHERE mp.match_id = m.id AND mp.is_kicked = FALSE) as player_count
 		FROM matches m
 		JOIN quizzes q ON m.quiz_id = q.id
@@ -168,7 +168,7 @@ func (r *sqlRepository) GetMatchWithQuizByID(ctx context.Context, id uuid.UUID) 
 func (r *sqlRepository) loadQuizDetailForMatch(ctx context.Context, m *Match) (*Match, *quiz.QuizDetail, error) {
 	// 1. Fetch Quiz metadata
 	quizQuery := `
-		SELECT q.id, q.creator_id, u.nickname, q.title, q.description, q.cover_image_url, q.status, q.tags,
+		SELECT q.id, q.creator_id, TRIM(CONCAT(u.first_name, ' ', u.last_name)), q.title, q.description, q.cover_image_url, q.status, q.tags,
 		       (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) as question_count,
 		       q.created_at, q.updated_at
 		FROM quizzes q

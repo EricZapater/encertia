@@ -195,7 +195,7 @@ func (r *repository) GetQuizEvaluation(quizID string) (*QuizEvaluationResponse, 
 	stRows, err := r.db.Query(`
 		SELECT 
 			u.id AS student_id,
-			u.name AS student_name,
+			TRIM(CONCAT(u.first_name, ' ', u.last_name)) AS student_name,
 			COUNT(DISTINCT m.id) AS matches_count,
 			COALESCE(e.calculated_grade, 0.00) AS calculated_grade,
 			e.final_grade,
@@ -205,8 +205,8 @@ func (r *repository) GetQuizEvaluation(quizID string) (*QuizEvaluationResponse, 
 		INNER JOIN matches m ON m.id = mp.match_id AND m.status = 'finished' AND m.deleted_at IS NULL
 		LEFT JOIN evaluations e ON e.quiz_id = m.quiz_id AND e.student_id = u.id
 		WHERE m.quiz_id = $1
-		GROUP BY u.id, u.name, e.calculated_grade, e.final_grade, e.is_graded
-		ORDER BY u.name ASC
+		GROUP BY u.id, u.first_name, u.last_name, e.calculated_grade, e.final_grade, e.is_graded
+		ORDER BY student_name ASC
 	`, quizID)
 	if err != nil {
 		return nil, fmt.Errorf("error querying students list: %w", err)
@@ -235,7 +235,7 @@ func (r *repository) GetStudentEvaluation(quizID, studentID string) (*StudentEva
 	var detail StudentEvaluationDetail
 	detail.StudentID = studentID
 
-	err := r.db.QueryRow("SELECT name FROM users WHERE id = $1", studentID).Scan(&detail.StudentName)
+	err := r.db.QueryRow("SELECT TRIM(CONCAT(first_name, ' ', last_name)) FROM users WHERE id = $1", studentID).Scan(&detail.StudentName)
 	if err != nil {
 		return nil, fmt.Errorf("student not found")
 	}

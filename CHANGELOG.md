@@ -5,6 +5,11 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-21
+### Fixed
+- **Backend (`internal/match` & `internal/evaluation`)**:
+  - Corregida la consulta SQL a `match/repository.go` i `evaluation/repository.go` on es feia servir la columna inexistent `u.nickname` i `u.name` en comptes de `TRIM(CONCAT(u.first_name, ' ', u.last_name))`. Aquest error provocava un `QUIZ_NOT_FOUND` al llançar una nova partida (`POST /matches`).
+
 ## [0.6.0] - 2026-08-21
 ### Added
 - **Contracte d'API i Especificació**: Especificació funcional ([`contracts/evaluation.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/evaluation.spec.md)) i contracte OpenAPI 3.0 ([`contracts/evaluation.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/evaluation.openapi.yaml)) per al mòdul d'avaluació posterior pel professor (`evaluation`).
