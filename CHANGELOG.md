@@ -5,6 +5,31 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-21
+### Added
+- **Contracte d'API i WebSocket**: Especificació funcional ([`contracts/match.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/match.spec.md)) i contracte OpenAPI 3.0 ([`contracts/match.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/match.openapi.yaml)) per al mòdul de partides multijugador en temps real (`match`).
+- **Backend (`internal/match`)**:
+  - Migració SQL `000005_create_match_tables.up.sql` (`matches`, `match_players`, `match_answers`, índexs i unicitat de PIN actiu).
+  - Hub de WebSockets concurrent-safe (`sync.RWMutex`) amb suport de pings/pongs de *keep-alive*, diferenciació de rols (Host moderador vs Jugadors) i broadcast de sales per PIN.
+  - Màquina d'estats de la partida: `lobby` ➡️ `question_preview` (pausa prèvia de lectura) ➡️ `question_active` (temporitzador regressiu i recepció de respostes) ➡️ `question_results` ➡️ `leaderboard` ➡️ `finished` (podi final).
+  - Validació de respostes `single_choice` i `multiple_choice`, puntuació d'1 punt per encert i recompte de respostes en temps real.
+  - Endpoints REST: `POST /matches` (creació amb PIN de 6 dígits), `GET /matches/:pin` (estat públic), `POST /matches/:pin/join` (unió d'alumne autenticat), `GET /matches/:id/summary` (resum de partida i podi).
+  - Endpoint WebSocket autenticat per JWT: `/ws/match/:pin` i `/api/ws/match/:pin`.
+  - Parametrització completa de variables d'entorn (`APP_BASE_URL`, `BASE_URL`, Cloudflare R2).
+  - Suite exhaustiva de tests a `hub_test.go`, `service_test.go` i `handler_test.go` amb 100% d'èxit.
+- **Frontend (`src/modules/match`)**:
+  - Tipus TypeScript, client d'API REST (`api.ts`), client WebSocket resilient (`wsClient.ts`) amb reconexió automàtica i store Pinia (`useMatchStore`).
+  - Pantalla d'unió de jugadors ([`PlayerJoinView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/match/views/PlayerJoinView.vue)) a `/play` i `/play?pin=...` amb suport de redirecció d'autenticació.
+  - Pantalla dinàmica de l'alumne ([`PlayerGameView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/match/views/PlayerGameView.vue)) amb els 6 colors i formes Kahoot (▲, ◆, ●, ■, ★, ⬡) **acompanyats del text complet de cada resposta**, retroacció immediata d'encert/error (+1 punt), rànquing i pantalla final.
+  - Panell de projecció i control del moderador ([`HostGameView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/match/views/HostGameView.vue) / [`HostLobbyView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/match/views/HostLobbyView.vue)):
+    - Sala d'espera amb codi PIN gran, **codi QR interactiu natiu**, graella de jugadors connectats i opció d'expulsió.
+    - Fase de lectura (Preview) amb botó destacat *"Iniciar Temps"*.
+    - Fase de joc activa amb compte enrere i recompte de respostes en temps real.
+    - Gràfic de barres animat amb la distribució de vots i indicació de la resposta correcta.
+    - Taula de líders parcial i podi 3D animat dels 3 primers classificats (🥇, 🥈, 🥉).
+  - Botó d'accés ràpid *"Llançar"* (`pi pi-play`) integrat a [`QuizzesListView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/quizzes/views/QuizzesListView.vue).
+  - 18 suites de tests amb **94 tests unitaris i de components superats (100%)**.
+
 ## [0.4.0] - 2026-08-21
 ### Added
 - **Contracte d'API**: Especificació funcional ([`contracts/quiz.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/quiz.spec.md)) i contracte OpenAPI 3.0 ([`contracts/quiz.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/quiz.openapi.yaml)) per al mòdul de jocs/qüestionaris (`quiz`).

@@ -12,8 +12,8 @@ encaixa amb la resta.
    ✅ Implementat i validat (v0.3.0).
 3. **quiz** — creació de qüestionaris, preguntes d'opció múltiple i respostes Kahoot.
    ✅ Implementat i validat (v0.4.0).
-4. **match** (partida en directe) — codi/PIN QR, unió d'alumnes, preguntes
-   en directe amb temporitzador, WebSockets per rànquing en temps real.
+4. **match** (partida en directe) — codi/PIN QR, unió d'alumnes, preguntes en directe amb temporitzador, WebSockets per rànquing en temps real.
+   ✅ Implementat i validat (v0.5.0).
 5. **evaluation** — panell d'avaluació posterior pel professor, exportació
    de resultats.
 

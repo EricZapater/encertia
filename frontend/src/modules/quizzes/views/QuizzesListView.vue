@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuizStore } from '../store'
+import { useMatchStore } from '@/modules/match/store'
 import type { Quiz, QuizStatus } from '../types'
 
 import InputText from 'primevue/inputtext'
@@ -16,6 +17,8 @@ import DuplicateQuizModal from './DuplicateQuizModal.vue'
 
 const router = useRouter()
 const quizStore = useQuizStore()
+const matchStore = useMatchStore()
+const isLaunchingMatch = ref<Record<string, boolean>>({})
 
 // Filtres
 const searchInput = ref('')
@@ -77,6 +80,19 @@ function navigateToCreate() {
 
 function navigateToEdit(quiz: Quiz) {
   router.push(`/quizzes/${quiz.id}/edit`)
+}
+
+async function handleLaunchMatch(quiz: Quiz) {
+  try {
+    isLaunchingMatch.value[quiz.id] = true
+    const res = await matchStore.initHostMatch(quiz.id)
+    router.push(`/matches/${res.id}/host`)
+  } catch (err: any) {
+    errorFeedback.value =
+      err.response?.data?.error?.message || err.message || 'Error en iniciar la partida.'
+  } finally {
+    isLaunchingMatch.value[quiz.id] = false
+  }
 }
 
 function openDuplicateModal(quiz: Quiz) {
@@ -350,15 +366,27 @@ function formatDate(dateStr: string) {
 
         <!-- Accions de la targeta -->
         <div class="card-actions">
-          <Button
-            label="Editar"
-            icon="pi pi-pencil"
-            size="small"
-            severity="primary"
-            outlined
-            @click="navigateToEdit(quiz)"
-            data-testid="btn-edit-quiz"
-          />
+          <div class="card-left-actions">
+            <Button
+              v-if="quiz.status === 'published'"
+              label="Llançar"
+              icon="pi pi-play"
+              size="small"
+              severity="success"
+              :loading="Boolean(isLaunchingMatch[quiz.id])"
+              @click="handleLaunchMatch(quiz)"
+              data-testid="btn-launch-match"
+            />
+            <Button
+              label="Editar"
+              icon="pi pi-pencil"
+              size="small"
+              severity="primary"
+              outlined
+              @click="navigateToEdit(quiz)"
+              data-testid="btn-edit-quiz"
+            />
+          </div>
 
           <div class="card-action-icons">
             <Button
@@ -694,6 +722,12 @@ function formatDate(dateStr: string) {
   padding: 0.75rem 1rem;
   background-color: #fafafa;
   border-top: 1px solid #f1f5f9;
+}
+
+.card-left-actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
 }
 
 .card-action-icons {

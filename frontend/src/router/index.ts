@@ -58,6 +58,30 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/play',
+    name: 'match-join',
+    component: () => import('@/modules/match/views/PlayerJoinView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/play/:pin',
+    name: 'match-player',
+    component: () => import('@/modules/match/views/PlayerGameView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/matches/:id/host',
+    name: 'match-host',
+    component: () => import('@/modules/match/views/HostGameView.vue'),
+    meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
+  },
+  {
+    path: '/matches/:pin/host',
+    name: 'match-host-pin',
+    component: () => import('@/modules/match/views/HostGameView.vue'),
+    meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }

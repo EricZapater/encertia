@@ -8,6 +8,7 @@ import (
 
 	"github.com/encertia/backend/internal/auth"
 	"github.com/encertia/backend/internal/db"
+	"github.com/encertia/backend/internal/match"
 	"github.com/encertia/backend/internal/quiz"
 	"github.com/encertia/backend/internal/shared"
 	"github.com/encertia/backend/internal/user"
@@ -92,6 +93,14 @@ func main() {
 	quizSvc := quiz.NewService(quizRepo)
 	quizHandler := quiz.NewHandler(quizSvc, storageSvc)
 
+	appBaseURL := getEnv("APP_BASE_URL", getEnv("FRONTEND_URL", "http://localhost:5173"))
+
+	// Match Domain
+	matchHub := match.NewHub()
+	matchRepo := match.NewRepository(dbConn)
+	matchSvc := match.NewService(matchRepo, matchHub, appBaseURL)
+	matchHandler := match.NewHandler(matchSvc, authHandler.TokenValidatorAdapter(), matchHub)
+
 	// Middleware
 	authMiddleware := shared.AuthMiddleware(authHandler.TokenValidatorAdapter())
 
@@ -117,17 +126,19 @@ func main() {
 	router.Match([]string{"GET", "HEAD"}, "/health", healthHandler)
 	router.Match([]string{"GET", "HEAD"}, "/api/health", healthHandler)
 
-	// Register routes directly at root (/auth/*, /users/*, /quizzes/*, /uploads/*) as per OpenAPI contract
+	// Register routes directly at root (/auth/*, /users/*, /quizzes/*, /matches/*, /uploads/*, /ws/match/*) as per OpenAPI contract
 	rootGroup := router.Group("")
 	authHandler.RegisterRoutes(rootGroup, authMiddleware)
 	userHandler.RegisterRoutes(rootGroup, authMiddleware)
 	quizHandler.RegisterRoutes(rootGroup, authMiddleware)
+	matchHandler.RegisterRoutes(rootGroup, authMiddleware)
 
-	// Also support /api prefix for proxy convenience (/api/auth/*, /api/users/*, /api/quizzes/*, /api/uploads/*)
+	// Also support /api prefix for proxy convenience (/api/auth/*, /api/users/*, /api/quizzes/*, /api/matches/*, /api/uploads/*, /api/ws/match/*)
 	apiGroup := router.Group("/api")
 	authHandler.RegisterRoutes(apiGroup, authMiddleware)
 	userHandler.RegisterRoutes(apiGroup, authMiddleware)
 	quizHandler.RegisterRoutes(apiGroup, authMiddleware)
+	matchHandler.RegisterRoutes(apiGroup, authMiddleware)
 
 	// 6. Start HTTP Server
 	addr := ":" + serverPort
