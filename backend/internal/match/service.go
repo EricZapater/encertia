@@ -709,7 +709,11 @@ func (s *matchService) handlePlayerSubmitAnswer(ctx context.Context, client *Cli
 	}
 
 	if err := s.repo.RecordAnswer(ctx, matchAns); err != nil {
-		log.Printf("[WS Service] Error registrant resposta a la bd: %v", err)
+		log.Printf("[WS Service] Error registrant resposta a la bd per al jugador %s: %v", client.PlayerID, err)
+		_ = client.SendMessage(OutgoingWSMessage{
+			Event: ServerEventError,
+			Data:  ErrorPayload{Code: "RECORD_ANSWER_FAILED", Message: "No s'ha pogut registrar la resposta o ja havia estat enviada."},
+		})
 		return
 	}
 

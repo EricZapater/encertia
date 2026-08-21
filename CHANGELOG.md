@@ -5,6 +5,13 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-08-21
+### Fixed
+- **Frontend Match Store (`src/modules/match/store.ts`)**:
+  - Assegurat el reinici de `hasSubmittedAnswer = false`, `mySelectedAnswerIds = []` i `lastAnswerResult = null` quan s'inicia una nova pregunta (`match:question_started` i canvi de `currentQuestionIndex` a `match:state`). Això resol el bloqueig que impedia al segon jugador (o jugadors que havien après en preguntes anteriors) poder contestar en avançar la partida.
+- **Backend Match Service (`internal/match/service.go`)**:
+  - Afegida notificació d'error explicita `RECORD_ANSWER_FAILED` al client WebSocket en cas de no poder enregistrar la resposta a la base de dades.
+
 ## [0.7.2] - 2026-08-21
 ### Fixed
 - **Backend Match Service & Model (`internal/match`)**:

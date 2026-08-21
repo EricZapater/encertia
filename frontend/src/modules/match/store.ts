@@ -158,7 +158,14 @@ export const useMatchStore = defineStore('match', () => {
       if (data.playerId) myPlayerId.value = data.playerId
       if (typeof data.score === 'number') myScore.value = data.score
       if (data.players) players.value = data.players
-      if (typeof data.currentQuestionIndex === 'number') currentQuestionIndex.value = data.currentQuestionIndex
+      
+      if (typeof data.currentQuestionIndex === 'number' && data.currentQuestionIndex !== currentQuestionIndex.value) {
+        currentQuestionIndex.value = data.currentQuestionIndex
+        mySelectedAnswerIds.value = []
+        hasSubmittedAnswer.value = false
+        lastAnswerResult.value = null
+      }
+
       if (typeof data.totalQuestions === 'number') totalQuestions.value = data.totalQuestions
       if (data.currentQuestion) {
         currentQuestion.value = parseQuestionPayload(data.currentQuestion, currentQuestion.value)
@@ -228,7 +235,15 @@ export const useMatchStore = defineStore('match', () => {
     client.on<any>('match:question_started', (data) => {
       if (!data) return
       status.value = 'question_active'
-      if (typeof data.questionIndex === 'number') currentQuestionIndex.value = data.questionIndex
+
+      const newIndex = typeof data.questionIndex === 'number' ? data.questionIndex : currentQuestionIndex.value
+      if (newIndex !== currentQuestionIndex.value || currentQuestionIndex.value === 0) {
+        mySelectedAnswerIds.value = []
+        hasSubmittedAnswer.value = false
+        lastAnswerResult.value = null
+      }
+
+      currentQuestionIndex.value = newIndex
       if (typeof data.totalQuestions === 'number') totalQuestions.value = data.totalQuestions
       currentQuestion.value = parseQuestionPayload(data, currentQuestion.value)
       answeredCount.value = 0
