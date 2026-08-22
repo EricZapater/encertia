@@ -1,23 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
 import { useMatchStore } from '../store'
 
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
 import Card from 'primevue/card'
+import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const matchStore = useMatchStore()
+const toast = useToast()
 
 const pin = ref('')
 const nickname = ref('')
 const formError = ref<string | null>(null)
 const isSubmitting = ref(false)
+
+watch([formError, () => matchStore.error], ([err1, err2]) => {
+  const err = err1 || err2
+  if (err) {
+    toast.add({ severity: 'error', summary: 'Error de Connexió', detail: err, life: 4000 })
+    formError.value = null
+    matchStore.clearError()
+  }
+})
 
 onMounted(async () => {
   // Inicialitza l'usuari si cal
@@ -58,12 +68,14 @@ async function handleSubmit() {
   formError.value = null
 
   if (!isValidPin.value) {
-    formError.value = 'El PIN ha de tenir exactament 6 dígits numèrics.'
+    const msg = 'El PIN ha de tenir exactament 6 dígits numèrics.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
   if (!isValidNickname.value) {
-    formError.value = 'El Nickname ha de tenir entre 2 i 30 caràcters.'
+    const msg = 'El Nickname ha de tenir entre 2 i 30 caràcters.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
@@ -75,10 +87,11 @@ async function handleSubmit() {
     await matchStore.joinAndConnectAsPlayer(cleanPin, cleanNick)
     router.push(`/play/${cleanPin}`)
   } catch (err: any) {
-    formError.value =
+    const msg =
       err.response?.data?.error?.message ||
       err.message ||
       'No s’ha pogut connectar a la partida. Revisa el PIN.'
+    toast.add({ severity: 'error', summary: 'Error de Connexió', detail: msg, life: 4000 })
   } finally {
     isSubmitting.value = false
   }
@@ -99,18 +112,6 @@ async function handleSubmit() {
 
       <Card class="join-card">
         <template #content>
-          <!-- Missatge d'error -->
-          <Message
-            v-if="formError || matchStore.error"
-            severity="error"
-            class="mb-4"
-            :closable="true"
-            @close="formError = null; matchStore.clearError()"
-            data-testid="msg-join-error"
-          >
-            {{ formError || matchStore.error }}
-          </Message>
-
           <form @submit.prevent="handleSubmit" class="join-form" data-testid="form-join-match">
             <!-- Camp PIN -->
             <div class="field-group">

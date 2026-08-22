@@ -5,6 +5,17 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.8] - 2026-08-22
+### Changed
+- **Unificació de Notificacions a Toast en tot el Frontend**:
+  - Convertides totes les alertes, missatges d'error i banners de confirmació estàtics (`<Message>`) a notificacions emergents tipus Toast de PrimeVue (`useToast()`).
+  - Mòduls actualitzats:
+    - **Auth**: `LoginView.vue`, `RegisterView.vue`, `ProfileView.vue`.
+    - **Avaluacions**: `EvaluationsListView.vue`, `QuizEvaluationView.vue`, `StudentEvaluationView.vue`.
+    - **Usuaris**: `UsersListView.vue`, `UserDetailView.vue`, `UserFormModal.vue`, `ResetPasswordModal.vue`, `BatchImportModal.vue`.
+    - **Quizzes**: `QuizzesListView.vue`, `QuizEditorView.vue`, `QuizSettingsModal.vue`, `DuplicateQuizModal.vue`.
+    - **Match**: `PlayerJoinView.vue`.
+
 ## [0.7.7] - 2026-08-21
 ### Added
 - **Frontend Student Evaluation View (`src/modules/evaluations/views/StudentEvaluationView.vue`)**:

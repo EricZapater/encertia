@@ -10,7 +10,7 @@ import Password from 'primevue/password'
 import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 
 const props = defineProps<{
   visible: boolean
@@ -24,6 +24,7 @@ const emit = defineEmits<{
 
 const authStore = useAuthStore()
 const userStore = useUserStore()
+const toast = useToast()
 
 const isEditMode = computed(() => Boolean(props.user?.id))
 const isAdmin = computed(() => authStore.currentUser?.role === 'admin')
@@ -96,25 +97,29 @@ async function handleSubmit() {
   errorMessage.value = null
 
   if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
-    errorMessage.value = 'El nom, els cognoms i el correu electrònic són obligatoris.'
+    const msg = 'El nom, els cognoms i el correu electrònic són obligatoris.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
   // En creació, la contrasenya és obligatòria i mínim 8 caràcters
   if (!isEditMode.value) {
     if (!form.password) {
-      errorMessage.value = 'La contrasenya inicial és obligatòria en crear un usuari.'
+      const msg = 'La contrasenya inicial és obligatòria en crear un usuari.'
+      toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
       return
     }
     if (form.password.length < 8) {
-      errorMessage.value = 'La contrasenya ha de tenir almenys 8 caràcters.'
+      const msg = 'La contrasenya ha de tenir almenys 8 caràcters.'
+      toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
       return
     }
   }
 
   // Validació de rol per a professor
   if (!isAdmin.value && form.role !== 'student') {
-    errorMessage.value = 'Només pots crear o gestionar usuaris amb rol d’alumne (student).'
+    const msg = 'Només pots crear o gestionar usuaris amb rol d’alumne (student).'
+    toast.add({ severity: 'error', summary: 'Error de Permisos', detail: msg, life: 4000 })
     return
   }
 
@@ -152,10 +157,11 @@ async function handleSubmit() {
     emit('saved', resultUser)
     closeModal()
   } catch (err: any) {
-    errorMessage.value =
+    const msg =
       err.response?.data?.error?.message ||
       err.message ||
       'Hi ha hagut un error en desar l’usuari.'
+    toast.add({ severity: 'error', summary: 'Error en l’Usuari', detail: msg, life: 4000 })
   } finally {
     isSubmitting.value = false
   }
@@ -173,9 +179,6 @@ async function handleSubmit() {
     data-testid="user-form-dialog"
   >
     <form @submit.prevent="handleSubmit" class="user-form">
-      <Message v-if="errorMessage" severity="error" :closable="false" class="form-error">
-        {{ errorMessage }}
-      </Message>
 
       <div class="form-grid">
         <div class="form-field">

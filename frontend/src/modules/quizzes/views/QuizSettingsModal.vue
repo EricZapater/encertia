@@ -6,7 +6,7 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import Chips from 'primevue/chips'
-import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 import type { QuizDetail, QuizStatus } from '../types'
 import { useQuizStore } from '../store'
 
@@ -21,6 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const quizStore = useQuizStore()
+const toast = useToast()
 
 const title = ref('')
 const description = ref('')
@@ -68,7 +69,8 @@ async function handleFileChange(event: Event) {
   if (!file) return
 
   if (file.size > 5 * 1024 * 1024) {
-    errorMessage.value = "La imatge supera la mida màxima de 5 MB."
+    const msg = "La imatge supera la mida màxima de 5 MB."
+    toast.add({ severity: 'error', summary: 'Error d’Imatge', detail: msg, life: 4000 })
     return
   }
 
@@ -77,8 +79,10 @@ async function handleFileChange(event: Event) {
   try {
     const url = await quizStore.uploadImage(file)
     coverImageUrl.value = url
+    toast.add({ severity: 'success', summary: 'Imatge Carregada', detail: 'Imatge de portada pujada correctament.', life: 3000 })
   } catch (err: any) {
-    errorMessage.value = err.message || "Error en pujar la imatge de portada."
+    const msg = err.message || "Error en pujar la imatge de portada."
+    toast.add({ severity: 'error', summary: 'Error de Pujada', detail: msg, life: 4000 })
   } finally {
     isUploading.value = false
     if (target) target.value = ''
@@ -91,7 +95,8 @@ function removeCoverImage() {
 
 function handleSave() {
   if (!title.value.trim()) {
-    errorMessage.value = 'El títol del qüestionari és obligatori.'
+    const msg = 'El títol del qüestionari és obligatori.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
@@ -99,10 +104,10 @@ function handleSave() {
     title: title.value.trim(),
     description: description.value.trim() || null,
     status: status.value,
-    tags: tags.value,
+    tags: [...tags.value],
     coverImageUrl: coverImageUrl.value
   })
-
+  toast.add({ severity: 'success', summary: 'Configuració Desada', detail: 'Configuració del qüestionari actualitzada.', life: 3000 })
   handleClose()
 }
 </script>
@@ -117,10 +122,6 @@ function handleSave() {
     data-testid="quiz-settings-dialog"
   >
     <div class="settings-modal-content">
-      <Message v-if="errorMessage" severity="error" class="mb-3" :closable="true" @close="errorMessage = null">
-        {{ errorMessage }}
-      </Message>
-
       <div class="form-field">
         <label for="quiz-title" class="field-label">Títol del Joc <span class="required">*</span></label>
         <InputText

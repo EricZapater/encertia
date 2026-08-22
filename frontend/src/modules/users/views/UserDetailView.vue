@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
 import { useUserStore } from '../store'
@@ -8,8 +8,8 @@ import type { User } from '../types'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
-import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
+import { useToast } from 'primevue/usetoast'
 
 import UserFormModal from './UserFormModal.vue'
 import ResetPasswordModal from './ResetPasswordModal.vue'
@@ -18,12 +18,25 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const userStore = useUserStore()
+const toast = useToast()
 
 const userId = computed(() => route.params.id as string)
 const user = ref<User | null>(null)
 const isLoading = ref(true)
 const errorMessage = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
+
+watch(successMessage, (msg) => {
+  if (msg) {
+    toast.add({ severity: 'success', summary: 'Èxit', detail: msg, life: 3000 })
+  }
+})
+
+watch(errorMessage, (msg) => {
+  if (msg) {
+    toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 4000 })
+  }
+})
 
 const showEditModal = ref(false)
 const showResetPasswordModal = ref(false)
@@ -89,14 +102,6 @@ onMounted(() => {
         data-testid="btn-back-users"
       />
     </div>
-
-    <Message v-if="successMessage" severity="success" :closable="true" class="mb-3" @close="successMessage = null">
-      {{ successMessage }}
-    </Message>
-
-    <Message v-if="errorMessage" severity="error" :closable="false" class="mb-3">
-      {{ errorMessage }}
-    </Message>
 
     <div v-if="isLoading" class="loading-wrapper">
       <ProgressSpinner strokeWidth="4" />

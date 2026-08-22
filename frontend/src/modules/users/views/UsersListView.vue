@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
 import { useUserStore } from '../store'
@@ -11,8 +11,8 @@ import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
-import Message from 'primevue/message'
 import Dialog from 'primevue/dialog'
+import { useToast } from 'primevue/usetoast'
 
 import UserFormModal from './UserFormModal.vue'
 import ResetPasswordModal from './ResetPasswordModal.vue'
@@ -21,6 +21,7 @@ import BatchImportModal from './BatchImportModal.vue'
 const router = useRouter()
 const authStore = useAuthStore()
 const userStore = useUserStore()
+const toast = useToast()
 
 const isAdmin = computed(() => authStore.currentUser?.role === 'admin')
 const isTeacher = computed(() => authStore.currentUser?.role === 'teacher')
@@ -62,6 +63,21 @@ const userToDelete = ref<User | null>(null)
 
 const successFeedback = ref<string | null>(null)
 const errorFeedback = ref<string | null>(null)
+
+watch(successFeedback, (msg) => {
+  if (msg) {
+    toast.add({ severity: 'success', summary: 'Èxit', detail: msg, life: 3000 })
+  }
+})
+
+watch([errorFeedback, () => userStore.error], ([err1, err2]) => {
+  const err = err1 || err2
+  if (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err, life: 4000 })
+    errorFeedback.value = null
+    userStore.clearError()
+  }
+})
 
 // Carrega inicial
 onMounted(() => {
@@ -213,29 +229,6 @@ function formatDate(dateStr: string) {
         />
       </div>
     </div>
-
-    <!-- Alertes de feedback -->
-    <Message
-      v-if="successFeedback"
-      severity="success"
-      :closable="true"
-      class="mb-3"
-      @close="successFeedback = null"
-      data-testid="msg-success-feedback"
-    >
-      {{ successFeedback }}
-    </Message>
-
-    <Message
-      v-if="errorFeedback || userStore.error"
-      severity="error"
-      :closable="true"
-      class="mb-3"
-      @close="errorFeedback = null; userStore.clearError()"
-      data-testid="msg-error-feedback"
-    >
-      {{ errorFeedback || userStore.error }}
-    </Message>
 
     <!-- Barra de filtres -->
     <div class="filters-bar">

@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useUserStore } from '../store'
 import { parseUsersCsv, type CsvParseResult } from '../utils/csvParser'
 import type { BatchCreateUsersResponse } from '../types'
 
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import ProgressBar from 'primevue/progressbar'
+import { useToast } from 'primevue/usetoast'
 
 defineProps<{
   visible: boolean
@@ -22,6 +22,7 @@ const emit = defineEmits<{
 }>()
 
 const userStore = useUserStore()
+const toast = useToast()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const fileName = ref<string | null>(null)
@@ -30,6 +31,12 @@ const isParsing = ref(false)
 const isSubmitting = ref(false)
 const importResult = ref<BatchCreateUsersResponse | null>(null)
 const globalError = ref<string | null>(null)
+
+watch(globalError, (err) => {
+  if (err) {
+    toast.add({ severity: 'error', summary: 'Error d’Importació', detail: err, life: 4000 })
+  }
+})
 
 // Pas del procés: 'select' -> 'preview' -> 'result'
 const step = ref<'select' | 'preview' | 'result'>('select')
@@ -147,11 +154,6 @@ function downloadExampleCsv() {
     data-testid="batch-import-dialog"
   >
     <div class="batch-import-container">
-      <!-- Missatge d'error global -->
-      <Message v-if="globalError" severity="error" :closable="false" class="mb-3">
-        {{ globalError }}
-      </Message>
-
       <!-- PAS 1: SELECCIÓ DE FITXER -->
       <div v-if="step === 'select'" class="step-select">
         <div class="upload-dropzone" @click="triggerFileInput">

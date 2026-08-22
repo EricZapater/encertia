@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuizStore } from '../store'
 import { useMatchStore } from '@/modules/match/store'
@@ -9,15 +9,16 @@ import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
-import Message from 'primevue/message'
 import Dialog from 'primevue/dialog'
 import Paginator, { type PageState } from 'primevue/paginator'
+import { useToast } from 'primevue/usetoast'
 
 import DuplicateQuizModal from './DuplicateQuizModal.vue'
 
 const router = useRouter()
 const quizStore = useQuizStore()
 const matchStore = useMatchStore()
+const toast = useToast()
 const isLaunchingMatch = ref<Record<string, boolean>>({})
 
 // Filtres
@@ -42,6 +43,21 @@ const quizToDelete = ref<Quiz | null>(null)
 
 const successFeedback = ref<string | null>(null)
 const errorFeedback = ref<string | null>(null)
+
+watch(successFeedback, (msg) => {
+  if (msg) {
+    toast.add({ severity: 'success', summary: 'Èxit', detail: msg, life: 3000 })
+  }
+})
+
+watch([errorFeedback, () => quizStore.error], ([err1, err2]) => {
+  const err = err1 || err2
+  if (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err, life: 4000 })
+    errorFeedback.value = null
+    quizStore.clearError()
+  }
+})
 
 onMounted(() => {
   quizStore.fetchQuizzes()
@@ -200,29 +216,6 @@ function formatDate(dateStr: string) {
         />
       </div>
     </div>
-
-    <!-- Alertes de feedback -->
-    <Message
-      v-if="successFeedback"
-      severity="success"
-      :closable="true"
-      class="mb-3"
-      @close="successFeedback = null"
-      data-testid="msg-success-feedback"
-    >
-      {{ successFeedback }}
-    </Message>
-
-    <Message
-      v-if="errorFeedback || quizStore.error"
-      severity="error"
-      :closable="true"
-      class="mb-3"
-      @close="errorFeedback = null; quizStore.clearError()"
-      data-testid="msg-error-feedback"
-    >
-      {{ errorFeedback || quizStore.error }}
-    </Message>
 
     <!-- Barra de filtres -->
     <div class="filters-bar">

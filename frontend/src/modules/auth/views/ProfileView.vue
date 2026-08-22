@@ -6,16 +6,15 @@ import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Divider from 'primevue/divider'
-import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 
 const user = computed(() => authStore.currentUser)
 const isLoggingOut = ref(false)
 const isRefreshingProfile = ref(false)
-const successMessage = ref<string | null>(null)
-const errorMessage = ref<string | null>(null)
 
 function formatDate(dateString?: string) {
   if (!dateString) return 'N/D'
@@ -32,16 +31,21 @@ function formatDate(dateString?: string) {
 
 async function handleRefresh() {
   isRefreshingProfile.value = true
-  errorMessage.value = null
-  successMessage.value = null
   try {
     await authStore.fetchMe()
-    successMessage.value = 'Dades del perfil actualitzades correctament.'
-    setTimeout(() => {
-      successMessage.value = null
-    }, 3000)
+    toast.add({
+      severity: 'success',
+      summary: 'Perfil Actualitzat',
+      detail: 'Dades del perfil actualitzades correctament.',
+      life: 3000
+    })
   } catch (err: any) {
-    errorMessage.value = 'No s’han pogut actualitzar les dades del perfil.'
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No s’han pogut actualitzar les dades del perfil.',
+      life: 4000
+    })
   } finally {
     isRefreshingProfile.value = false
   }
@@ -70,13 +74,6 @@ onMounted(() => {
   <div class="profile-container">
     <main class="profile-main">
       <div class="profile-wrapper">
-        <Message v-if="successMessage" severity="success" class="mb-4">
-          {{ successMessage }}
-        </Message>
-        <Message v-if="errorMessage" severity="error" class="mb-4">
-          {{ errorMessage }}
-        </Message>
-
         <Card class="profile-card">
           <template #title>
             <div class="profile-header">

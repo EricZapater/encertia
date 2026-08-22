@@ -4,10 +4,6 @@
       <h1 class="text-2xl font-bold m-0">Panell d'Avaluacions</h1>
     </div>
 
-    <Message v-if="store.error" severity="error" :closable="true" @close="store.clearError()">
-      {{ store.error }}
-    </Message>
-
     <DataTable
       :value="store.evaluationsList"
       :loading="store.isLoading"
@@ -44,16 +40,27 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useEvaluationStore } from '../store'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
 const store = useEvaluationStore()
+const toast = useToast()
+
+watch(
+  () => store.error,
+  (err) => {
+    if (err) {
+      toast.add({ severity: 'error', summary: 'Error', detail: err, life: 4000 })
+      store.clearError()
+    }
+  }
+)
 
 onMounted(() => {
   store.fetchEvaluationsList()

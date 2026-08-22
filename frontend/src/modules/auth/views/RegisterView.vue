@@ -7,10 +7,11 @@ import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 
 const form = reactive<RegisterRequest>({
   firstName: '',
@@ -27,12 +28,14 @@ async function handleRegister() {
   errorMessage.value = null
 
   if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || !form.password) {
-    errorMessage.value = 'Tots els camps són obligatoris.'
+    const msg = 'Tots els camps són obligatoris.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
   if (form.password.length < 8) {
-    errorMessage.value = 'La contrasenya ha de tenir com a mínim 8 caràcters.'
+    const msg = 'La contrasenya ha de tenir com a mínim 8 caràcters.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
@@ -45,12 +48,14 @@ async function handleRegister() {
       password: form.password,
       role: 'student'
     })
+    toast.add({ severity: 'success', summary: 'Compte Creat', detail: 'Benvingut a Encertia!', life: 3000 })
     router.push('/profile')
   } catch (err: any) {
-    errorMessage.value =
+    const msg =
       err.response?.data?.error?.message ||
       authStore.error ||
       'Error en crear el compte. Si us plau, revisa les dades.'
+    toast.add({ severity: 'error', summary: 'Error de Registre', detail: msg, life: 4000 })
   } finally {
     isSubmitting.value = false
   }
@@ -75,9 +80,6 @@ async function handleRegister() {
 
         <template #content>
           <form @submit.prevent="handleRegister" class="auth-form">
-            <Message v-if="errorMessage" severity="error" :closable="false" class="auth-message">
-              {{ errorMessage }}
-            </Message>
 
             <div class="form-row">
               <div class="form-field flex-1">

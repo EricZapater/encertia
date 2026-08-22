@@ -7,6 +7,7 @@ import Dialog from 'primevue/dialog'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 
 const props = defineProps<{
   visible: boolean
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 }>()
 
 const userStore = useUserStore()
+const toast = useToast()
 
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -45,22 +47,26 @@ async function handleResetPassword() {
   errorMessage.value = null
 
   if (!newPassword.value) {
-    errorMessage.value = 'Has d’introduir la nova contrasenya.'
+    const msg = 'Has d’introduir la nova contrasenya.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
   if (newPassword.value.length < 8) {
-    errorMessage.value = 'La contrasenya ha de contenir com a mínim 8 caràcters.'
+    const msg = 'La contrasenya ha de contenir com a mínim 8 caràcters.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
   if (newPassword.value !== confirmPassword.value) {
-    errorMessage.value = 'Les contrasenyes no coincideixen.'
+    const msg = 'Les contrasenyes no coincideixen.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
   if (!props.user?.id) {
-    errorMessage.value = 'No s’ha seleccionat cap usuari.'
+    const msg = 'No s’ha seleccionat cap usuari.'
+    toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 4000 })
     return
   }
 
@@ -70,13 +76,16 @@ async function handleResetPassword() {
     const msg = await userStore.resetUserPassword(props.user.id, {
       newPassword: newPassword.value
     })
-    emit('success', msg || 'Contrasenya actualitzada correctament.')
+    const successMsg = msg || 'Contrasenya actualitzada correctament.'
+    toast.add({ severity: 'success', summary: 'Contrasenya Restablerta', detail: successMsg, life: 4000 })
+    emit('success', successMsg)
     closeModal()
   } catch (err: any) {
-    errorMessage.value =
+    const msg =
       err.response?.data?.error?.message ||
       err.message ||
       'Error en restablir la contrasenya.'
+    toast.add({ severity: 'error', summary: 'Error de Contrasenya', detail: msg, life: 4000 })
   } finally {
     isSubmitting.value = false
   }
@@ -102,9 +111,6 @@ async function handleResetPassword() {
     </div>
 
     <form @submit.prevent="handleResetPassword" class="reset-form">
-      <Message v-if="errorMessage" severity="error" :closable="false">
-        {{ errorMessage }}
-      </Message>
 
       <Message severity="info" :closable="false">
         En restablir la contrasenya, totes les sessions actives de l'usuari seran revocades i haurà d'iniciar sessió novament.

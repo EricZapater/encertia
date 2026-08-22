@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuizStore } from '../store'
 import type {
@@ -18,7 +18,7 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import Tag from 'primevue/tag'
-import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 
 import QuizSettingsModal from './QuizSettingsModal.vue'
 import QuizPreviewModal from './QuizPreviewModal.vue'
@@ -26,6 +26,20 @@ import QuizPreviewModal from './QuizPreviewModal.vue'
 const route = useRoute()
 const router = useRouter()
 const quizStore = useQuizStore()
+const toast = useToast()
+
+const feedbackMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null)
+
+watch(feedbackMessage, (fb) => {
+  if (fb) {
+    toast.add({
+      severity: fb.type,
+      summary: fb.type === 'success' ? 'Èxit' : 'Error',
+      detail: fb.text,
+      life: 4000
+    })
+  }
+})
 
 const quizId = computed(() => route.params.id as string | undefined)
 const isNewQuiz = computed(() => !quizId.value || quizId.value === 'new')
@@ -52,8 +66,6 @@ const questionFileInput = ref<HTMLInputElement | null>(null)
 // Modals
 const showSettingsModal = ref(false)
 const showPreviewModal = ref(false)
-
-const feedbackMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null)
 
 const activeQuestion = computed<QuizQuestion | undefined>(() => {
   return currentQuiz.value.questions[selectedQuestionIndex.value]
@@ -506,18 +518,6 @@ function getShape(index: number) {
         />
       </div>
     </header>
-
-    <!-- Alertes de feedback -->
-    <div v-if="feedbackMessage" class="feedback-banner">
-      <Message
-        :severity="feedbackMessage.type"
-        :closable="true"
-        @close="feedbackMessage = null"
-        data-testid="editor-feedback-msg"
-      >
-        {{ feedbackMessage.text }}
-      </Message>
-    </div>
 
     <!-- Cos de l'Editor: Panell Esquerre + Panell Central -->
     <div class="editor-workspace">

@@ -5,14 +5,6 @@
       <h1 class="text-2xl font-bold m-0" v-if="studentData">Avaluació de {{ studentData.studentName }}</h1>
     </div>
 
-<Message v-if="store.error" severity="error" class="mb-4" :closable="true" @close="store.clearError()">
-      {{ store.error }}
-    </Message>
-
-    <Message v-if="successMessage" severity="success" class="mb-4" :closable="true" @close="successMessage = null">
-      {{ successMessage }}
-    </Message>
-
     <div v-if="store.isLoading" class="text-center p-4">
       <i class="pi pi-spin pi-spinner text-2xl"></i>
     </div>
@@ -94,7 +86,6 @@ import Card from 'primevue/card'
 import InputNumber from 'primevue/inputnumber'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-import Message from 'primevue/message'
 import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()
@@ -107,7 +98,16 @@ const studentId = computed(() => route.params.studentId as string)
 const studentData = computed(() => store.activeStudentEvaluation)
 
 const gradeInput = ref<number | null>(null)
-const successMessage = ref<string | null>(null)
+
+watch(
+  () => store.error,
+  (err) => {
+    if (err) {
+      toast.add({ severity: 'error', summary: 'Error', detail: err, life: 4000 })
+      store.clearError()
+    }
+  }
+)
 
 onMounted(async () => {
   if (quizId.value && studentId.value) {
@@ -128,11 +128,9 @@ function initGradeInput() {
 
 async function onSaveGrade() {
   if (gradeInput.value === null || gradeInput.value === undefined) return
-  successMessage.value = null
   try {
     const res = await store.saveStudentGrade(quizId.value, studentId.value, gradeInput.value)
     const msg = `Nota de ${res.finalGrade.toFixed(2)} desada correctament.`
-    successMessage.value = msg
     toast.add({
       severity: 'success',
       summary: 'Nota Desada',
@@ -140,7 +138,7 @@ async function onSaveGrade() {
       life: 4000
     })
   } catch (err) {
-    // Error feedback handled via store.error
+    // Error feedback handled via store.error watch
   }
 }
 

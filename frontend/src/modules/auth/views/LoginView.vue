@@ -7,11 +7,12 @@ import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const toast = useToast()
 
 const credentials = reactive<LoginRequest>({
   email: '',
@@ -25,7 +26,8 @@ async function handleLogin() {
   errorMessage.value = null
 
   if (!credentials.email || !credentials.password) {
-    errorMessage.value = 'Si us plau, omple tots els camps.'
+    const msg = 'Si us plau, omple tots els camps.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
@@ -35,10 +37,11 @@ async function handleLogin() {
     const redirectPath = (route.query.redirect as string) || '/profile'
     router.push(redirectPath)
   } catch (err: any) {
-    errorMessage.value =
+    const msg =
       err.response?.data?.error?.message ||
       authStore.error ||
       'Credencials incorrectes o error en la connexió.'
+    toast.add({ severity: 'error', summary: 'Error d’Accés', detail: msg, life: 4000 })
   } finally {
     isSubmitting.value = false
   }
@@ -63,9 +66,6 @@ async function handleLogin() {
 
         <template #content>
           <form @submit.prevent="handleLogin" class="auth-form">
-            <Message v-if="errorMessage" severity="error" :closable="false" class="auth-message">
-              {{ errorMessage }}
-            </Message>
 
             <div class="form-field">
               <label for="email">Correu Electrònic</label>

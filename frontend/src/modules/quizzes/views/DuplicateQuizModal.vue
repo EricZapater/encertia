@@ -4,7 +4,7 @@ import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
-import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 import type { Quiz } from '../types'
 import { useQuizStore } from '../store'
 
@@ -19,6 +19,7 @@ const emit = defineEmits<{
 }>()
 
 const quizStore = useQuizStore()
+const toast = useToast()
 
 const copyTitle = ref('')
 const includeAnswers = ref(false)
@@ -46,7 +47,8 @@ async function handleDuplicate() {
   if (!props.quiz) return
 
   if (!copyTitle.value.trim()) {
-    errorMessage.value = 'El títol del qüestionari duplicat és obligatori.'
+    const msg = 'El títol del qüestionari duplicat és obligatori.'
+    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
     return
   }
 
@@ -58,11 +60,12 @@ async function handleDuplicate() {
       title: copyTitle.value.trim(),
       includeAnswers: includeAnswers.value
     })
+    toast.add({ severity: 'success', summary: 'Qüestionari Duplicat', detail: `Se'n ha creat la còpia "${duplicated.title}".`, life: 3000 })
     emit('duplicated', duplicated)
     handleClose()
   } catch (err: any) {
-    errorMessage.value =
-      err.response?.data?.error || err.message || 'Error en duplicar el qüestionari.'
+    const msg = err.response?.data?.error || err.message || 'Error en duplicar el qüestionari.'
+    toast.add({ severity: 'error', summary: 'Error de Duplicació', detail: msg, life: 4000 })
   } finally {
     isSubmitting.value = false
   }
@@ -79,9 +82,6 @@ async function handleDuplicate() {
     data-testid="duplicate-quiz-dialog"
   >
     <div class="duplicate-modal-content">
-      <Message v-if="errorMessage" severity="error" class="mb-3" :closable="true" @close="errorMessage = null">
-        {{ errorMessage }}
-      </Message>
 
       <p class="modal-description">
         Crea una còpia independent d'aquest qüestionari en estat <strong>Esborrany</strong> per poder adaptar-lo o reutilitzar-lo.

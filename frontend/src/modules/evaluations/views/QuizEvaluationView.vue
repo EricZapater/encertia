@@ -5,10 +5,6 @@
       <h1 class="text-2xl font-bold m-0" v-if="evalData">{{ evalData.quizTitle }}</h1>
     </div>
 
-    <Message v-if="store.error" severity="error" :closable="true" @close="store.clearError()">
-      {{ store.error }}
-    </Message>
-
     <div v-if="store.isLoading" class="text-center p-4">
       <i class="pi pi-spin pi-spinner text-2xl"></i>
     </div>
@@ -93,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEvaluationStore } from '../store'
 import Button from 'primevue/button'
@@ -101,14 +97,25 @@ import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
-import Message from 'primevue/message'
+import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()
 const router = useRouter()
 const store = useEvaluationStore()
+const toast = useToast()
 
 const quizId = computed(() => route.params.quizId as string)
 const evalData = computed(() => store.activeQuizEvaluation)
+
+watch(
+  () => store.error,
+  (err) => {
+    if (err) {
+      toast.add({ severity: 'error', summary: 'Error', detail: err, life: 4000 })
+      store.clearError()
+    }
+  }
+)
 
 onMounted(() => {
   if (quizId.value) {
