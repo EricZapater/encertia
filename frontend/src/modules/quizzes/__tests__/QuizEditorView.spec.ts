@@ -4,6 +4,13 @@ import { createPinia, setActivePinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import QuizEditorView from '../views/QuizEditorView.vue'
 
+const mockToastAdd = vi.fn()
+vi.mock('primevue/usetoast', () => ({
+  useToast: () => ({
+    add: mockToastAdd
+  })
+}))
+
 const mockRoute = {
   params: { id: 'new' }
 }
@@ -122,8 +129,12 @@ describe('QuizEditorView Component', () => {
     const saveBtn = wrapper.find('[data-testid="btn-save-quiz"]')
     await saveBtn.trigger('click')
 
-    expect(wrapper.find('[data-testid="editor-feedback-msg"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('La pregunta #1 no té enunciat')
+    expect(mockToastAdd).toHaveBeenCalledWith(
+      expect.objectContaining({
+        severity: 'error',
+        detail: 'La pregunta #1 no té enunciat.'
+      })
+    )
   })
 
   it('toggles correct answer indicator properly', async () => {

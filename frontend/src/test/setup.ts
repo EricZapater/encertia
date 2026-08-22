@@ -1,4 +1,10 @@
 import { vi } from 'vitest'
+import { config } from '@vue/test-utils'
+import PrimeVue from 'primevue/config'
+import ToastService from 'primevue/toastservice'
+
+config.global.plugins.push(PrimeVue)
+config.global.plugins.push(ToastService)
 
 // Mock matchMedia for PrimeVue UI components
 Object.defineProperty(window, 'matchMedia', {
