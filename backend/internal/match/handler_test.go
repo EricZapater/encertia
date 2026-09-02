@@ -21,7 +21,7 @@ type mockTokenValidator struct {
 	err    *shared.AppError
 }
 
-func (m *mockTokenValidator) ValidateAccessToken(token string) (string, string, string, *shared.AppError) {
+func (m *mockTokenValidator) ValidateAccessToken(ctx context.Context, token string) (string, string, string, *shared.AppError) {
 	if m.err != nil {
 		return "", "", "", m.err
 	}

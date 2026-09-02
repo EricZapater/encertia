@@ -5,6 +5,14 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-02
+### Security
+- **Mòdul Auth — Taula de Revocació d'Access Tokens JWT**:
+  - Creat la migració SQL `000007_create_revoked_access_tokens.up.sql` per gestionar la taula `revoked_access_tokens` a PostgreSQL.
+  - Actualitzat el backend (`internal/auth` i `internal/shared/middleware.go`) per registrar el hash de l'Access Token JWT al fer `/auth/logout` i verificar que no estigui revocat a cada petició protegida (`AuthMiddleware`).
+  - Actualitzats el contracte OpenAPI (`contracts/auth.openapi.yaml` v0.2.0) i l'especificació (`specs/auth.md` v1.1) per homologar l'esquema d'autenticació JWT (Access Tokens + Refresh Tokens + Taula de Revocació).
+  - Actualitzat l'informe de QA (`qa-reports/auth.md`) amb veredicte **APTE**.
+
 ## [0.7.8] - 2026-08-22
 ### Changed
 - **Unificació de Notificacions a Toast en tot el Frontend**:

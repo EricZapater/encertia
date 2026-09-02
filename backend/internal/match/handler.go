@@ -192,7 +192,7 @@ func (h *Handler) HandleWebSocket(c *gin.Context) {
 		return
 	}
 
-	userIDStr, _, _, appErr := h.tokenValidator.ValidateAccessToken(tokenStr)
+	userIDStr, _, _, appErr := h.tokenValidator.ValidateAccessToken(c.Request.Context(), tokenStr)
 	if appErr != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token d'autenticació invàlid o caducat."})
 		return

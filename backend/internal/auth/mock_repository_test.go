@@ -10,17 +10,19 @@ import (
 )
 
 type mockRepository struct {
-	mu            sync.RWMutex
-	users         map[string]*auth.UserDB         // email -> user
-	usersByID     map[uuid.UUID]*auth.UserDB      // id -> user
-	refreshTokens map[string]*auth.RefreshTokenDB // tokenHash -> rt
+	mu                  sync.RWMutex
+	users               map[string]*auth.UserDB         // email -> user
+	usersByID           map[uuid.UUID]*auth.UserDB      // id -> user
+	refreshTokens       map[string]*auth.RefreshTokenDB // tokenHash -> rt
+	revokedAccessTokens map[string]bool                 // tokenHash -> isRevoked
 }
 
 func newMockRepository() *mockRepository {
 	return &mockRepository{
-		users:         make(map[string]*auth.UserDB),
-		usersByID:     make(map[uuid.UUID]*auth.UserDB),
-		refreshTokens: make(map[string]*auth.RefreshTokenDB),
+		users:               make(map[string]*auth.UserDB),
+		usersByID:           make(map[uuid.UUID]*auth.UserDB),
+		refreshTokens:       make(map[string]*auth.RefreshTokenDB),
+		revokedAccessTokens: make(map[string]bool),
 	}
 }
 
@@ -116,4 +118,17 @@ func (m *mockRepository) RevokeAllUserRefreshTokens(ctx context.Context, userID 
 		}
 	}
 	return nil
+}
+
+func (m *mockRepository) RevokeAccessToken(ctx context.Context, tokenHash string, userID uuid.UUID, expiresAt time.Time) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.revokedAccessTokens[tokenHash] = true
+	return nil
+}
+
+func (m *mockRepository) IsAccessTokenRevoked(ctx context.Context, tokenHash string) (bool, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.revokedAccessTokens[tokenHash], nil
 }

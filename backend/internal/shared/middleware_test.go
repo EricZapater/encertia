@@ -1,6 +1,7 @@
 package shared_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,7 +13,7 @@ import (
 func TestAuthMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	validator := shared.TokenValidatorFunc(func(tokenString string) (string, string, string, *shared.AppError) {
+	validator := shared.TokenValidatorFunc(func(ctx context.Context, tokenString string) (string, string, string, *shared.AppError) {
 		if tokenString == "valid-token" {
 			return "user-123", "user@encertia.cat", "teacher", nil
 		}

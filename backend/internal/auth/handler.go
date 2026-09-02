@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"context"
 	"net/http"
+	"strings"
 
 	"github.com/encertia/backend/internal/shared"
 	"github.com/gin-gonic/gin"
@@ -95,11 +97,18 @@ func (h *Handler) Logout(c *gin.Context) {
 		return
 	}
 
+	accessToken := ""
+	authHeader := c.GetHeader("Authorization")
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
+		accessToken = strings.TrimSpace(parts[1])
+	}
+
 	var req LogoutRequest
 	// Logout request body is optional
 	_ = c.ShouldBindJSON(&req)
 
-	res, appErr := h.service.Logout(c.Request.Context(), userID, req)
+	res, appErr := h.service.Logout(c.Request.Context(), userID, accessToken, req)
 	if appErr != nil {
 		shared.RespondWithError(c, appErr)
 		return
@@ -133,8 +142,8 @@ func (h *Handler) Me(c *gin.Context) {
 
 // TokenValidatorAdapter adapts auth.Service to shared.TokenValidator interface
 func (h *Handler) TokenValidatorAdapter() shared.TokenValidator {
-	return shared.TokenValidatorFunc(func(tokenString string) (string, string, string, *shared.AppError) {
-		claims, err := h.service.ValidateAccessToken(tokenString)
+	return shared.TokenValidatorFunc(func(ctx context.Context, tokenString string) (string, string, string, *shared.AppError) {
+		claims, err := h.service.ValidateAccessToken(ctx, tokenString)
 		if err != nil {
 			return "", "", "", err
 		}

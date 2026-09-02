@@ -24,6 +24,8 @@ type Repository interface {
 	GetRefreshToken(ctx context.Context, tokenHash string) (*RefreshTokenDB, error)
 	RevokeRefreshToken(ctx context.Context, tokenHash string, revokedAt time.Time) error
 	RevokeAllUserRefreshTokens(ctx context.Context, userID uuid.UUID, revokedAt time.Time) error
+	RevokeAccessToken(ctx context.Context, tokenHash string, userID uuid.UUID, expiresAt time.Time) error
+	IsAccessTokenRevoked(ctx context.Context, tokenHash string) (bool, error)
 }
 
 type sqlRepository struct {
@@ -191,3 +193,28 @@ func (r *sqlRepository) RevokeAllUserRefreshTokens(ctx context.Context, userID u
 	_, err := r.db.ExecContext(ctx, query, revokedAt, userID)
 	return err
 }
+
+func (r *sqlRepository) RevokeAccessToken(ctx context.Context, tokenHash string, userID uuid.UUID, expiresAt time.Time) error {
+	query := `
+		INSERT INTO revoked_access_tokens (token_hash, user_id, expires_at)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (token_hash) DO NOTHING
+	`
+	_, err := r.db.ExecContext(ctx, query, tokenHash, userID, expiresAt)
+	return err
+}
+
+func (r *sqlRepository) IsAccessTokenRevoked(ctx context.Context, tokenHash string) (bool, error) {
+	query := `
+		SELECT EXISTS (
+			SELECT 1 FROM revoked_access_tokens WHERE token_hash = $1
+		)
+	`
+	var exists bool
+	err := r.db.QueryRowContext(ctx, query, tokenHash).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+

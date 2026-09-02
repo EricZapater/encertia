@@ -341,7 +341,7 @@ func TestLogout(t *testing.T) {
 		Role:      auth.RoleStudent,
 	})
 
-	msg, appErr := svc.Logout(ctx, regRes.User.ID, auth.LogoutRequest{
+	msg, appErr := svc.Logout(ctx, regRes.User.ID, regRes.Tokens.AccessToken, auth.LogoutRequest{
 		RefreshToken: &regRes.Tokens.RefreshToken,
 	})
 	if appErr != nil {
@@ -349,6 +349,12 @@ func TestLogout(t *testing.T) {
 	}
 	if msg.Message != "Sessió tancada correctament." {
 		t.Errorf("expected success message, got %s", msg.Message)
+	}
+
+	// Using the revoked access token must now fail
+	_, appErrAccess := svc.ValidateAccessToken(ctx, regRes.Tokens.AccessToken)
+	if appErrAccess == nil {
+		t.Fatal("expected error using revoked access token, got nil")
 	}
 
 	// Using the revoked refresh token must now fail
@@ -402,7 +408,7 @@ func TestValidateAccessToken(t *testing.T) {
 		Role:      auth.RoleStudent,
 	})
 
-	claims, appErr := svc.ValidateAccessToken(regRes.Tokens.AccessToken)
+	claims, appErr := svc.ValidateAccessToken(ctx, regRes.Tokens.AccessToken)
 	if appErr != nil {
 		t.Fatalf("unexpected error validating valid token: %v", appErr)
 	}
@@ -414,7 +420,7 @@ func TestValidateAccessToken(t *testing.T) {
 	}
 
 	// Invalid token string
-	_, invalidErr := svc.ValidateAccessToken("invalid.jwt.token")
+	_, invalidErr := svc.ValidateAccessToken(ctx, "invalid.jwt.token")
 	if invalidErr == nil {
 		t.Fatal("expected error on invalid token string, got nil")
 	}

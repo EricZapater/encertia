@@ -1,16 +1,20 @@
 openapi: 3.0.3
 info:
-  title: Encertia - Auth API
-  description: Contracte d'API per al mòdul d'autenticació i gestió d'identitat d'Encertia.
-  version: 0.1.0
+  title: Encertia — Auth API
+  version: 0.2.0
+  description: >
+    Contracte del mòdul d'autenticació. Autenticació basada en par de tokens JWT
+    (Access Token d'accés ràpid + Refresh Token de llarga durada guardat a Postgres),
+    amb taula de revocació a la BD per a invalidació real al logout.
+
+servers:
+  - url: /api/v1
+
 paths:
   /auth/register:
     post:
-      summary: Registre públic d'un nou usuari (només student)
-      description: Crea un nou compte d'usuari amb rol `student` i retorna els tokens d'accés inicials. La creació de rols `teacher` o `admin` es fa exclusivament des de l'aplicació per un administrador.
       operationId: register
-      tags:
-        - Auth
+      summary: Registra un nou usuari (rol student per defecte)
       requestBody:
         required: true
         content:
@@ -19,25 +23,19 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: Usuari registrat correctament.
+          description: Usuari creat i autenticat amb èxit
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
         '400':
-          description: Dades invàlides o contrasenya massa feble.
+          description: Dades de registre invàlides
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: El correu electrònic ja està registrat.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Error intern del servidor.
+          description: El correu electrònic ja està registrat
           content:
             application/json:
               schema:
@@ -45,11 +43,8 @@ paths:
 
   /auth/login:
     post:
-      summary: Inici de sessió
-      description: Autentica un usuari amb email i contrasenya, retornant el parell de tokens JWT.
       operationId: login
-      tags:
-        - Auth
+      summary: Autentica un usuari (admin, teacher o student) i retorna el par de tokens JWT
       requestBody:
         required: true
         content:
@@ -58,25 +53,13 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Autenticació satisfactòria.
+          description: Login correcte
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
-        '400':
-          description: Format de dades invàlid.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Credencials incorrectes.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Error intern del servidor.
+          description: Credencials invàlides (email o contrasenya incorrectes) o compte desactivat
           content:
             application/json:
               schema:
@@ -84,11 +67,8 @@ paths:
 
   /auth/refresh:
     post:
-      summary: Renovació del token d'accés
-      description: Obté un nou accessToken i refreshToken a partir d'un refreshToken vigent.
       operationId: refreshToken
-      tags:
-        - Auth
+      summary: Renova el par de tokens JWT utilitzant un Refresh Token vàlid
       requestBody:
         required: true
         content:
@@ -97,25 +77,13 @@ paths:
               $ref: '#/components/schemas/RefreshTokenRequest'
       responses:
         '200':
-          description: Tokens renovats correctament.
+          description: Tokens renovats correctament
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenPair'
-        '400':
-          description: Petició invàlida o manca de token.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Refresh token expirat o revocat.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Error intern del servidor.
+          description: Refresh Token invàlid, expirat o revocat
           content:
             application/json:
               schema:
@@ -123,13 +91,10 @@ paths:
 
   /auth/logout:
     post:
-      summary: Tancament de sessió
-      description: Invalida el refresh token actiu de l'usuari.
       operationId: logout
-      tags:
-        - Auth
+      summary: Revoca la sessió actual al servidor (invalidació del Refresh Token i de l'Access Token actiu)
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       requestBody:
         required: false
         content:
@@ -138,19 +103,13 @@ paths:
               $ref: '#/components/schemas/LogoutRequest'
       responses:
         '200':
-          description: Sessió tancada correctament.
+          description: Sessió revocada correctament al servidor
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
         '401':
-          description: No autoritzat o token invàlid.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Error intern del servidor.
+          description: Token absent, invàlid, caducat o revocat
           content:
             application/json:
               schema:
@@ -158,34 +117,19 @@ paths:
 
   /auth/me:
     get:
-      summary: Obtenir dades de l'usuari autenticat
-      description: Retorna les dades del perfil de l'usuari associat al token d'accés actual.
       operationId: getCurrentUser
-      tags:
-        - Auth
+      summary: Retorna l'usuari autenticat a partir de l'Access Token actual
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       responses:
         '200':
-          description: Perfil recuperat correctament.
+          description: Usuari actual
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
         '401':
-          description: Token no vàlid o expirat.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Usuari no trobat.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Error intern del servidor.
+          description: Token absent, invàlid o expirat
           content:
             application/json:
               schema:
@@ -193,190 +137,142 @@ paths:
 
 components:
   securitySchemes:
-    BearerAuth:
+    bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: >
+        Access Token JWT enviat com a "Authorization: Bearer <token>".
+        Validat per la signatura HMAC i verificat contra la taula de revocació de sessions.
 
   schemas:
     UserRole:
       type: string
-      enum:
-        - admin
-        - teacher
-        - student
-      description: Rol de l'usuari dins de la plataforma.
+      enum: [admin, teacher, student]
+      description: Rol de l'usuari a la plataforma Encertia.
 
     User:
       type: object
-      required:
-        - id
-        - email
-        - firstName
-        - lastName
-        - role
-        - createdAt
       properties:
         id:
           type: string
           format: uuid
-          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
         email:
           type: string
           format: email
-          example: "professor@encertia.cat"
         firstName:
           type: string
-          example: "Maria"
         lastName:
           type: string
-          example: "Garcia"
         role:
           $ref: '#/components/schemas/UserRole'
+        isActive:
+          type: boolean
         createdAt:
           type: string
           format: date-time
-          example: "2026-08-21T10:00:00Z"
         updatedAt:
           type: string
           format: date-time
-          example: "2026-08-21T10:00:00Z"
+      required: [id, email, firstName, lastName, role, isActive, createdAt]
+
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT Access Token (vàlid 15 minuts)
+        refreshToken:
+          type: string
+          description: Refresh Token aleatori (vàlid 7 dies)
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          description: Temps de vida de l'Access Token en segons (900s)
+      required: [accessToken, refreshToken, tokenType, expiresIn]
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+      required: [user, tokens]
+
+    UserResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+      required: [user]
 
     RegisterRequest:
       type: object
-      required:
-        - email
-        - password
-        - firstName
-        - lastName
       properties:
         email:
           type: string
           format: email
-          example: "maria.garcia@encertia.cat"
         password:
           type: string
-          format: password
           minLength: 8
-          example: "SecretPassword123!"
         firstName:
           type: string
-          minLength: 1
-          example: "Maria"
         lastName:
           type: string
-          minLength: 1
-          example: "Garcia"
         role:
           $ref: '#/components/schemas/UserRole'
-          default: student
-          description: Opcional en registre públic; per defecte sempre s'assigna `student`.
+      required: [email, password, firstName, lastName]
 
     LoginRequest:
       type: object
-      required:
-        - email
-        - password
       properties:
         email:
           type: string
           format: email
-          example: "maria.garcia@encertia.cat"
         password:
           type: string
-          format: password
-          example: "SecretPassword123!"
+          minLength: 8
+      required: [email, password]
 
     RefreshTokenRequest:
       type: object
-      required:
-        - refreshToken
       properties:
         refreshToken:
           type: string
-          example: "dGhpcy1pcy1hLXJlZnJlc2gtdG9rZW4..."
+      required: [refreshToken]
 
     LogoutRequest:
       type: object
       properties:
         refreshToken:
           type: string
-          description: Opcional si es vol revocar un refresh token específic a més del context de sessió.
-          example: "dGhpcy1pcy1hLXJlZnJlc2gtdG9rZW4..."
-
-    TokenPair:
-      type: object
-      required:
-        - accessToken
-        - refreshToken
-        - tokenType
-        - expiresIn
-      properties:
-        accessToken:
-          type: string
-          description: Token JWT d'accés (curta durada).
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        refreshToken:
-          type: string
-          description: Token de renovació (llarga durada).
-          example: "dGhpcy1pcy1hLXJlZnJlc2gtdG9rZW4..."
-        tokenType:
-          type: string
-          example: "Bearer"
-        expiresIn:
-          type: integer
-          description: Segons de validesa del token d'accés (ex. 900 per 15 minuts).
-          example: 900
-
-    AuthResponse:
-      type: object
-      required:
-        - user
-        - tokens
-      properties:
-        user:
-          $ref: '#/components/schemas/User'
-        tokens:
-          $ref: '#/components/schemas/TokenPair'
-
-    UserResponse:
-      type: object
-      required:
-        - user
-      properties:
-        user:
-          $ref: '#/components/schemas/User'
 
     MessageResponse:
       type: object
-      required:
-        - message
       properties:
         message:
           type: string
-          example: "Sessió tancada correctament."
+          example: Sessió tancada correctament.
+      required: [message]
 
     ErrorDetail:
       type: object
-      required:
-        - code
-        - message
       properties:
         code:
           type: string
-          example: "INVALID_CREDENTIALS"
         message:
           type: string
-          example: "El correu o la contrasenya són incorrectes."
         details:
           type: object
           additionalProperties: true
-          description: Informació addicional de validació per camp, si escau.
+      required: [code, message]
 
     ErrorResponse:
       type: object
-      required:
-        - error
       properties:
         error:
           $ref: '#/components/schemas/ErrorDetail'
+      required: [error]

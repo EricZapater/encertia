@@ -154,6 +154,9 @@ encertia/
                                     on llegeix el mateix contracte
     infra-agent.md                -> àmbit (Docker/CI/CD), com verifica build
                                       i desplegament
+    qa-agent.md                    -> àmbit (validació transversal), com
+                                       avalua compliment funcional, qualitat
+                                       i homogeneïtat abans del merge
   backend/
     Dockerfile               -> escrit per l'agent Infra
     ...
@@ -166,6 +169,13 @@ encertia/
   contracts/
     auth.openapi.yaml         -> contracte validat del mòdul auth
     course.openapi.yaml
+    ...
+  specs/
+    auth.md                     -> èpiques i històries d'usuari del mòdul auth
+    course.md
+    ...
+  qa-reports/
+    auth.md                     -> informe QA del mòdul auth (APTE/NO APTE)
     ...
 ```
 
@@ -180,7 +190,7 @@ Cada fitxer d'agent hauria de respondre, com a mínim:
   l'Orquestrador o a l'humà, en lloc de decidir per si mateix.
 
 L'Orquestrador té el seu propi `.agent/orchestrator.md` amb una restricció
-explícita: **àmbit d'escriptura limitat a `contracts/` i documents d'spec**,
+explícita: **àmbit d'escriptura limitat a `contracts/` i `specs/`**,
 mai a `backend/` ni `frontend/` directament.
 
 ## 6. Control de versions i changelog
@@ -206,9 +216,9 @@ mai a `backend/` ni `frontend/` directament.
 - Els tags de Git (`vMAJOR.MINOR.PATCH`) es creen en el mateix moment que es
   puja `VERSION`, per mantenir-los sincronitzats.
 
-## 7. Flux de treball multiagent (orquestrador + picacodis + infra)
+## 7. Flux de treball multiagent (orquestrador + picacodis + infra + QA)
 
-Aquest projecte es desenvolupa amb **quatre rols d'agent diferenciats**:
+Aquest projecte es desenvolupa amb **cinc rols d'agent diferenciats**:
 
 ### Rol 1 — Agent Orquestrador
 - Responsable de dissenyar el **contracte d'API en OpenAPI** per a cada mòdul,
@@ -262,13 +272,49 @@ Aquest projecte es desenvolupa amb **quatre rols d'agent diferenciats**:
   l'execució de la GitHub Action, no només que el YAML sigui vàlid
   sintàcticament.
 
+### Rol 5 — Agent QA
+- Actua **al final del desenvolupament d'un mòdul, abans de la integració**
+  (abans del Checkpoint de merge): un cop els agents backend i frontend
+  donen per acabada la seva feina, però abans que es fusioni a la branca
+  principal.
+- Té **visió transversal** de tot el projecte (llegeix `backend/` i
+  `frontend/` sencers, no només el mòdul acabat de fer), perquè la seva
+  feina inclou comparar-lo amb la resta de mòduls ja existents.
+- Tres eixos de validació, obligatoris els tres per a cada mòdul:
+  1. **Compliment funcional**: el mòdul fa el que diu `product-functional-spec.md`
+     i l'spec/contracte del mòdul concret? Prova cada història d'usuari de
+     l'spec contra el comportament real implementat.
+  2. **Qualitat de codi**: linting net (`golangci-lint`/ESLint ja haurien
+     d'estar nets, però ho torna a comprovar), gestió d'errors consistent,
+     absència de codi mort o de debug oblidat, absència de vulnerabilitats
+     evidents (injecció SQL, dades sensibles exposades, falta de validació
+     d'entrada).
+  3. **Homogeneïtat**: el mòdul nou segueix els mateixos patrons,
+     convencions de nom i estructura que els mòduls anteriors ja validats?
+     Si `auth` fa una cosa d'una manera i `user` la fa diferent sense motiu,
+     ho ha de senyalar.
+- **No corregeix codi ell mateix.** Si troba una incidència, la documenta i
+  l'escala a l'Orquestrador, que decideix si torna al backend/frontend
+  agent corresponent per esmenar-la (i llavors l'Agent QA torna a revisar).
+- **Àmbit d'escriptura**: només `qa-reports/<modul>.md` (un informe per
+  mòdul). Prohibit escriure a `backend/`, `frontend/`, `contracts/` o
+  qualsevol `.agent/*.md`.
+- Cada informe conclou amb un veredicte explícit: **APTE** (llest per
+  merge) o **NO APTE** (llista d'incidències a resoldre, classificades per
+  gravetat: bloquejant / important / menor).
+
 ### Punt de control humà
 - **Checkpoint 1 (obligatori)**: validació del contracte OpenAPI abans que
   l'Orquestrador dispari els picacodis.
-- **Checkpoint 2**: revisió humana abans de fer merge de les branques
-  `-backend` i `-frontend` a la branca principal. Els agents no fan merge
+- **Checkpoint 2 (obligatori, automàtic per procés)**: un cop backend i
+  frontend acaben el mòdul, l'Agent QA valida compliment funcional,
+  qualitat i homogeneïtat abans que ningú consideri el mòdul llest. Un
+  veredicte "NO APTE" bloqueja l'avanç fins que es resolgui.
+- **Checkpoint 3**: revisió humana abans de fer merge de les branques
+  `-backend` i `-frontend` a la branca principal (amb l'informe QA "APTE"
+  ja disponible com a suport a la decisió). Els agents no fan merge
   automàtic entre ells.
-- **Checkpoint 3**: revisió humana abans que l'agent Infra faci el primer
+- **Checkpoint 4**: revisió humana abans que l'agent Infra faci el primer
   desplegament real a un entorn compartit (staging o producció) — encara
   que el pipeline hagi verificat que el build passa. Un pipeline verd no
   substitueix la validació humana del primer desplegament d'un canvi

@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -15,14 +16,14 @@ const (
 
 // TokenValidator defines the contract for validating an access token.
 type TokenValidator interface {
-	ValidateAccessToken(tokenString string) (userID string, email string, role string, appErr *AppError)
+	ValidateAccessToken(ctx context.Context, tokenString string) (userID string, email string, role string, appErr *AppError)
 }
 
 // TokenValidatorFunc allows using a function as TokenValidator.
-type TokenValidatorFunc func(tokenString string) (userID string, email string, role string, appErr *AppError)
+type TokenValidatorFunc func(ctx context.Context, tokenString string) (userID string, email string, role string, appErr *AppError)
 
-func (f TokenValidatorFunc) ValidateAccessToken(tokenString string) (string, string, string, *AppError) {
-	return f(tokenString)
+func (f TokenValidatorFunc) ValidateAccessToken(ctx context.Context, tokenString string) (string, string, string, *AppError) {
+	return f(ctx, tokenString)
 }
 
 // AuthMiddleware creates a Gin middleware that requires a valid Bearer JWT.
@@ -49,7 +50,7 @@ func AuthMiddleware(validator TokenValidator) gin.HandlerFunc {
 			return
 		}
 
-		userID, email, role, err := validator.ValidateAccessToken(tokenString)
+		userID, email, role, err := validator.ValidateAccessToken(c.Request.Context(), tokenString)
 		if err != nil {
 			RespondWithError(c, err)
 			c.Abort()

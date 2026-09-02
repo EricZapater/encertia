@@ -28,9 +28,9 @@ type Service interface {
 	Register(ctx context.Context, req RegisterRequest) (*AuthResponse, *shared.AppError)
 	Login(ctx context.Context, req LoginRequest) (*AuthResponse, *shared.AppError)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (*TokenPair, *shared.AppError)
-	Logout(ctx context.Context, userID uuid.UUID, req LogoutRequest) (*MessageResponse, *shared.AppError)
+	Logout(ctx context.Context, userID uuid.UUID, accessToken string, req LogoutRequest) (*MessageResponse, *shared.AppError)
 	GetCurrentUser(ctx context.Context, userID uuid.UUID) (*UserResponse, *shared.AppError)
-	ValidateAccessToken(tokenString string) (*JWTClaims, *shared.AppError)
+	ValidateAccessToken(ctx context.Context, tokenString string) (*JWTClaims, *shared.AppError)
 }
 
 type Config struct {
@@ -206,8 +206,22 @@ func (s *authService) RefreshToken(ctx context.Context, req RefreshTokenRequest)
 	return tokenPair, nil
 }
 
-func (s *authService) Logout(ctx context.Context, userID uuid.UUID, req LogoutRequest) (*MessageResponse, *shared.AppError) {
+func (s *authService) Logout(ctx context.Context, userID uuid.UUID, accessToken string, req LogoutRequest) (*MessageResponse, *shared.AppError) {
 	now := time.Now().UTC()
+
+	// Revoke Access Token by adding its hash to revoked_access_tokens
+	if strings.TrimSpace(accessToken) != "" {
+		claims := &JWTClaims{}
+		token, _ := jwt.ParseWithClaims(accessToken, claims, func(t *jwt.Token) (interface{}, error) {
+			return []byte(s.cfg.JWTSecret), nil
+		})
+		tokenHash := hashToken(accessToken)
+		expiresAt := now.Add(s.cfg.AccessTokenDuration)
+		if token != nil && claims.ExpiresAt != nil {
+			expiresAt = claims.ExpiresAt.Time
+		}
+		_ = s.repo.RevokeAccessToken(ctx, tokenHash, userID, expiresAt)
+	}
 
 	if req.RefreshToken != nil && strings.TrimSpace(*req.RefreshToken) != "" {
 		tokenHash := hashToken(strings.TrimSpace(*req.RefreshToken))
@@ -239,7 +253,7 @@ func (s *authService) GetCurrentUser(ctx context.Context, userID uuid.UUID) (*Us
 	}, nil
 }
 
-func (s *authService) ValidateAccessToken(tokenString string) (*JWTClaims, *shared.AppError) {
+func (s *authService) ValidateAccessToken(ctx context.Context, tokenString string) (*JWTClaims, *shared.AppError) {
 	claims := &JWTClaims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
@@ -258,6 +272,16 @@ func (s *authService) ValidateAccessToken(tokenString string) (*JWTClaims, *shar
 
 	if !token.Valid {
 		return nil, shared.ErrUnauthorized(shared.ErrCodeInvalidToken, "El token d'accés és invàlid.")
+	}
+
+	// Verify token revocation in DB
+	tokenHash := hashToken(tokenString)
+	revoked, err := s.repo.IsAccessTokenRevoked(ctx, tokenHash)
+	if err != nil {
+		return nil, shared.ErrInternal(err)
+	}
+	if revoked {
+		return nil, shared.ErrUnauthorized(shared.ErrCodeInvalidToken, "El token d'accés ha estat revocat.")
 	}
 
 	return claims, nil

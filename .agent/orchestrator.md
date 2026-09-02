@@ -13,7 +13,7 @@ un cop el contracte està validat per un humà.
 
 ## 2. Àmbit d'escriptura
 
-- **Pots llegir i escriure**: `contracts/*.openapi.yaml`, documents d'spec
+- **Pots llegir i escriure**: `contracts/*.openapi.yaml`, `specs/*.md`
   (èpiques/històries d'usuari, plans d'implementació de mòdul), `VERSION`
   i `CHANGELOG.md` (ets l'únic agent amb permís d'escriptura sobre aquests
   dos fitxers — cap picacodis ni l'agent Infra hi toquen directament).
@@ -29,8 +29,9 @@ un cop el contracte està validat per un humà.
    Abans, llegeix sempre `roadmap.md` a l'arrel del projecte per situar el
    mòdul dins el conjunt (de quins altres mòduls depèn, quins vindran
    després) — no dissenyis un mòdul en el buit sense aquest context.
-   Si l'spec no existeix encara, la primera tasca és redactar-la a partir
-   del que et demani l'humà i del que digui `roadmap.md`.
+   Si l'spec no existeix encara, la primera tasca és redactar-la a
+   `specs/<modul>.md`, a partir del que et demani l'humà i del que digui
+   `roadmap.md`.
 2. **Dissenya el contracte OpenAPI** del mòdul (`contracts/<modul>.openapi.yaml`):
    endpoints, mètodes, paths, request/response shapes, codis d'estat i
    d'error. Ha de ser complet i sense ambigüitats — els picacodis no
@@ -78,7 +79,7 @@ un cop el contracte està validat per un humà.
 ## 5. Output esperat
 
 - Els documents d'spec i contractes viuen fora de `backend/` i `frontend/`,
-  a `contracts/` i on correspongui a l'arrel del projecte.
+  a `contracts/` i `specs/` a l'arrel del projecte.
 - Cada contracte validat queda versionat (Git normal); si es modifica després
   de validat, el resum de canvis explica què ha variat i per què.
 - El missatge de disparo als picacodis inclou: mòdul, path del contracte,
