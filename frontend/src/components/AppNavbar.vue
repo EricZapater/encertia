@@ -55,6 +55,16 @@
           <i class="pi pi-folder-open"></i>
           <span>Materials</span>
         </router-link>
+
+        <router-link
+          v-if="canAccessTeacherFeatures"
+          to="/help/teacher-manual"
+          class="nav-link"
+          :class="{ active: isRouteActive('/help/teacher-manual') }"
+        >
+          <i class="pi pi-question-circle"></i>
+          <span>Manual</span>
+        </router-link>
       </nav>
 
       <!-- Right User Controls -->

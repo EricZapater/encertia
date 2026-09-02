@@ -130,6 +130,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/help/teacher-manual',
+    name: 'teacher-manual',
+    component: () => import('@/views/TeacherManualView.vue'),
+    meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }

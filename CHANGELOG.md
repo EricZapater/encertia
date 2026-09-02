@@ -15,14 +15,15 @@ versionat amb [Semantic Versioning](https://semver.org/).
   - Suport d'emmagatzematge de documents (PDF, DOCX, PPTX fins a 50 MB) i gestió de proveïdors de vídeo externs (YouTube, Vimeo) a `internal/shared/storage.go`.
   - Endpoints REST: CRUD de materials (`/materials`), upload de fitxers (`/materials/upload`), vinculació N:N amb unitats (`/courses/:id/units/:unitId/materials`) i registres/informes d'accessos d'alumnes (`/materials/:id/views`).
   - Suite de tests unitaris i d'integració a `service_test.go` i `handler_test.go` amb 100% d'èxit.
-- **Frontend (`src/modules/materials`)**:
+- **Frontend (`src/modules/materials` & `src/views`)**:
   - Tipus TypeScript del contracte, client d'API Axios (`api.ts`) i store Pinia (`useMaterialStore`).
   - Vistes i components:
     - Llistat de materials del professor amb filtres per tipus ([`MaterialsListView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/materials/views/MaterialsListView.vue)).
     - Modal de pujada de documents i enllaçat de vídeos (`MaterialFormModal.vue`).
     - Visor integrat de PDF pàgina a pàgina i reproductor de vídeo embed (`PdfViewerModal.vue`).
     - Panell d'informe d'accessos d'alumnes (`MaterialViewsReportModal.vue`).
-  - Ruta `/materials` a Vue Router i accés directe al menú principal `AppNavbar.vue`.
+    - Manual d'Usuari Interactiu per al Professor ([`TeacherManualView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/views/TeacherManualView.vue)) accessible des de la ruta `/help/teacher-manual` i el menú superior `AppNavbar.vue`.
+  - Ruta `/materials` i `/help/teacher-manual` a Vue Router i accés directe al menú principal `AppNavbar.vue` integrats.
 - **QA & Validador**:
   - Informe de QA aprovat amb veredicte **APTE** ([`qa-reports/material.md`](file:///Users/eric.zapater/Developer/encertia/qa-reports/material.md)).
 - **Finalització de la v1 (Nucli Mínim)**:
