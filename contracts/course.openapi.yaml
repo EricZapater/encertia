@@ -1,0 +1,909 @@
+openapi: 3.0.3
+info:
+  title: Encertia — Mòdul Course API
+  description: Contracte d'API REST per a la gestió de cursos, unitats didàctiques, guió de classe i matriculacions a la plataforma Encertia.
+  version: 1.0.0
+
+servers:
+  - url: /api/v1
+    description: API Server v1
+
+paths:
+  /courses:
+    get:
+      summary: Llistar cursos
+      description: Retorna la llista de cursos. Professors veuen els seus cursos creats; Alumnes veuen els cursos on estan inscrits; Admins veuen tots els cursos.
+      operationId: listCourses
+      tags:
+        - Courses
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [draft, active, archived]
+      responses:
+        '200':
+          description: Llista de cursos trobats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseListResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '500':
+          $ref: '#/components/responses/500InternalError'
+
+    post:
+      summary: Crear un nou curs
+      description: Permet a un professor o admin crear un curs.
+      operationId: createCourse
+      tags:
+        - Courses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourseRequest'
+      responses:
+        '201':
+          description: Curs creat amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '409':
+          $ref: '#/components/responses/409Conflict'
+
+  /courses/{id}:
+    get:
+      summary: Obtenir detall d'un curs
+      operationId: getCourse
+      tags:
+        - Courses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detall del curs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseDetailResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+    put:
+      summary: Actualitzar un curs
+      operationId: updateCourse
+      tags:
+        - Courses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCourseRequest'
+      responses:
+        '200':
+          description: Curs actualitzat amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+    delete:
+      summary: Esborrar un curs (Soft-delete)
+      operationId: deleteCourse
+      tags:
+        - Courses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Curs esborrat correctament
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  /courses/{id}/students:
+    get:
+      summary: Llistar alumnes matriculats al curs
+      operationId: getCourseStudents
+      tags:
+        - Enrollments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Llista d'alumnes matriculats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseStudentsResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+    post:
+      summary: Matricular alumnes al curs
+      operationId: enrollStudents
+      tags:
+        - Enrollments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollStudentsRequest'
+      responses:
+        '200':
+          description: Alumnes matriculats correctament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseStudentsResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+
+  /courses/{id}/students/{studentId}:
+    delete:
+      summary: Desmatricular un alumne del curs
+      operationId: unenrollStudent
+      tags:
+        - Enrollments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Alumne desmatriculat
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  /courses/{courseId}/units:
+    get:
+      summary: Llistar unitats didàctiques d'un curs
+      operationId: listCourseUnits
+      tags:
+        - Units
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Llista d'unitats didàctiques ordenades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseUnitResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+    post:
+      summary: Crear una unitat didàctica
+      operationId: createCourseUnit
+      tags:
+        - Units
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourseUnitRequest'
+      responses:
+        '201':
+          description: Unitat didàctica meva creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseUnitResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+
+  /courses/{courseId}/units/reorder:
+    put:
+      summary: Reordenar les unitats d'un curs
+      operationId: reorderCourseUnits
+      tags:
+        - Units
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: uuid
+      responses:
+        '200':
+          description: Reordenació completada amb èxit
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseUnitResponse'
+
+  /courses/{courseId}/units/{unitId}:
+    get:
+      summary: Obtenir el detall d'una unitat didàctica
+      operationId: getCourseUnit
+      tags:
+        - Units
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detall de la unitat amb qüestionaris i guió
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseUnitDetailResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+    put:
+      summary: Actualitzar una unitat didàctica
+      operationId: updateCourseUnit
+      tags:
+        - Units
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCourseUnitRequest'
+      responses:
+        '200':
+          description: Unitat actualitzada amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseUnitResponse'
+
+    delete:
+      summary: Esborrar una unitat didàctica (Soft-delete)
+      operationId: deleteCourseUnit
+      tags:
+        - Units
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Unitat esborrada
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+
+  /courses/{courseId}/units/{unitId}/quizzes:
+    post:
+      summary: Vincular un qüestionari a una unitat didàctica (Relació N:N)
+      operationId: linkQuizToUnit
+      tags:
+        - Units
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quizId]
+              properties:
+                quizId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Qüestionari vinculat a la unitat
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+
+  /courses/{courseId}/units/{unitId}/quizzes/{quizId}:
+    delete:
+      summary: Desvincular un qüestionari d'una unitat didàctica
+      operationId: unlinkQuizFromUnit
+      tags:
+        - Units
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Desvinculat correctament
+
+  /courses/{courseId}/units/{unitId}/script:
+    get:
+      summary: Obtenir el guió de classe (blocs ordenats) d'una unitat
+      operationId: getUnitScript
+      tags:
+        - Script
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Guió de classe
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScriptBlockResponse'
+
+    put:
+      summary: Desar/Actualitzar la seqüència completa del guió de classe
+      operationId: updateUnitScript
+      tags:
+        - Script
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateScriptBlockRequest'
+      responses:
+        '200':
+          description: Guió de classe desat
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScriptBlockResponse'
+
+components:
+  schemas:
+    CourseResponse:
+      type: object
+      required: [id, title, code, status, teacherId, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, active, archived]
+        startDate:
+          type: string
+          format: date
+          nullable: true
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        teacherId:
+          type: string
+          format: uuid
+        teacherName:
+          type: string
+          nullable: true
+        enrolledStudentsCount:
+          type: integer
+          default: 0
+        unitsCount:
+          type: integer
+          default: 0
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CourseListResponse:
+      type: object
+      required: [items, total, page, pageSize, totalPages]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseResponse'
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+
+    CreateCourseRequest:
+      type: object
+      required: [title, code]
+      properties:
+        title:
+          type: string
+          minLength: 3
+        code:
+          type: string
+          minLength: 2
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, archived]
+          default: draft
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+
+    UpdateCourseRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, archived]
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+
+    CourseDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/CourseResponse'
+        - type: object
+          properties:
+            units:
+              type: array
+              items:
+                $ref: '#/components/schemas/CourseUnitResponse'
+
+    CourseUnitResponse:
+      type: object
+      required: [id, courseId, title, orderIndex, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        orderIndex:
+          type: integer
+        quizzesCount:
+          type: integer
+          default: 0
+        blocksCount:
+          type: integer
+          default: 0
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateCourseUnitRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        orderIndex:
+          type: integer
+
+    UpdateCourseUnitRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        orderIndex:
+          type: integer
+
+    CourseUnitDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/CourseUnitResponse'
+        - type: object
+          properties:
+            linkedQuizzes:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  title:
+                    type: string
+                  questionsCount:
+                    type: integer
+            scriptBlocks:
+              type: array
+              items:
+                $ref: '#/components/schemas/ScriptBlockResponse'
+
+    ScriptBlockResponse:
+      type: object
+      required: [id, unitId, blockType, orderIndex, title]
+      properties:
+        id:
+          type: string
+          format: uuid
+        unitId:
+          type: string
+          format: uuid
+        blockType:
+          type: string
+          enum: [material, quiz, break]
+        orderIndex:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        materialId:
+          type: string
+          format: uuid
+          nullable: true
+        pdfUrl:
+          type: string
+          nullable: true
+        startPage:
+          type: integer
+          nullable: true
+        endPage:
+          type: integer
+          nullable: true
+        quizId:
+          type: string
+          format: uuid
+          nullable: true
+        quizTitle:
+          type: string
+          nullable: true
+        durationMinutes:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateScriptBlockRequest:
+      type: object
+      required: [blockType, title, orderIndex]
+      properties:
+        blockType:
+          type: string
+          enum: [material, quiz, break]
+        orderIndex:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        materialId:
+          type: string
+          format: uuid
+        pdfUrl:
+          type: string
+        startPage:
+          type: integer
+        endPage:
+          type: integer
+        quizId:
+          type: string
+          format: uuid
+        durationMinutes:
+          type: integer
+
+    EnrollStudentsRequest:
+      type: object
+      required: [studentIds]
+      properties:
+        studentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    CourseStudentsResponse:
+      type: object
+      required: [courseId, total, students]
+      properties:
+        courseId:
+          type: string
+          format: uuid
+        total:
+          type: integer
+        students:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              firstName:
+                type: string
+              lastName:
+                type: string
+              email:
+                type: string
+              enrolledAt:
+                type: string
+                format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+  responses:
+    400BadRequest:
+      description: Petició invàlida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    401Unauthorized:
+      description: No autenticat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    403Forbidden:
+      description: Permís denegat per rol
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    404NotFound:
+      description: Recurs no trobat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    409Conflict:
+      description: Conflicte (ex. codi de curs duplicat)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    500InternalError:
+      description: Error intern del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

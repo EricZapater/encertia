@@ -38,12 +38,14 @@
           <span>Usuaris</span>
         </router-link>
 
-        <!-- Placeholder for v2 LMS Courses -->
-        <div class="nav-link disabled" title="Pròximament a v2 (LMS)">
+        <router-link
+          to="/courses"
+          class="nav-link"
+          :class="{ active: isRouteActive('/courses') }"
+        >
           <i class="pi pi-book"></i>
           <span>Cursos</span>
-          <Tag value="v2 LMS" severity="secondary" class="nav-tag" />
-        </div>
+        </router-link>
       </nav>
 
       <!-- Right User Controls -->

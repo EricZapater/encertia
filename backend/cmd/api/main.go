@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/encertia/backend/internal/auth"
+	"github.com/encertia/backend/internal/course"
 	"github.com/encertia/backend/internal/db"
 	"github.com/encertia/backend/internal/evaluation"
 	"github.com/encertia/backend/internal/match"
@@ -108,6 +109,11 @@ func main() {
 	evalHandler := evaluation.NewHandler(evalSvc)
 	matchSvc.RegisterFinishedListener(evalSvc)
 
+	// Course Domain
+	courseRepo := course.NewRepository(dbConn)
+	courseSvc := course.NewService(courseRepo)
+	courseHandler := course.NewHandler(courseSvc)
+
 	// Middleware
 	authMiddleware := shared.AuthMiddleware(authHandler.TokenValidatorAdapter())
 
@@ -133,21 +139,23 @@ func main() {
 	router.Match([]string{"GET", "HEAD"}, "/health", healthHandler)
 	router.Match([]string{"GET", "HEAD"}, "/api/health", healthHandler)
 
-	// Register routes directly at root (/auth/*, /users/*, /quizzes/*, /matches/*, /uploads/*, /ws/match/*) as per OpenAPI contract
+	// Register routes directly at root (/auth/*, /users/*, /quizzes/*, /matches/*, /uploads/*, /ws/match/*, /courses/*) as per OpenAPI contract
 	rootGroup := router.Group("")
 	authHandler.RegisterRoutes(rootGroup, authMiddleware)
 	userHandler.RegisterRoutes(rootGroup, authMiddleware)
 	quizHandler.RegisterRoutes(rootGroup, authMiddleware)
 	matchHandler.RegisterRoutes(rootGroup, authMiddleware)
 	evalHandler.RegisterRoutes(rootGroup, authMiddleware)
+	courseHandler.RegisterRoutes(rootGroup, authMiddleware)
 
-	// Also support /api prefix for proxy convenience (/api/auth/*, /api/users/*, /api/quizzes/*, /api/matches/*, /api/uploads/*, /api/ws/match/*)
+	// Also support /api prefix for proxy convenience (/api/auth/*, /api/users/*, /api/quizzes/*, /api/matches/*, /api/uploads/*, /api/ws/match/*, /api/courses/*)
 	apiGroup := router.Group("/api")
 	authHandler.RegisterRoutes(apiGroup, authMiddleware)
 	userHandler.RegisterRoutes(apiGroup, authMiddleware)
 	quizHandler.RegisterRoutes(apiGroup, authMiddleware)
 	matchHandler.RegisterRoutes(apiGroup, authMiddleware)
 	evalHandler.RegisterRoutes(apiGroup, authMiddleware)
+	courseHandler.RegisterRoutes(apiGroup, authMiddleware)
 
 	// 6. Start HTTP Server
 	addr := ":" + serverPort

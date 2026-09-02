@@ -100,6 +100,30 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
   },
   {
+    path: '/courses',
+    name: 'courses-list',
+    component: () => import('@/modules/courses/views/CoursesListView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/courses/:id',
+    name: 'course-detail',
+    component: () => import('@/modules/courses/views/CourseDetailView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/courses/:courseId/units/:unitId/edit',
+    name: 'unit-edit',
+    component: () => import('@/modules/courses/views/UnitEditorView.vue'),
+    meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
+  },
+  {
+    path: '/courses/:courseId/units/:unitId/play',
+    name: 'script-player',
+    component: () => import('@/modules/courses/views/ScriptPlayerView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }

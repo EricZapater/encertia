@@ -5,6 +5,26 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-02
+### Added
+- **Contracte d'API i Especificació (`course`)**:
+  - Especificació funcional ([`specs/course.md`](file:///Users/eric.zapater/Developer/encertia/specs/course.md)) i contracte OpenAPI 3.0 ([`contracts/course.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/course.openapi.yaml)) per al mòdul de gestió de cursos, unitats didàctiques, matriculacions i guió de classe (`course`).
+- **Backend (`internal/course`)**:
+  - Migració SQL `000008_create_course_tables.up.sql` (`courses`, `course_enrollments`, `course_units`, `unit_quizzes`, `script_blocks`, `student_unit_progress`).
+  - Capa de persistència amb SQL pur (`repository.go`), servei de domini amb RBAC (`service.go`) i handlers de Gin HTTP (`handler.go`).
+  - Endpoints REST: CRUD de cursos (`/courses`), matriculació en bloc (`/courses/:id/students`), unitats didàctiques i vinculació N:N amb quizzes (`/courses/:id/units`), i disseny/reordenació del guió de classe (`/courses/:id/units/:unitId/script`).
+  - Suite de tests unitaris i d'integració a `service_test.go` i `handler_test.go` amb 100% d'èxit.
+- **Frontend (`src/modules/courses`)**:
+  - Tipus TypeScript del contracte, client d'API Axios (`api.ts`) i store Pinia (`useCourseStore`).
+  - Vistes completades:
+    - Llistat paginat de cursos amb filtres i cerca ([`CoursesListView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/courses/views/CoursesListView.vue)).
+    - Detall de curs amb organitzador d'unitats i gestor de matriculacions ([`CourseDetailView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/courses/views/CourseDetailView.vue)).
+    - Editor d'unitats i vinculació N:N de quizzes ([`UnitEditorView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/courses/views/UnitEditorView.vue)).
+    - Visor seqüencial / reproductor interactiu de guió de classe per al professor ([`ScriptPlayerView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/courses/views/ScriptPlayerView.vue)).
+  - Rutes protegides per rol a Vue Router i activació del menú "Cursos" a `AppNavbar.vue`.
+- **QA & Validador**:
+  - Informe de QA aprovat amb veredicte **APTE** ([`qa-reports/course.md`](file:///Users/eric.zapater/Developer/encertia/qa-reports/course.md)).
+
 ## [0.8.0] - 2026-09-02
 ### Security
 - **Mòdul Auth — Taula de Revocació d'Access Tokens JWT**:

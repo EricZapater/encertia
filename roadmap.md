@@ -13,34 +13,20 @@ APTE.
 
 ## v1 — Nucli mínim (Opció A: Kahoot amb registre)
 
-1. **auth** — login/logout, sessió, protecció per rol (professor/alumne).
-   ✅ Spec i contracte validats (`specs/auth.md`,
-   `contracts/auth.openapi.yaml`). Implementació en curs a Antigravity
-   (nota: la implementació real ha optat per JWT en lloc de sessió opaca;
-   pendent de revisió QA quan es doni per acabat el mòdul).
-2. **user** — CRUD d'alumnes (alta individual + massiva CSV), gestió de
-   professor. Depèn de `auth` (taula `users` compartida).
-3. **quiz** — creació de qüestionaris, preguntes d'opció múltiple,
-   veritable/fals i ordenació. Banc de preguntes reutilitzable.
-4. **course** — gestió de curs, unitats didàctiques ("unitat" i "classe"
-   són el mateix concepte). Vinculació N a N entre unitats i qüestionaris.
-   Inclou el **guió de classe** (visor seqüencial de blocs: material,
-   qüestionari, pausa/torn de preguntes) — veure `product-functional-spec.md`
-   secció 3.6.
-5. **material** — pujada/gestió de documents i vídeo (embegut extern), amb
-   visor de PDF integrat necessari pel guió de classe del mòdul `course`.
-6. **session** (partida en directe) — codi/PIN, unió d'alumnes, preguntes
-   en directe amb temporitzador, WebSockets per rànquing en temps real.
-   *Nota: "session" aquí és una partida de joc, no confondre amb la taula
-   `sessions` d'autenticació del mòdul auth — si genera confusió, valorar
-   renombrar aquest mòdul a `match` o `game` abans d'implementar-lo.*
-   Inclou el **sistema de doble puntuació** (punts de joc amb temps vs.
-   nota d'avaluació sense temps) — veure `product-functional-spec.md`
-   secció 3.8.
-7. **evaluation** — panell d'avaluació posterior pel professor, exportació
-   de resultats, nota consolidada, i l'opció d'excloure les dues pitjors
-   notes en calcular mitjanes (a definir l'abast exacte: per curs sencer o
-   per unitat — veure `product-functional-spec.md` secció 3.9).
+1. **auth** — login/logout, sessió JWT amb taula de revocació de tokens, protecció per rol (`admin`, `teacher`, `student`).
+   ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/auth.md`).
+2. **user** — CRUD d'alumnes (alta individual + massiva CSV), gestió de professor i admin, soft-delete, reset de clau.
+   ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/user.md`).
+3. **quiz** — creació de qüestionaris, preguntes d'opció múltiple/única, editor Kahoot-style, Cloudflare R2 i duplicació.
+   ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/quiz.md`).
+4. **course** — gestió de curs, unitats didàctiques ("unitat" i "classe" són el mateix concepte), matriculacions d'alumnes, vinculació N a N entre unitats i qüestionaris, i **guió de classe** (visor seqüencial de blocs: material, qüestionari, pausa/preguntes).
+   ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/course.md`).
+5. **material** — pujada/gestió de documents i vídeo (embegut extern), amb visor de PDF integrat necessari pel guió de classe del mòdul `course`.
+   🔴 Pendent de desenvolupament (Proper mòdul).
+6. **session / match** (partida en directe) — codi/PIN, unió d'alumnes, preguntes en directe amb temporitzador, WebSockets per rànquing en temps real, podi 3D i doble puntuació.
+   ✅ Spec, contracte i implementació completats (`match`). QA: **APTE** (`qa-reports/match.md`).
+7. **evaluation** — panell d'avaluació posterior pel professor, estadístiques per pregunta, qualificació automàtica i ajust manual.
+   ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/evaluation.md`).
 
 ## Fora de tot abast per ara
 - Multi-tenant / multi-professor a gran escala.
