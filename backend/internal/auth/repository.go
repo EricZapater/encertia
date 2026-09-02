@@ -38,9 +38,12 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r *sqlRepository) CreateUser(ctx context.Context, user *UserDB) error {
+	if user.Language == "" {
+		user.Language = "ca"
+	}
 	query := `
-		INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO users (id, email, password_hash, first_name, last_name, role, language, is_active, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING id, is_active, created_at, updated_at
 	`
 	if user.ID == uuid.Nil {
@@ -59,6 +62,7 @@ func (r *sqlRepository) CreateUser(ctx context.Context, user *UserDB) error {
 		user.FirstName,
 		user.LastName,
 		user.Role,
+		user.Language,
 		user.IsActive,
 		user.CreatedAt,
 		user.UpdatedAt,
@@ -69,7 +73,7 @@ func (r *sqlRepository) CreateUser(ctx context.Context, user *UserDB) error {
 
 func (r *sqlRepository) GetUserByEmail(ctx context.Context, email string) (*UserDB, error) {
 	query := `
-		SELECT id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at, deleted_at
+		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_at, updated_at, deleted_at
 		FROM users
 		WHERE email = $1 AND deleted_at IS NULL
 	`
@@ -81,6 +85,7 @@ func (r *sqlRepository) GetUserByEmail(ctx context.Context, email string) (*User
 		&u.FirstName,
 		&u.LastName,
 		&u.Role,
+		&u.Language,
 		&u.IsActive,
 		&u.CreatedAt,
 		&u.UpdatedAt,
@@ -97,7 +102,7 @@ func (r *sqlRepository) GetUserByEmail(ctx context.Context, email string) (*User
 
 func (r *sqlRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*UserDB, error) {
 	query := `
-		SELECT id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at, deleted_at
+		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_at, updated_at, deleted_at
 		FROM users
 		WHERE id = $1 AND deleted_at IS NULL
 	`
@@ -109,6 +114,7 @@ func (r *sqlRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*UserDB,
 		&u.FirstName,
 		&u.LastName,
 		&u.Role,
+		&u.Language,
 		&u.IsActive,
 		&u.CreatedAt,
 		&u.UpdatedAt,

@@ -200,7 +200,7 @@ function formatDate(dateStr: string) {
     <!-- Capçalera de pàgina -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Els meus Jocs i Qüestionaris</h1>
+        <h1 class="page-title">{{ $t('quizzes.title') }}</h1>
         <p class="page-subtitle">
           Crea, gestiona i comparteix activitats interactives estil Kahoot per a la teva aula
         </p>

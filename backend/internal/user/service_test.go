@@ -714,3 +714,73 @@ func TestDeleteUser_SoftDeleteAndPermissions(t *testing.T) {
 		t.Errorf("expected 404 when deleting non-existent user, got %v", appErrNotFound)
 	}
 }
+
+func TestUser_LanguageOptionsAndUpdates(t *testing.T) {
+	svc, _ := setupUserService()
+	ctx := context.Background()
+
+	// 1. CreateUser with default language
+	u1, appErr := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+		Email:     "lang1@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "User",
+		LastName:  "One",
+		Role:      user.RoleStudent,
+	})
+	if appErr != nil {
+		t.Fatalf("unexpected error creating user: %v", appErr)
+	}
+	if u1.User.Language != "ca" {
+		t.Errorf("expected default language 'ca', got %s", u1.User.Language)
+	}
+
+	// 2. CreateUser with custom valid language 'es'
+	u2, appErrEs := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+		Email:     "lang2@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "User",
+		LastName:  "Two",
+		Role:      user.RoleStudent,
+		Language:  "es",
+	})
+	if appErrEs != nil {
+		t.Fatalf("unexpected error: %v", appErrEs)
+	}
+	if u2.User.Language != "es" {
+		t.Errorf("expected language 'es', got %s", u2.User.Language)
+	}
+
+	// 3. CreateUser with invalid language 'fr'
+	_, appErrFr := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+		Email:     "lang3@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "User",
+		LastName:  "Three",
+		Role:      user.RoleStudent,
+		Language:  "fr",
+	})
+	if appErrFr == nil || appErrFr.StatusCode != 400 {
+		t.Errorf("expected 400 for invalid language, got %v", appErrFr)
+	}
+
+	// 4. UpdateUser language to 'en'
+	newLang := "en"
+	uUpdated, appErrUpd := svc.UpdateUser(ctx, u1.User.ID, "student", u1.User.ID, user.UpdateUserInput{
+		Language: &newLang,
+	})
+	if appErrUpd != nil {
+		t.Fatalf("unexpected error updating language: %v", appErrUpd)
+	}
+	if uUpdated.User.Language != "en" {
+		t.Errorf("expected updated language 'en', got %s", uUpdated.User.Language)
+	}
+
+	// 5. UpdateUser with invalid language
+	invalidLang := "de"
+	_, appErrInvalidUpd := svc.UpdateUser(ctx, u1.User.ID, "student", u1.User.ID, user.UpdateUserInput{
+		Language: &invalidLang,
+	})
+	if appErrInvalidUpd == nil || appErrInvalidUpd.StatusCode != 400 {
+		t.Errorf("expected 400 when updating invalid language, got %v", appErrInvalidUpd)
+	}
+}

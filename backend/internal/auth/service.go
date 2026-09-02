@@ -68,6 +68,14 @@ func (s *authService) Register(ctx context.Context, req RegisterRequest) (*AuthR
 	req.FirstName = strings.TrimSpace(req.FirstName)
 	req.LastName = strings.TrimSpace(req.LastName)
 
+	req.Language = strings.TrimSpace(strings.ToLower(req.Language))
+	if req.Language == "" {
+		req.Language = "ca"
+	}
+	if req.Language != "ca" && req.Language != "es" && req.Language != "en" {
+		return nil, shared.ErrBadRequest(shared.ErrCodeValidation, "L'idioma especificat no és vàlid.", map[string]interface{}{"field": "language"})
+	}
+
 	if req.Email == "" {
 		return nil, shared.ErrBadRequest(shared.ErrCodeValidation, "El correu electrònic és obligatori.", map[string]interface{}{"field": "email"})
 	}
@@ -107,6 +115,7 @@ func (s *authService) Register(ctx context.Context, req RegisterRequest) (*AuthR
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		Role:         RoleStudent,
+		Language:     req.Language,
 		IsActive:     true,
 	}
 

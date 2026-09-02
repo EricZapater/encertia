@@ -37,6 +37,9 @@ func (m *mockRepository) CreateUser(ctx context.Context, user *auth.UserDB) erro
 	if user.ID == uuid.Nil {
 		user.ID = uuid.New()
 	}
+	if user.Language == "" {
+		user.Language = "ca"
+	}
 	now := time.Now().UTC()
 	user.CreatedAt = now
 	user.UpdatedAt = now

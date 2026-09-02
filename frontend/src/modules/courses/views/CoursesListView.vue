@@ -14,10 +14,13 @@ import Dialog from 'primevue/dialog'
 import Paginator, { type PageState } from 'primevue/paginator'
 import { useToast } from 'primevue/usetoast'
 
+import { useI18n } from 'vue-i18n'
+
 const router = useRouter()
 const courseStore = useCourseStore()
 const authStore = useAuthStore()
 const toast = useToast()
+useI18n()
 
 const canCreateOrManage = computed(() => authStore.isAdmin || authStore.isTeacher)
 
@@ -176,13 +179,13 @@ function statusLabel(status: CourseStatus) {
     <!-- Header -->
     <header class="page-header">
       <div class="header-left">
-        <h1 class="page-title">Cursos i Assignatures</h1>
-        <p class="page-subtitle">Gestió de cursos didàctics, unitats i alumnes matriculats</p>
+        <h1 class="page-title">{{ $t('courses.title') }}</h1>
+        <p class="page-subtitle">{{ $t('courses.subtitle') }}</p>
       </div>
       <div class="header-actions">
         <Button
           v-if="canCreateOrManage"
-          label="Nou Curs"
+          :label="$t('courses.create')"
           icon="pi pi-plus"
           severity="primary"
           class="create-btn"

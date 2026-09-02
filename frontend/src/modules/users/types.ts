@@ -9,6 +9,8 @@ export type UserRole = 'admin' | 'teacher' | 'student'
 /** Estat de filtratge dels usuaris */
 export type UserStatusFilter = 'active' | 'inactive' | 'all'
 
+export type SupportedLanguage = 'ca' | 'es' | 'en'
+
 /** Entitat d'usuari */
 export interface User {
   id: string
@@ -16,6 +18,7 @@ export interface User {
   firstName: string
   lastName: string
   role: UserRole
+  language?: SupportedLanguage
   isActive: boolean
   createdAt: string
   updatedAt?: string
@@ -28,6 +31,7 @@ export interface CreateUserRequest {
   firstName: string
   lastName: string
   role: UserRole
+  language?: SupportedLanguage
 }
 
 /** Petició de modificació d'un usuari */
@@ -36,6 +40,7 @@ export interface UpdateUserRequest {
   firstName?: string
   lastName?: string
   role?: UserRole
+  language?: SupportedLanguage
   isActive?: boolean
 }
 

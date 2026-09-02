@@ -14,6 +14,7 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import { useToast } from 'primevue/usetoast'
 
+import { useI18n } from 'vue-i18n'
 import UserFormModal from './UserFormModal.vue'
 import ResetPasswordModal from './ResetPasswordModal.vue'
 import BatchImportModal from './BatchImportModal.vue'
@@ -22,6 +23,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 const toast = useToast()
+const { t } = useI18n()
 
 const isAdmin = computed(() => authStore.currentUser?.role === 'admin')
 const isTeacher = computed(() => authStore.currentUser?.role === 'teacher')
@@ -36,21 +38,21 @@ const selectedStatus = ref<UserStatusFilter>('active')
 const roleFilterOptions = computed(() => {
   if (isAdmin.value) {
     return [
-      { label: 'Tots els rols', value: undefined },
-      { label: 'Administradors', value: 'admin' as UserRole },
-      { label: 'Professors', value: 'teacher' as UserRole },
-      { label: 'Alumnes', value: 'student' as UserRole }
+      { label: t('users.filterRole'), value: undefined },
+      { label: t('nav.roles.admin'), value: 'admin' as UserRole },
+      { label: t('nav.roles.teacher'), value: 'teacher' as UserRole },
+      { label: t('nav.roles.student'), value: 'student' as UserRole }
     ]
   }
   // Si és professor només gestiona alumnes
-  return [{ label: 'Alumnes', value: 'student' as UserRole }]
+  return [{ label: t('nav.roles.student'), value: 'student' as UserRole }]
 })
 
-const statusFilterOptions = [
-  { label: 'Actius', value: 'active' as UserStatusFilter },
-  { label: 'Inactius', value: 'inactive' as UserStatusFilter },
-  { label: 'Tots', value: 'all' as UserStatusFilter }
-]
+const statusFilterOptions = computed(() => [
+  { label: t('users.statusActive'), value: 'active' as UserStatusFilter },
+  { label: t('users.statusInactive'), value: 'inactive' as UserStatusFilter },
+  { label: t('users.filterStatus'), value: 'all' as UserStatusFilter }
+])
 
 // Modals i estats
 const showFormModal = ref(false)
@@ -205,15 +207,15 @@ function formatDate(dateStr: string) {
     <!-- Capçalera de pàgina -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Gestió d'Usuaris</h1>
+        <h1 class="page-title">{{ $t('users.title') }}</h1>
         <p class="page-subtitle">
-          {{ isAdmin ? 'Administra tots els comptes de la plataforma Encertia' : 'Gestiona els alumnes matriculats' }}
+          {{ isAdmin ? $t('users.subtitle') : $t('users.subtitle') }}
         </p>
       </div>
 
       <div class="header-actions">
         <Button
-          label="Importar CSV"
+          :label="$t('users.batchImport')"
           icon="pi pi-file-import"
           severity="secondary"
           outlined
@@ -221,7 +223,7 @@ function formatDate(dateStr: string) {
           data-testid="btn-open-batch-import"
         />
         <Button
-          label="Nou Usuari"
+          :label="$t('users.createUser')"
           icon="pi pi-user-plus"
           severity="primary"
           @click="openCreateModal"

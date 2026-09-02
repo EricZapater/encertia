@@ -5,6 +5,21 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-02
+### Added
+- **Plataforma Multiidioma (i18n: Català `ca`, Castellà `es`, Anglès `en`)**:
+  - Especificació funcional ([`specs/i18n.md`](file:///Users/eric.zapater/Developer/encertia/specs/i18n.md)) i actualització dels contractes OpenAPI ([`contracts/auth.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/auth.openapi.yaml), [`contracts/user.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/user.openapi.yaml)).
+- **Backend (`internal/user`, `internal/auth`, `internal/db`)**:
+  - Migració SQL `000010_add_user_language.up.sql` que afegeix la columna `language VARCHAR(10) DEFAULT 'ca'` a la taula `users` i inicialitza tots els usuaris existents a Català (`'ca'`).
+  - Actualitzades les estructures `User`, consultes SQL `INSERT`/`UPDATE`/`SELECT` i validació d'idiomes ('ca', 'es', 'en').
+- **Frontend (`src/i18n/`)**:
+  - Integrat `vue-i18n` (v11+) amb 3 fitxers de diccionaris complets: `src/i18n/locales/ca.json`, `es.json`, `en.json`.
+  - Selector d'idioma desplegable interactiu (🌐 CA | ES | EN) afegit a la barra superior `AppNavbar.vue`, `ProfileView.vue`, `LoginView.vue` i `RegisterView.vue`.
+  - Sincronització reactiva de l'idioma amb la compte de l'usuari a l'API/Pinia i persistència a `localStorage` (`encertia_lang`).
+  - Traducció completa d'interfície dels 7 mòduls i del Manual del Professor.
+- **QA & Validador**:
+  - Informe de QA aprovat amb veredicte **APTE** ([`qa-reports/i18n.md`](file:///Users/eric.zapater/Developer/encertia/qa-reports/i18n.md)).
+
 ## [1.0.0] - 2026-09-02
 ### Added
 - **Contracte d'API i Especificació (`material`)**:

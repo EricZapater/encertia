@@ -450,6 +450,11 @@ components:
           example: "Rovira"
         role:
           $ref: '#/components/schemas/UserRole'
+        language:
+          type: string
+          enum: [ca, es, en]
+          default: ca
+          example: "ca"
         isActive:
           type: boolean
           example: true
@@ -490,6 +495,11 @@ components:
           example: "Sole"
         role:
           $ref: '#/components/schemas/UserRole'
+        language:
+          type: string
+          enum: [ca, es, en]
+          default: ca
+          example: "ca"
 
     UpdateUserRequest:
       type: object
@@ -508,6 +518,10 @@ components:
           example: "Sole Costa"
         role:
           $ref: '#/components/schemas/UserRole'
+        language:
+          type: string
+          enum: [ca, es, en]
+          example: "es"
         isActive:
           type: boolean
           example: true

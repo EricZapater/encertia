@@ -425,3 +425,71 @@ func TestValidateAccessToken(t *testing.T) {
 		t.Fatal("expected error on invalid token string, got nil")
 	}
 }
+
+func TestRegister_LanguageValidation(t *testing.T) {
+	svc, _ := setupService()
+	ctx := context.Background()
+
+	// Default language 'ca'
+	resDefault, appErr := svc.Register(ctx, auth.RegisterRequest{
+		Email:     "lang.default@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Lang",
+		LastName:  "Test",
+		Role:      auth.RoleStudent,
+	})
+	if appErr != nil {
+		t.Fatalf("unexpected error: %v", appErr)
+	}
+	if resDefault.User.Language != "ca" {
+		t.Errorf("expected default language 'ca', got %s", resDefault.User.Language)
+	}
+
+	// Valid language 'es'
+	resEs, appErrEs := svc.Register(ctx, auth.RegisterRequest{
+		Email:     "lang.es@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Lang",
+		LastName:  "Test",
+		Role:      auth.RoleStudent,
+		Language:  "es",
+	})
+	if appErrEs != nil {
+		t.Fatalf("unexpected error: %v", appErrEs)
+	}
+	if resEs.User.Language != "es" {
+		t.Errorf("expected language 'es', got %s", resEs.User.Language)
+	}
+
+	// Valid language upper 'EN' -> sanitized to 'en'
+	resEn, appErrEn := svc.Register(ctx, auth.RegisterRequest{
+		Email:     "lang.en@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Lang",
+		LastName:  "Test",
+		Role:      auth.RoleStudent,
+		Language:  "EN",
+	})
+	if appErrEn != nil {
+		t.Fatalf("unexpected error: %v", appErrEn)
+	}
+	if resEn.User.Language != "en" {
+		t.Errorf("expected language 'en', got %s", resEn.User.Language)
+	}
+
+	// Invalid language 'fr'
+	_, appErrFr := svc.Register(ctx, auth.RegisterRequest{
+		Email:     "lang.fr@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Lang",
+		LastName:  "Test",
+		Role:      auth.RoleStudent,
+		Language:  "fr",
+	})
+	if appErrFr == nil {
+		t.Fatal("expected error for invalid language 'fr', got nil")
+	}
+	if appErrFr.StatusCode != 400 {
+		t.Errorf("expected status 400 for invalid language, got %d", appErrFr.StatusCode)
+	}
+}

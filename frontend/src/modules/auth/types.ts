@@ -6,6 +6,8 @@
 /** Rol de l'usuari dins de la plataforma */
 export type UserRole = 'admin' | 'teacher' | 'student'
 
+export type SupportedLanguage = 'ca' | 'es' | 'en'
+
 /** Entitat d'usuari */
 export interface User {
   id: string
@@ -13,6 +15,7 @@ export interface User {
   firstName: string
   lastName: string
   role: UserRole
+  language?: SupportedLanguage
   isActive?: boolean
   createdAt: string
   updatedAt?: string
@@ -25,6 +28,7 @@ export interface RegisterRequest {
   firstName: string
   lastName: string
   role: UserRole
+  language?: SupportedLanguage
 }
 
 /** Petició d'inici de sessió */

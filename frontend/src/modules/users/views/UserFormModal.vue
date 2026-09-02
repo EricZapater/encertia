@@ -12,6 +12,8 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
 
+import { useI18n } from 'vue-i18n'
+
 const props = defineProps<{
   visible: boolean
   user: User | null
@@ -25,6 +27,7 @@ const emit = defineEmits<{
 const authStore = useAuthStore()
 const userStore = useUserStore()
 const toast = useToast()
+const { t } = useI18n()
 
 const isEditMode = computed(() => Boolean(props.user?.id))
 const isAdmin = computed(() => authStore.currentUser?.role === 'admin')
@@ -34,13 +37,13 @@ const isTeacher = computed(() => authStore.currentUser?.role === 'teacher')
 const availableRoleOptions = computed(() => {
   if (isAdmin.value) {
     return [
-      { label: 'Alumne (student)', value: 'student' as UserRole },
-      { label: 'Professor (teacher)', value: 'teacher' as UserRole },
-      { label: 'Administrador (admin)', value: 'admin' as UserRole }
+      { label: t('nav.roles.student'), value: 'student' as UserRole },
+      { label: t('nav.roles.teacher'), value: 'teacher' as UserRole },
+      { label: t('nav.roles.admin'), value: 'admin' as UserRole }
     ]
   }
   // Si és professor només pot assignar 'student'
-  return [{ label: 'Alumne (student)', value: 'student' as UserRole }]
+  return [{ label: t('nav.roles.student'), value: 'student' as UserRole }]
 })
 
 // Estat del formulari

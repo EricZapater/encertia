@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../store'
 import type { RegisterRequest } from '../types'
+import { setAppLanguage, type SupportedLanguage } from '@/i18n'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
@@ -12,6 +14,7 @@ import { useToast } from 'primevue/usetoast'
 const router = useRouter()
 const authStore = useAuthStore()
 const toast = useToast()
+const { t, locale } = useI18n()
 
 const form = reactive<RegisterRequest>({
   firstName: '',
@@ -24,18 +27,28 @@ const form = reactive<RegisterRequest>({
 const errorMessage = ref<string | null>(null)
 const isSubmitting = ref(false)
 
+const supportedLangs: { code: SupportedLanguage; label: string }[] = [
+  { code: 'ca', label: 'CA' },
+  { code: 'es', label: 'ES' },
+  { code: 'en', label: 'EN' }
+]
+
+function changeLang(langCode: SupportedLanguage) {
+  setAppLanguage(langCode)
+}
+
 async function handleRegister() {
   errorMessage.value = null
 
   if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || !form.password) {
-    const msg = 'Tots els camps són obligatoris.'
-    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
+    const msg = t('common.error')
+    toast.add({ severity: 'error', summary: t('common.error'), detail: msg, life: 4000 })
     return
   }
 
   if (form.password.length < 8) {
-    const msg = 'La contrasenya ha de tenir com a mínim 8 caràcters.'
-    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
+    const msg = t('common.error')
+    toast.add({ severity: 'error', summary: t('common.error'), detail: msg, life: 4000 })
     return
   }
 
@@ -46,16 +59,17 @@ async function handleRegister() {
       lastName: form.lastName.trim(),
       email: form.email.trim(),
       password: form.password,
-      role: 'student'
+      role: 'student',
+      language: locale.value as SupportedLanguage
     })
-    toast.add({ severity: 'success', summary: 'Compte Creat', detail: 'Benvingut a Encertia!', life: 3000 })
+    toast.add({ severity: 'success', summary: t('common.success'), detail: t('auth.register.title'), life: 3000 })
     router.push('/profile')
   } catch (err: any) {
     const msg =
       err.response?.data?.error?.message ||
       authStore.error ||
-      'Error en crear el compte. Si us plau, revisa les dades.'
-    toast.add({ severity: 'error', summary: 'Error de Registre', detail: msg, life: 4000 })
+      t('common.error')
+    toast.add({ severity: 'error', summary: t('common.error'), detail: msg, life: 4000 })
   } finally {
     isSubmitting.value = false
   }
@@ -65,25 +79,37 @@ async function handleRegister() {
 <template>
   <div class="auth-container">
     <div class="auth-card-wrapper">
+      <div class="auth-header-top">
+        <div class="lang-selector-top">
+          <span class="lang-globe">🌐</span>
+          <button
+            v-for="lang in supportedLangs"
+            :key="lang.code"
+            type="button"
+            class="lang-btn"
+            :class="{ active: locale === lang.code }"
+            @click="changeLang(lang.code)"
+          >
+            {{ lang.label }}
+          </button>
+        </div>
+      </div>
+
       <div class="auth-brand">
         <h1 class="brand-title">Encertia</h1>
-        <p class="brand-subtitle">Crea el teu compte per començar</p>
+        <p class="brand-subtitle">{{ $t('auth.register.subtitle') }}</p>
       </div>
 
       <Card class="auth-card">
         <template #title>
-          <div class="card-title">Registre d'Usuari</div>
-        </template>
-        <template #subtitle>
-          <div class="card-subtitle">Completa el formulari amb les teves dades d'estudiant</div>
+          <div class="card-title">{{ $t('auth.register.title') }}</div>
         </template>
 
         <template #content>
           <form @submit.prevent="handleRegister" class="auth-form">
-
             <div class="form-row">
               <div class="form-field flex-1">
-                <label for="firstName">Nom</label>
+                <label for="firstName">{{ $t('auth.register.firstName') }}</label>
                 <InputText
                   id="firstName"
                   v-model="form.firstName"
@@ -96,7 +122,7 @@ async function handleRegister() {
               </div>
 
               <div class="form-field flex-1">
-                <label for="lastName">Cognoms</label>
+                <label for="lastName">{{ $t('auth.register.lastName') }}</label>
                 <InputText
                   id="lastName"
                   v-model="form.lastName"
@@ -110,7 +136,7 @@ async function handleRegister() {
             </div>
 
             <div class="form-field">
-              <label for="email">Correu Electrònic</label>
+              <label for="email">{{ $t('auth.register.email') }}</label>
               <InputText
                 id="email"
                 v-model="form.email"
@@ -124,7 +150,7 @@ async function handleRegister() {
             </div>
 
             <div class="form-field">
-              <label for="password">Contrasenya (mínim 8 caràcters)</label>
+              <label for="password">{{ $t('auth.register.password') }}</label>
               <Password
                 id="password"
                 v-model="form.password"
@@ -140,7 +166,7 @@ async function handleRegister() {
 
             <Button
               type="submit"
-              label="Crear Compte"
+              :label="$t('auth.register.submit')"
               icon="pi pi-user-plus"
               :loading="isSubmitting"
               class="w-full submit-btn"
@@ -150,8 +176,8 @@ async function handleRegister() {
 
         <template #footer>
           <div class="auth-footer">
-            <span>Ja tens un compte?</span>
-            <router-link to="/login" class="auth-link">Inicia sessió aquí</router-link>
+            <span>{{ $t('auth.register.hasAccount') }}</span>
+            <router-link to="/login" class="auth-link">{{ $t('auth.register.loginLink') }}</router-link>
           </div>
         </template>
       </Card>
@@ -172,6 +198,48 @@ async function handleRegister() {
 .auth-card-wrapper {
   width: 100%;
   max-width: 520px;
+}
+
+.auth-header-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.lang-selector-top {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #ffffff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.lang-globe {
+  font-size: 0.85rem;
+  margin-right: 0.15rem;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lang-btn:hover {
+  color: #0f172a;
+}
+
+.lang-btn.active {
+  background-color: #4338ca;
+  color: #ffffff;
 }
 
 .auth-brand {
@@ -205,20 +273,11 @@ async function handleRegister() {
   color: #0f172a;
 }
 
-.card-subtitle {
-  font-size: 0.875rem;
-  color: #64748b;
-}
-
 .auth-form {
   display: flex;
   flex-direction: column;
   gap: 1.15rem;
   margin-top: 0.5rem;
-}
-
-.auth-message {
-  margin-bottom: 0.5rem;
 }
 
 .form-row {
@@ -240,15 +299,6 @@ async function handleRegister() {
   font-size: 0.875rem;
   font-weight: 600;
   color: #334155;
-}
-
-.role-selector {
-  display: flex;
-}
-
-.role-selector :deep(.p-button) {
-  flex: 1;
-  font-size: 0.85rem;
 }
 
 .w-full {

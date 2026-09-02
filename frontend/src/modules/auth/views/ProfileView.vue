@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../store'
+import type { SupportedLanguage } from '@/i18n'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
@@ -11,16 +13,27 @@ import { useToast } from 'primevue/usetoast'
 const router = useRouter()
 const authStore = useAuthStore()
 const toast = useToast()
+const { t, locale } = useI18n()
 
 const user = computed(() => authStore.currentUser)
 const isLoggingOut = ref(false)
 const isRefreshingProfile = ref(false)
 
+const supportedLangs: { code: SupportedLanguage; label: string }[] = [
+  { code: 'ca', label: 'Català (CA)' },
+  { code: 'es', label: 'Castellà (ES)' },
+  { code: 'en', label: 'Anglès (EN)' }
+]
+
+function changeLang(langCode: SupportedLanguage) {
+  authStore.updateLanguage(langCode)
+}
+
 function formatDate(dateString?: string) {
   if (!dateString) return 'N/D'
   try {
     const date = new Date(dateString)
-    return new Intl.DateTimeFormat('ca-ES', {
+    return new Intl.DateTimeFormat(locale.value === 'en' ? 'en-US' : locale.value === 'es' ? 'es-ES' : 'ca-ES', {
       dateStyle: 'medium',
       timeStyle: 'short'
     }).format(date)
@@ -35,15 +48,15 @@ async function handleRefresh() {
     await authStore.fetchMe()
     toast.add({
       severity: 'success',
-      summary: 'Perfil Actualitzat',
-      detail: 'Dades del perfil actualitzades correctament.',
+      summary: t('common.success'),
+      detail: t('auth.profile.updatedSuccess'),
       life: 3000
     })
-  } catch (err: any) {
+  } catch {
     toast.add({
       severity: 'error',
-      summary: 'Error',
-      detail: 'No s’han pogut actualitzar les dades del perfil.',
+      summary: t('common.error'),
+      detail: t('common.error'),
       life: 4000
     })
   } finally {
@@ -56,7 +69,7 @@ async function handleLogout() {
   try {
     await authStore.logout()
     router.push('/login')
-  } catch (err) {
+  } catch {
     router.push('/login')
   } finally {
     isLoggingOut.value = false
@@ -82,10 +95,10 @@ onMounted(() => {
               </div>
               <div class="profile-info-header">
                 <div class="profile-name-row">
-                  <h2 class="profile-fullname">{{ authStore.fullName || 'Usuari' }}</h2>
+                  <h2 class="profile-fullname">{{ authStore.fullName || $t('nav.roles.user') }}</h2>
                   <Tag
-                    :value="user?.role === 'teacher' ? 'Professor / Docent' : 'Alumne / Estudiant'"
-                    :severity="user?.role === 'teacher' ? 'info' : 'success'"
+                    :value="user?.role === 'teacher' ? $t('nav.roles.teacher') : user?.role === 'admin' ? $t('nav.roles.admin') : $t('nav.roles.student')"
+                    :severity="user?.role === 'admin' ? 'danger' : user?.role === 'teacher' ? 'info' : 'success'"
                     class="role-tag"
                   />
                 </div>
@@ -99,23 +112,39 @@ onMounted(() => {
 
             <div class="details-grid">
               <div class="detail-item">
-                <span class="detail-label">Identificador (UUID)</span>
+                <span class="detail-label">{{ $t('auth.profile.id') }}</span>
                 <span class="detail-value mono">{{ user?.id }}</span>
               </div>
 
               <div class="detail-item">
-                <span class="detail-label">Correu Electrònic</span>
+                <span class="detail-label">{{ $t('auth.profile.email') }}</span>
                 <span class="detail-value">{{ user?.email }}</span>
               </div>
 
               <div class="detail-item">
-                <span class="detail-label">Nom Complet</span>
+                <span class="detail-label">{{ $t('auth.profile.fullName') }}</span>
                 <span class="detail-value">{{ user?.firstName }} {{ user?.lastName }}</span>
               </div>
 
               <div class="detail-item">
-                <span class="detail-label">Data de Registre</span>
+                <span class="detail-label">{{ $t('auth.profile.registeredAt') }}</span>
                 <span class="detail-value">{{ formatDate(user?.createdAt) }}</span>
+              </div>
+
+              <div class="detail-item full-width-item">
+                <span class="detail-label">🌐 {{ $t('auth.profile.language') }}</span>
+                <div class="lang-selector-profile">
+                  <button
+                    v-for="lang in supportedLangs"
+                    :key="lang.code"
+                    type="button"
+                    class="lang-profile-btn"
+                    :class="{ active: locale === lang.code }"
+                    @click="changeLang(lang.code)"
+                  >
+                    {{ lang.label }}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -123,53 +152,53 @@ onMounted(() => {
 
             <!-- Secció segons rol -->
             <div v-if="authStore.isAdmin" class="role-section">
-              <h3 class="section-title">Panell d'Administrador</h3>
+              <h3 class="section-title">{{ $t('auth.profile.adminPanel') }}</h3>
               <p class="section-desc">
-                Gestió global de la plataforma, usuaris, rols i configuració del sistema.
+                {{ $t('auth.profile.adminDesc') }}
               </p>
               <div class="action-cards">
                 <div class="action-card cursor-pointer" @click="router.push('/quizzes')">
                   <i class="pi pi-bolt action-icon"></i>
-                  <h4>Gestió de Jocs</h4>
-                  <p>Crea, edita i supervisa tots els qüestionaris interactius.</p>
+                  <h4>{{ $t('auth.profile.quizManagement') }}</h4>
+                  <p>{{ $t('auth.profile.quizManagementDesc') }}</p>
                 </div>
                 <div class="action-card cursor-pointer" @click="router.push('/users')">
                   <i class="pi pi-users action-icon"></i>
-                  <h4>Gestió d'Usuaris</h4>
-                  <p>Administra comptes d'administradors, professors i estudiants.</p>
+                  <h4>{{ $t('auth.profile.userManagement') }}</h4>
+                  <p>{{ $t('auth.profile.userManagementDesc') }}</p>
                 </div>
               </div>
             </div>
 
             <div v-else-if="authStore.isTeacher" class="role-section">
-              <h3 class="section-title">Panell del Professor</h3>
+              <h3 class="section-title">{{ $t('auth.profile.teacherPanel') }}</h3>
               <p class="section-desc">
-                Des d'aquí pots gestionar els teus cursos, matèries, continguts i alumnes.
+                {{ $t('auth.profile.teacherDesc') }}
               </p>
               <div class="action-cards">
                 <div class="action-card cursor-pointer" @click="router.push('/quizzes')">
                   <i class="pi pi-bolt action-icon"></i>
-                  <h4>Els meus Qüestionaris</h4>
-                  <p>Crea, edita i duplica proves interactives Kahoot per a classe.</p>
+                  <h4>{{ $t('auth.profile.myGames') }}</h4>
+                  <p>{{ $t('auth.profile.myGamesDesc') }}</p>
                 </div>
                 <div class="action-card cursor-pointer" @click="router.push('/users')">
                   <i class="pi pi-users action-icon"></i>
-                  <h4>Gestió d'Alumnes</h4>
-                  <p>Consulta la llista d'alumnes i fes importacions massives en CSV.</p>
+                  <h4>{{ $t('auth.profile.studentManagement') }}</h4>
+                  <p>{{ $t('auth.profile.studentManagementDesc') }}</p>
                 </div>
               </div>
             </div>
 
             <div v-else-if="authStore.isStudent" class="role-section">
-              <h3 class="section-title">Panell de l'Estudiant</h3>
+              <h3 class="section-title">{{ $t('auth.profile.studentPanel') }}</h3>
               <p class="section-desc">
-                Accedeix als teus cursos matriculats i respon als qüestionaris actius.
+                {{ $t('auth.profile.studentDesc') }}
               </p>
               <div class="action-cards">
                 <div class="action-card cursor-pointer" @click="router.push('/quizzes')">
                   <i class="pi pi-bolt action-icon"></i>
-                  <h4>Els meus Jocs</h4>
-                  <p>Crea qüestionaris d'estudi i practica amb preguntes.</p>
+                  <h4>{{ $t('auth.profile.myGames') }}</h4>
+                  <p>{{ $t('auth.profile.myGamesDesc') }}</p>
                 </div>
               </div>
             </div>
@@ -178,7 +207,7 @@ onMounted(() => {
           <template #footer>
             <div class="profile-actions">
               <Button
-                label="Actualitzar Dades"
+                :label="$t('auth.profile.updateData')"
                 icon="pi pi-refresh"
                 severity="secondary"
                 size="small"
@@ -186,7 +215,7 @@ onMounted(() => {
                 @click="handleRefresh"
               />
               <Button
-                label="Tancar Sessió"
+                :label="$t('auth.profile.logout')"
                 icon="pi pi-sign-out"
                 severity="danger"
                 outlined
@@ -210,42 +239,6 @@ onMounted(() => {
   flex-direction: column;
 }
 
-.app-header {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0.75rem 1.5rem;
-}
-
-.header-content {
-  max-width: 960px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.brand-name {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #1e3a8a;
-  letter-spacing: -0.02em;
-}
-
-.brand-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  background-color: #e0e7ff;
-  color: #3730a3;
-  padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
-}
-
 .profile-main {
   flex: 1;
   padding: 2rem 1.5rem;
@@ -256,10 +249,6 @@ onMounted(() => {
 .profile-wrapper {
   width: 100%;
   max-width: 800px;
-}
-
-.mb-4 {
-  margin-bottom: 1rem;
 }
 
 .profile-card {
@@ -330,6 +319,39 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.full-width-item {
+  grid-column: 1 / -1;
+}
+
+.lang-selector-profile {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.lang-profile-btn {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 0.4rem 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lang-profile-btn:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.lang-profile-btn.active {
+  background-color: #4338ca;
+  border-color: #4338ca;
+  color: #ffffff;
 }
 
 .detail-label {

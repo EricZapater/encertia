@@ -6,9 +6,9 @@
           <i class="pi pi-book"></i>
           <span>Documentació Oficial</span>
         </div>
-        <h1>Manual d'Usuari del Professor — Encertia</h1>
+        <h1>{{ $t('manual.title') }} — Encertia</h1>
         <p class="header-subtitle">
-          Guia completa d'ús de la plataforma: gestió de cursos, banc de qüestionaris, partides en directe, materials didàctics, guió de classe i avaluació acadèmica.
+          {{ $t('manual.subtitle') }}
         </p>
       </div>
     </header>
@@ -370,6 +370,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from 'primevue/card'
 import Accordion from 'primevue/accordion'
 import AccordionPanel from 'primevue/accordionpanel'
@@ -378,6 +379,7 @@ import AccordionContent from 'primevue/accordioncontent'
 import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 
+useI18n()
 const activeSection = ref('sec-intro')
 
 const sections = [

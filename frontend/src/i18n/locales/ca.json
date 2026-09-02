@@ -1,0 +1,201 @@
+{
+  "nav": {
+    "quizzes": "Jocs & Quizzes",
+    "evaluations": "Avaluacions",
+    "users": "Usuaris",
+    "courses": "Cursos",
+    "materials": "Materials",
+    "manual": "Manual",
+    "profile": "El meu perfil",
+    "logout": "Tancar Sessió",
+    "roles": {
+      "admin": "Admin",
+      "teacher": "Professor",
+      "student": "Alumne",
+      "user": "Usuari"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Inici de Sessió",
+      "subtitle": "Accedeix a la plataforma Encertia",
+      "email": "Correu electrònic",
+      "password": "Contrasenya",
+      "submit": "Iniciar Sessió",
+      "noAccount": "No tens compte?",
+      "registerLink": "Registra't ara",
+      "error": "Error en iniciar sessió"
+    },
+    "register": {
+      "title": "Crear un compte",
+      "subtitle": "Uneix-te a Encertia",
+      "firstName": "Nom",
+      "lastName": "Cognoms",
+      "email": "Correu electrònic",
+      "password": "Contrasenya",
+      "role": "Rol",
+      "language": "Idioma de preferència",
+      "submit": "Registrar-se",
+      "hasAccount": "Ja tens compte?",
+      "loginLink": "Inicia sessió"
+    },
+    "profile": {
+      "title": "El Meu Perfil",
+      "id": "Identificador (UUID)",
+      "email": "Correu Electrònic",
+      "fullName": "Nom Complet",
+      "role": "Rol",
+      "registeredAt": "Data de Registre",
+      "language": "Idioma de la Plataforma",
+      "selectLanguage": "Selecciona el teu idioma",
+      "updateData": "Actualitzar Dades",
+      "logout": "Tancar Sessió",
+      "updatedSuccess": "Perfil actualitzat correctament.",
+      "adminPanel": "Panell d'Administrador",
+      "adminDesc": "Gestió global de la plataforma, usuaris, rols i configuració del sistema.",
+      "teacherPanel": "Panell del Professor",
+      "teacherDesc": "Des d'aquí pots gestionar els teus cursos, matèries, continguts i alumnes.",
+      "studentPanel": "Panell de l'Estudiant",
+      "studentDesc": "Accedeix als teus cursos matriculats i respon als qüestionaris actius.",
+      "myGames": "Els meus Jocs",
+      "myGamesDesc": "Crea qüestionaris d'estudi i practica amb preguntes.",
+      "userManagement": "Gestió d'Usuaris",
+      "userManagementDesc": "Administra comptes d'administradors, professors i estudiants.",
+      "studentManagement": "Gestió d'Alumnes",
+      "studentManagementDesc": "Consulta la llista d'alumnes i fes importacions massives en CSV.",
+      "quizManagement": "Gestió de Jocs",
+      "quizManagementDesc": "Crea, edita i supervisa tots els qüestionaris interactius."
+    }
+  },
+  "users": {
+    "title": "Gestió d'Usuaris",
+    "subtitle": "Administra els usuaris de la plataforma",
+    "createUser": "Crear Usuari",
+    "batchImport": "Importació Massiva (CSV)",
+    "searchPlaceholder": "Cerca per nom, cognoms o email...",
+    "filterRole": "Tots els rols",
+    "filterStatus": "Tots els estats",
+    "statusActive": "Actiu",
+    "statusInactive": "Inactiu",
+    "table": {
+      "user": "Usuari",
+      "email": "Correu electrònic",
+      "role": "Rol",
+      "status": "Estat",
+      "actions": "Accions"
+    },
+    "edit": "Editar",
+    "delete": "Donar de Baixa",
+    "resetPassword": "Canviar Contrasenya",
+    "detail": {
+      "title": "Detall de l'Usuari",
+      "back": "Tornar al Llistat"
+    }
+  },
+  "quizzes": {
+    "title": "Els meus Jocs i Qüestionaris",
+    "subtitle": "Crea i gestiona jocs interactius estil Kahoot",
+    "create": "Crear Qüestionari",
+    "search": "Cerca qüestionaris...",
+    "play": "Jugar / Iniciar Partida",
+    "edit": "Editar",
+    "duplicate": "Duplicar",
+    "preview": "Previsualitzar",
+    "settings": "Configuració",
+    "delete": "Eliminar",
+    "editor": {
+      "title": "Editor de Qüestionari",
+      "addQuestion": "Afegir Pregunta",
+      "questionTitle": "Títol de la pregunta",
+      "timeLimit": "Límit de temps (segons)",
+      "points": "Punts",
+      "answers": "Respostes",
+      "save": "Desar Qüestionari",
+      "publish": "Publicar"
+    }
+  },
+  "courses": {
+    "title": "Cursos i Assignatures",
+    "subtitle": "Organitza les teves assignatures i unitats didàctiques",
+    "create": "Nou Curs",
+    "search": "Cerca cursos...",
+    "detail": {
+      "units": "Unitats Didàctiques",
+      "addUnit": "Afegir Unitat",
+      "viewScript": "Guió de Classe",
+      "playScript": "Executar Guió"
+    },
+    "unitEditor": {
+      "title": "Editor d'Unitat Didàctica",
+      "unitTitle": "Títol de la unitat",
+      "description": "Descripció"
+    },
+    "scriptPlayer": {
+      "title": "Visor de Guió de Classe",
+      "start": "Iniciar Sessió de Classe",
+      "next": "Següent Pas",
+      "prev": "Pas Anterior"
+    }
+  },
+  "materials": {
+    "title": "Materials Didàctics",
+    "subtitle": "Documents PDF, enllaços i recursos de classe",
+    "upload": "Penjar Material",
+    "search": "Cerca materials...",
+    "view": "Veure / Descarregar",
+    "type": "Tipus",
+    "visibility": "Visibilitat",
+    "report": "Informe de Visualitzacions"
+  },
+  "match": {
+    "join": {
+      "title": "Unir-se a una Partida",
+      "pinPlaceholder": "Codi PIN de la partida",
+      "nicknamePlaceholder": "El teu nom / Nickname",
+      "submit": "Entrar al Joc"
+    },
+    "host": {
+      "lobbyTitle": "Sala d'Espera del Joc",
+      "pin": "PIN de la Partida",
+      "waitingPlayers": "Esperant jugadors...",
+      "startGame": "Començar la Partida",
+      "ranking": "Rànquing Actual",
+      "nextQuestion": "Següent Pregunta",
+      "endGame": "Finalitzar Joc"
+    },
+    "player": {
+      "waitingForHost": "Esperant que el professor comenci...",
+      "question": "Pregunta",
+      "answerSent": "Resposta enviada!"
+    }
+  },
+  "evaluations": {
+    "title": "Avaluacions i Estadístiques",
+    "subtitle": "Resultats dels qüestionaris i rendiment dels alumnes",
+    "quizEvaluations": "Avaluació per Qüestionari",
+    "studentEvaluations": "Avaluació per Alumne",
+    "averageScore": "Nota Mitjana",
+    "successRate": "Percentatge d'Encerts",
+    "exportCsv": "Exportar a CSV"
+  },
+  "manual": {
+    "title": "Manual del Professorat",
+    "subtitle": "Guia d'ús pedagògic i tècnic de la plataforma Encertia",
+    "indexTitle": "Taula de Continguts"
+  },
+  "common": {
+    "save": "Desar",
+    "cancel": "Cancel·lar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Tancar",
+    "loading": "Carregant...",
+    "error": "Error",
+    "success": "Èxit",
+    "search": "Cercar",
+    "actions": "Accions",
+    "confirm": "Confirmar",
+    "back": "Tornar",
+    "language": "Idioma"
+  }
+}

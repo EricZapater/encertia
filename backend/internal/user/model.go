@@ -27,6 +27,7 @@ type User struct {
 	FirstName string     `json:"firstName"`
 	LastName  string     `json:"lastName"`
 	Role      UserRole   `json:"role"`
+	Language  string     `json:"language"`
 	IsActive  bool       `json:"isActive"`
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
@@ -40,6 +41,7 @@ type UserDB struct {
 	FirstName    string     `json:"firstName"`
 	LastName     string     `json:"lastName"`
 	Role         UserRole   `json:"role"`
+	Language     string     `json:"language"`
 	IsActive     bool       `json:"isActive"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
@@ -58,6 +60,7 @@ func (u *UserDB) ToUser() User {
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Role:      u.Role,
+		Language:  u.Language,
 		IsActive:  u.IsActive,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: updatedAt,
@@ -71,6 +74,7 @@ type CreateUserInput struct {
 	FirstName string   `json:"firstName"`
 	LastName  string   `json:"lastName"`
 	Role      UserRole `json:"role"`
+	Language  string   `json:"language"`
 }
 
 // UpdateUserInput defines payload for PUT /users/{id}.
@@ -79,6 +83,7 @@ type UpdateUserInput struct {
 	FirstName *string   `json:"firstName,omitempty"`
 	LastName  *string   `json:"lastName,omitempty"`
 	Role      *UserRole `json:"role,omitempty"`
+	Language  *string   `json:"language,omitempty"`
 	IsActive  *bool     `json:"isActive,omitempty"`
 }
 
@@ -93,6 +98,7 @@ type BatchUserItem struct {
 	FirstName string   `json:"firstName"`
 	LastName  string   `json:"lastName"`
 	Role      UserRole `json:"role"`
+	Language  string   `json:"language,omitempty"`
 	Password  *string  `json:"password,omitempty"`
 }
 

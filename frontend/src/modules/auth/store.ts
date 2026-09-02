@@ -5,9 +5,12 @@ import type {
   LoginRequest,
   RegisterRequest,
   TokenPair,
-  User
+  User,
+  SupportedLanguage
 } from './types'
 import * as authApi from './api'
+import { updateUser } from '@/modules/users/api'
+import { setAppLanguage } from '@/i18n'
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/api/client'
 
 const getStorageItem = (key: string): string | null => {
@@ -71,6 +74,21 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setUser(newUser: User | null) {
     user.value = newUser
+    if (newUser?.language && ['ca', 'es', 'en'].includes(newUser.language)) {
+      setAppLanguage(newUser.language)
+    }
+  }
+
+  async function updateLanguage(lang: SupportedLanguage): Promise<void> {
+    setAppLanguage(lang)
+    if (user.value) {
+      user.value.language = lang
+      try {
+        await updateUser(user.value.id, { language: lang })
+      } catch {
+        // non-blocking
+      }
+    }
   }
 
   function clearAuth() {
@@ -189,6 +207,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     fetchMe,
-    initAuth
+    initAuth,
+    updateLanguage
   }
 })

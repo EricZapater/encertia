@@ -28,6 +28,7 @@ type User struct {
 	FirstName string     `json:"firstName"`
 	LastName  string     `json:"lastName"`
 	Role      UserRole   `json:"role"`
+	Language  string     `json:"language"`
 	IsActive  bool       `json:"isActive"`
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
@@ -41,6 +42,7 @@ type UserDB struct {
 	FirstName    string     `json:"firstName"`
 	LastName     string     `json:"lastName"`
 	Role         UserRole   `json:"role"`
+	Language     string     `json:"language"`
 	IsActive     bool       `json:"isActive"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
@@ -59,6 +61,7 @@ func (u *UserDB) ToUser() User {
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Role:      u.Role,
+		Language:  u.Language,
 		IsActive:  u.IsActive,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: updatedAt,
@@ -84,6 +87,7 @@ type RegisterRequest struct {
 	FirstName string   `json:"firstName"`
 	LastName  string   `json:"lastName"`
 	Role      UserRole `json:"role"`
+	Language  string   `json:"language"`
 }
 
 // LoginRequest defines the input payload for POST /auth/login.

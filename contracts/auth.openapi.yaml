@@ -166,6 +166,11 @@ components:
           type: string
         role:
           $ref: '#/components/schemas/UserRole'
+        language:
+          type: string
+          enum: [ca, es, en]
+          default: ca
+          description: Idioma de preferència de l'usuari (ca, es, en).
         isActive:
           type: boolean
         createdAt:
@@ -174,7 +179,7 @@ components:
         updatedAt:
           type: string
           format: date-time
-      required: [id, email, firstName, lastName, role, isActive, createdAt]
+      required: [id, email, firstName, lastName, role, language, isActive, createdAt]
 
     TokenPair:
       type: object
@@ -224,6 +229,10 @@ components:
           type: string
         role:
           $ref: '#/components/schemas/UserRole'
+        language:
+          type: string
+          enum: [ca, es, en]
+          default: ca
       required: [email, password, firstName, lastName]
 
     LoginRequest:

@@ -1,0 +1,201 @@
+{
+  "nav": {
+    "quizzes": "Juegos & Quizzes",
+    "evaluations": "Evaluaciones",
+    "users": "Usuarios",
+    "courses": "Cursos",
+    "materials": "Materiales",
+    "manual": "Manual",
+    "profile": "Mi perfil",
+    "logout": "Cerrar Sesión",
+    "roles": {
+      "admin": "Admin",
+      "teacher": "Profesor",
+      "student": "Alumno",
+      "user": "Usuario"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Inicio de Sesión",
+      "subtitle": "Accede a la plataforma Encertia",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "submit": "Iniciar Sesión",
+      "noAccount": "¿No tienes cuenta?",
+      "registerLink": "Regístrate ahora",
+      "error": "Error al iniciar sesión"
+    },
+    "register": {
+      "title": "Crear una cuenta",
+      "subtitle": "Únete a Encertia",
+      "firstName": "Nombre",
+      "lastName": "Apellidos",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "role": "Rol",
+      "language": "Idioma de preferencia",
+      "submit": "Registrarse",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "loginLink": "Inicia sesión"
+    },
+    "profile": {
+      "title": "Mi Perfil",
+      "id": "Identificador (UUID)",
+      "email": "Correo Electrónico",
+      "fullName": "Nombre Completo",
+      "role": "Rol",
+      "registeredAt": "Fecha de Registro",
+      "language": "Idioma de la Plataforma",
+      "selectLanguage": "Selecciona tu idioma",
+      "updateData": "Actualizar Datos",
+      "logout": "Cerrar Sesión",
+      "updatedSuccess": "Perfil actualizado correctamente.",
+      "adminPanel": "Panel de Administrador",
+      "adminDesc": "Gestión global de la plataforma, usuarios, roles y configuración del sistema.",
+      "teacherPanel": "Panel del Profesor",
+      "teacherDesc": "Desde aquí puedes gestionar tus cursos, materias, contenidos y alumnos.",
+      "studentPanel": "Panel del Estudiante",
+      "studentDesc": "Accede a tus cursos matriculados y responde a los cuestionarios activos.",
+      "myGames": "Mis Juegos",
+      "myGamesDesc": "Crea cuestionarios de estudio y practica con preguntas.",
+      "userManagement": "Gestión de Usuarios",
+      "userManagementDesc": "Administra cuentas de administradores, profesores y estudiantes.",
+      "studentManagement": "Gestión de Alumnos",
+      "studentManagementDesc": "Consulta la lista de alumnos y realiza importaciones masivas en CSV.",
+      "quizManagement": "Gestión de Juegos",
+      "quizManagementDesc": "Crea, edita y supervisa todos los cuestionarios interactivos."
+    }
+  },
+  "users": {
+    "title": "Gestión de Usuarios",
+    "subtitle": "Administra los usuarios de la plataforma",
+    "createUser": "Crear Usuario",
+    "batchImport": "Importación Masiva (CSV)",
+    "searchPlaceholder": "Buscar por nombre, apellidos o email...",
+    "filterRole": "Todos los roles",
+    "filterStatus": "Todos los estados",
+    "statusActive": "Activo",
+    "statusInactive": "Inactivo",
+    "table": {
+      "user": "Usuario",
+      "email": "Correo electrónico",
+      "role": "Rol",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "edit": "Editar",
+    "delete": "Dar de Baja",
+    "resetPassword": "Cambiar Contraseña",
+    "detail": {
+      "title": "Detalle del Usuario",
+      "back": "Volver al Listado"
+    }
+  },
+  "quizzes": {
+    "title": "Juegos & Cuestionarios",
+    "subtitle": "Crea y gestiona juegos interactivos estilo Kahoot",
+    "create": "Crear Cuestionario",
+    "search": "Buscar cuestionarios...",
+    "play": "Jugar / Iniciar Partida",
+    "edit": "Editar",
+    "duplicate": "Duplicar",
+    "preview": "Previsualizar",
+    "settings": "Configuración",
+    "delete": "Eliminar",
+    "editor": {
+      "title": "Editor de Cuestionario",
+      "addQuestion": "Añadir Pregunta",
+      "questionTitle": "Título de la pregunta",
+      "timeLimit": "Límite de tiempo (segundos)",
+      "points": "Puntos",
+      "answers": "Respuestas",
+      "save": "Guardar Cuestionario",
+      "publish": "Publicar"
+    }
+  },
+  "courses": {
+    "title": "Cursos y Asignaturas",
+    "subtitle": "Organiza tus asignaturas y unidades didácticas",
+    "create": "Nuevo Curso",
+    "search": "Buscar cursos...",
+    "detail": {
+      "units": "Unidades Didácticas",
+      "addUnit": "Añadir Unidad",
+      "viewScript": "Guión de Clase",
+      "playScript": "Ejecutar Guión"
+    },
+    "unitEditor": {
+      "title": "Editor de Unidad Didáctica",
+      "unitTitle": "Título de la unidad",
+      "description": "Descripción"
+    },
+    "scriptPlayer": {
+      "title": "Visor de Guión de Clase",
+      "start": "Iniciar Sesión de Clase",
+      "next": "Siguiente Paso",
+      "prev": "Paso Anterior"
+    }
+  },
+  "materials": {
+    "title": "Materiales Didácticos",
+    "subtitle": "Documentos PDF, enlaces y recursos de clase",
+    "upload": "Subir Material",
+    "search": "Buscar materiales...",
+    "view": "Ver / Descargar",
+    "type": "Tipo",
+    "visibility": "Visibilidad",
+    "report": "Informe de Visualizaciones"
+  },
+  "match": {
+    "join": {
+      "title": "Unirse a una Partida",
+      "pinPlaceholder": "Código PIN de la partida",
+      "nicknamePlaceholder": "Tu nombre / Nickname",
+      "submit": "Entrar al Juego"
+    },
+    "host": {
+      "lobbyTitle": "Sala de Espera del Juego",
+      "pin": "PIN de la Partida",
+      "waitingPlayers": "Esperando jugadores...",
+      "startGame": "Empezar la Partida",
+      "ranking": "Ranking Actual",
+      "nextQuestion": "Siguiente Pregunta",
+      "endGame": "Finalizar Juego"
+    },
+    "player": {
+      "waitingForHost": "Esperando a que el profesor empiece...",
+      "question": "Pregunta",
+      "answerSent": "¡Respuesta enviada!"
+    }
+  },
+  "evaluations": {
+    "title": "Evaluaciones y Estadísticas",
+    "subtitle": "Resultados de cuestionarios y rendimiento de alumnos",
+    "quizEvaluations": "Evaluación por Cuestionario",
+    "studentEvaluations": "Evaluación por Alumno",
+    "averageScore": "Nota Media",
+    "successRate": "Porcentaje de Aciertos",
+    "exportCsv": "Exportar a CSV"
+  },
+  "manual": {
+    "title": "Manual del Profesorado",
+    "subtitle": "Guía de uso pedagógico y técnico de la plataforma Encertia",
+    "indexTitle": "Tabla de Contenidos"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "search": "Buscar",
+    "actions": "Acciones",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "language": "Idioma"
+  }
+}

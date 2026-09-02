@@ -90,6 +90,14 @@ func (s *userService) CreateUser(ctx context.Context, actorRole string, input Cr
 	input.FirstName = strings.TrimSpace(input.FirstName)
 	input.LastName = strings.TrimSpace(input.LastName)
 
+	input.Language = strings.TrimSpace(strings.ToLower(input.Language))
+	if input.Language == "" {
+		input.Language = "ca"
+	}
+	if input.Language != "ca" && input.Language != "es" && input.Language != "en" {
+		return nil, shared.ErrBadRequest(shared.ErrCodeValidation, "El idioma especificat no és vàlid.", map[string]interface{}{"field": "language"})
+	}
+
 	if input.Email == "" {
 		return nil, shared.ErrBadRequest(shared.ErrCodeValidation, "El correu electrònic és obligatori.", map[string]interface{}{"field": "email"})
 	}
@@ -141,6 +149,7 @@ func (s *userService) CreateUser(ctx context.Context, actorRole string, input Cr
 		FirstName:    input.FirstName,
 		LastName:     input.LastName,
 		Role:         input.Role,
+		Language:     input.Language,
 		IsActive:     true,
 	}
 
@@ -279,6 +288,19 @@ func (s *userService) BatchCreateUsers(ctx context.Context, actorRole string, re
 			continue
 		}
 
+		lang := strings.TrimSpace(strings.ToLower(item.Language))
+		if lang == "" {
+			lang = "ca"
+		}
+		if lang != "ca" && lang != "es" && lang != "en" {
+			errorsList = append(errorsList, BatchItemError{
+				Row:   rowNum,
+				Email: email,
+				Error: "INVALID_LANGUAGE",
+			})
+			continue
+		}
+
 		userDB := &UserDB{
 			ID:           uuid.New(),
 			Email:        email,
@@ -286,6 +308,7 @@ func (s *userService) BatchCreateUsers(ctx context.Context, actorRole string, re
 			FirstName:    firstName,
 			LastName:     lastName,
 			Role:         role,
+			Language:     lang,
 			IsActive:     true,
 		}
 
@@ -400,6 +423,15 @@ func (s *userService) UpdateUser(ctx context.Context, actorID uuid.UUID, actorRo
 			return nil, shared.ErrBadRequest(shared.ErrCodeValidation, "Els cognoms no poden estar buits.", map[string]interface{}{"field": "lastName"})
 		}
 		userDB.LastName = ln
+	}
+
+	// Apply language change
+	if input.Language != nil {
+		lang := strings.TrimSpace(strings.ToLower(*input.Language))
+		if lang != "ca" && lang != "es" && lang != "en" {
+			return nil, shared.ErrBadRequest(shared.ErrCodeValidation, "L'idioma especificat no és vàlid.", map[string]interface{}{"field": "language"})
+		}
+		userDB.Language = lang
 	}
 
 	// Apply admin-only fields

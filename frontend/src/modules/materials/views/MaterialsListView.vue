@@ -15,10 +15,12 @@ import Tag from 'primevue/tag'
 import Paginator from 'primevue/paginator'
 import Dialog from 'primevue/dialog'
 import { useToast } from 'primevue/usetoast'
+import { useI18n } from 'vue-i18n'
 
 const materialStore = useMaterialStore()
 const authStore = useAuthStore()
 const toast = useToast()
+useI18n()
 
 const canManageMaterials = computed(() => authStore.isAdmin || authStore.isTeacher)
 
@@ -118,15 +120,15 @@ function formatFileSize(bytes?: number | null): string {
     <!-- Header -->
     <div class="header-section">
       <div>
-        <h1 class="page-title">Materials Didàctics</h1>
+        <h1 class="page-title">{{ $t('materials.title') }}</h1>
         <p class="page-subtitle">
-          Gestió i repositori de documents PDF, apunts i vídeos de la plataforma
+          {{ $t('materials.subtitle') }}
         </p>
       </div>
 
       <Button
         v-if="canManageMaterials"
-        label="Nou Material"
+        :label="$t('materials.upload')"
         icon="pi pi-plus"
         severity="primary"
         @click="openCreateModal"

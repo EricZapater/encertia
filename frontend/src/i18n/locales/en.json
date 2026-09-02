@@ -1,0 +1,201 @@
+{
+  "nav": {
+    "quizzes": "Games & Quizzes",
+    "evaluations": "Evaluations",
+    "users": "Users",
+    "courses": "Courses",
+    "materials": "Materials",
+    "manual": "Manual",
+    "profile": "My profile",
+    "logout": "Log Out",
+    "roles": {
+      "admin": "Admin",
+      "teacher": "Teacher",
+      "student": "Student",
+      "user": "User"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Access the Encertia platform",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register now",
+      "error": "Login error"
+    },
+    "register": {
+      "title": "Create an account",
+      "subtitle": "Join Encertia",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email address",
+      "password": "Password",
+      "role": "Role",
+      "language": "Preferred language",
+      "submit": "Register",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign in"
+    },
+    "profile": {
+      "title": "My Profile",
+      "id": "Identifier (UUID)",
+      "email": "Email Address",
+      "fullName": "Full Name",
+      "role": "Role",
+      "registeredAt": "Registration Date",
+      "language": "Platform Language",
+      "selectLanguage": "Select your language",
+      "updateData": "Update Profile",
+      "logout": "Log Out",
+      "updatedSuccess": "Profile updated successfully.",
+      "adminPanel": "Admin Panel",
+      "adminDesc": "Global platform management, users, roles, and system configuration.",
+      "teacherPanel": "Teacher Panel",
+      "teacherDesc": "From here you can manage your courses, subjects, contents, and students.",
+      "studentPanel": "Student Panel",
+      "studentDesc": "Access your enrolled courses and respond to active quizzes.",
+      "myGames": "My Games",
+      "myGamesDesc": "Create study quizzes and practice with questions.",
+      "userManagement": "User Management",
+      "userManagementDesc": "Manage administrator, teacher, and student accounts.",
+      "studentManagement": "Student Management",
+      "studentManagementDesc": "View student list and run bulk CSV imports.",
+      "quizManagement": "Game Management",
+      "quizManagementDesc": "Create, edit, and supervise all interactive quizzes."
+    }
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Manage platform users",
+    "createUser": "Create User",
+    "batchImport": "Bulk Import (CSV)",
+    "searchPlaceholder": "Search by name, last name, or email...",
+    "filterRole": "All roles",
+    "filterStatus": "All statuses",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "table": {
+      "user": "User",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "edit": "Edit",
+    "delete": "Deactivate",
+    "resetPassword": "Reset Password",
+    "detail": {
+      "title": "User Details",
+      "back": "Back to List"
+    }
+  },
+  "quizzes": {
+    "title": "Games & Quizzes",
+    "subtitle": "Create and manage interactive Kahoot-style games",
+    "create": "Create Quiz",
+    "search": "Search quizzes...",
+    "play": "Play / Host Game",
+    "edit": "Edit",
+    "duplicate": "Duplicate",
+    "preview": "Preview",
+    "settings": "Settings",
+    "delete": "Delete",
+    "editor": {
+      "title": "Quiz Editor",
+      "addQuestion": "Add Question",
+      "questionTitle": "Question title",
+      "timeLimit": "Time limit (seconds)",
+      "points": "Points",
+      "answers": "Answers",
+      "save": "Save Quiz",
+      "publish": "Publish"
+    }
+  },
+  "courses": {
+    "title": "Courses & Subjects",
+    "subtitle": "Organize your subjects and teaching units",
+    "create": "New Course",
+    "search": "Search courses...",
+    "detail": {
+      "units": "Teaching Units",
+      "addUnit": "Add Unit",
+      "viewScript": "Lesson Plan",
+      "playScript": "Play Script"
+    },
+    "unitEditor": {
+      "title": "Unit Editor",
+      "unitTitle": "Unit title",
+      "description": "Description"
+    },
+    "scriptPlayer": {
+      "title": "Lesson Script Player",
+      "start": "Start Class Session",
+      "next": "Next Step",
+      "prev": "Previous Step"
+    }
+  },
+  "materials": {
+    "title": "Teaching Materials",
+    "subtitle": "PDF documents, links, and class resources",
+    "upload": "Upload Material",
+    "search": "Search materials...",
+    "view": "View / Download",
+    "type": "Type",
+    "visibility": "Visibility",
+    "report": "Views Report"
+  },
+  "match": {
+    "join": {
+      "title": "Join a Game",
+      "pinPlaceholder": "Game PIN code",
+      "nicknamePlaceholder": "Your nickname",
+      "submit": "Join Game"
+    },
+    "host": {
+      "lobbyTitle": "Game Lobby",
+      "pin": "Game PIN",
+      "waitingPlayers": "Waiting for players...",
+      "startGame": "Start Game",
+      "ranking": "Current Leaderboard",
+      "nextQuestion": "Next Question",
+      "endGame": "End Game"
+    },
+    "player": {
+      "waitingForHost": "Waiting for teacher to start...",
+      "question": "Question",
+      "answerSent": "Answer submitted!"
+    }
+  },
+  "evaluations": {
+    "title": "Evaluations & Analytics",
+    "subtitle": "Quiz results and student performance",
+    "quizEvaluations": "Evaluation by Quiz",
+    "studentEvaluations": "Evaluation by Student",
+    "averageScore": "Average Score",
+    "successRate": "Success Rate",
+    "exportCsv": "Export to CSV"
+  },
+  "manual": {
+    "title": "Teacher Manual",
+    "subtitle": "Pedagogical and technical user guide for Encertia",
+    "indexTitle": "Table of Contents"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "search": "Search",
+    "actions": "Actions",
+    "confirm": "Confirm",
+    "back": "Back",
+    "language": "Language"
+  }
+}

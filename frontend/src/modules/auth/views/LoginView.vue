@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../store'
 import type { LoginRequest } from '../types'
+import { setAppLanguage, type SupportedLanguage } from '@/i18n'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
@@ -13,6 +15,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const toast = useToast()
+const { t, locale } = useI18n()
 
 const credentials = reactive<LoginRequest>({
   email: '',
@@ -22,12 +25,22 @@ const credentials = reactive<LoginRequest>({
 const errorMessage = ref<string | null>(null)
 const isSubmitting = ref(false)
 
+const supportedLangs: { code: SupportedLanguage; label: string }[] = [
+  { code: 'ca', label: 'CA' },
+  { code: 'es', label: 'ES' },
+  { code: 'en', label: 'EN' }
+]
+
+function changeLang(langCode: SupportedLanguage) {
+  setAppLanguage(langCode)
+}
+
 async function handleLogin() {
   errorMessage.value = null
 
   if (!credentials.email || !credentials.password) {
-    const msg = 'Si us plau, omple tots els camps.'
-    toast.add({ severity: 'error', summary: 'Error de Validació', detail: msg, life: 4000 })
+    const msg = t('auth.login.error')
+    toast.add({ severity: 'error', summary: t('common.error'), detail: msg, life: 4000 })
     return
   }
 
@@ -40,8 +53,8 @@ async function handleLogin() {
     const msg =
       err.response?.data?.error?.message ||
       authStore.error ||
-      'Credencials incorrectes o error en la connexió.'
-    toast.add({ severity: 'error', summary: 'Error d’Accés', detail: msg, life: 4000 })
+      t('auth.login.error')
+    toast.add({ severity: 'error', summary: t('common.error'), detail: msg, life: 4000 })
   } finally {
     isSubmitting.value = false
   }
@@ -51,24 +64,36 @@ async function handleLogin() {
 <template>
   <div class="auth-container">
     <div class="auth-card-wrapper">
+      <div class="auth-header-top">
+        <div class="lang-selector-top">
+          <span class="lang-globe">🌐</span>
+          <button
+            v-for="lang in supportedLangs"
+            :key="lang.code"
+            type="button"
+            class="lang-btn"
+            :class="{ active: locale === lang.code }"
+            @click="changeLang(lang.code)"
+          >
+            {{ lang.label }}
+          </button>
+        </div>
+      </div>
+
       <div class="auth-brand">
         <h1 class="brand-title">Encertia</h1>
-        <p class="brand-subtitle">Plataforma Educativa de Qüestionaris i Aprenentatge</p>
+        <p class="brand-subtitle">{{ $t('auth.login.subtitle') }}</p>
       </div>
 
       <Card class="auth-card">
         <template #title>
-          <div class="card-title">Inici de Sessió</div>
-        </template>
-        <template #subtitle>
-          <div class="card-subtitle">Introdueix les teves credencials per accedir</div>
+          <div class="card-title">{{ $t('auth.login.title') }}</div>
         </template>
 
         <template #content>
           <form @submit.prevent="handleLogin" class="auth-form">
-
             <div class="form-field">
-              <label for="email">Correu Electrònic</label>
+              <label for="email">{{ $t('auth.login.email') }}</label>
               <InputText
                 id="email"
                 v-model="credentials.email"
@@ -82,7 +107,7 @@ async function handleLogin() {
             </div>
 
             <div class="form-field">
-              <label for="password">Contrasenya</label>
+              <label for="password">{{ $t('auth.login.password') }}</label>
               <Password
                 id="password"
                 v-model="credentials.password"
@@ -99,7 +124,7 @@ async function handleLogin() {
 
             <Button
               type="submit"
-              label="Iniciar Sessió"
+              :label="$t('auth.login.submit')"
               icon="pi pi-sign-in"
               :loading="isSubmitting"
               class="w-full submit-btn"
@@ -109,8 +134,8 @@ async function handleLogin() {
 
         <template #footer>
           <div class="auth-footer">
-            <span>No tens un compte?</span>
-            <router-link to="/register" class="auth-link">Registra't aquí</router-link>
+            <span>{{ $t('auth.login.noAccount') }}</span>
+            <router-link to="/register" class="auth-link">{{ $t('auth.login.registerLink') }}</router-link>
           </div>
         </template>
       </Card>
@@ -131,6 +156,48 @@ async function handleLogin() {
 .auth-card-wrapper {
   width: 100%;
   max-width: 440px;
+}
+
+.auth-header-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.lang-selector-top {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #ffffff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.lang-globe {
+  font-size: 0.85rem;
+  margin-right: 0.15rem;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lang-btn:hover {
+  color: #0f172a;
+}
+
+.lang-btn.active {
+  background-color: #4338ca;
+  color: #ffffff;
 }
 
 .auth-brand {
@@ -164,20 +231,11 @@ async function handleLogin() {
   color: #0f172a;
 }
 
-.card-subtitle {
-  font-size: 0.875rem;
-  color: #64748b;
-}
-
 .auth-form {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   margin-top: 0.5rem;
-}
-
-.auth-message {
-  margin-bottom: 0.5rem;
 }
 
 .form-field {

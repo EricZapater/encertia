@@ -15,7 +15,7 @@
           :class="{ active: isRouteActive('/quizzes') }"
         >
           <i class="pi pi-th-large"></i>
-          <span>Jocs & Quizzes</span>
+          <span>{{ $t('nav.quizzes') }}</span>
         </router-link>
 
         <router-link
@@ -25,7 +25,7 @@
           :class="{ active: isRouteActive('/evaluations') }"
         >
           <i class="pi pi-chart-bar"></i>
-          <span>Avaluacions</span>
+          <span>{{ $t('nav.evaluations') }}</span>
         </router-link>
 
         <router-link
@@ -35,7 +35,7 @@
           :class="{ active: isRouteActive('/users') }"
         >
           <i class="pi pi-users"></i>
-          <span>Usuaris</span>
+          <span>{{ $t('nav.users') }}</span>
         </router-link>
 
         <router-link
@@ -44,7 +44,7 @@
           :class="{ active: isRouteActive('/courses') }"
         >
           <i class="pi pi-book"></i>
-          <span>Cursos</span>
+          <span>{{ $t('nav.courses') }}</span>
         </router-link>
 
         <router-link
@@ -53,7 +53,7 @@
           :class="{ active: isRouteActive('/materials') }"
         >
           <i class="pi pi-folder-open"></i>
-          <span>Materials</span>
+          <span>{{ $t('nav.materials') }}</span>
         </router-link>
 
         <router-link
@@ -63,17 +63,32 @@
           :class="{ active: isRouteActive('/help/teacher-manual') }"
         >
           <i class="pi pi-question-circle"></i>
-          <span>Manual</span>
+          <span>{{ $t('nav.manual') }}</span>
         </router-link>
       </nav>
 
       <!-- Right User Controls -->
       <div class="navbar-user">
+        <!-- Language Selector -->
+        <div class="lang-selector">
+          <span class="lang-globe" title="Idioma">🌐</span>
+          <button
+            v-for="lang in supportedLangs"
+            :key="lang.code"
+            type="button"
+            class="lang-btn"
+            :class="{ active: locale === lang.code }"
+            @click="changeLang(lang.code)"
+          >
+            {{ lang.label }}
+          </button>
+        </div>
+
         <Tag :severity="roleSeverity" class="role-tag">
           {{ roleLabel }}
         </Tag>
 
-        <div class="user-profile-link" @click="router.push('/profile')" title="El meu perfil">
+        <div class="user-profile-link" @click="router.push('/profile')" :title="$t('nav.profile')">
           <i class="pi pi-user user-avatar-icon"></i>
           <span class="user-name">{{ authStore.fullName || authStore.currentUser?.email }}</span>
         </div>
@@ -84,7 +99,7 @@
           text
           rounded
           class="logout-btn"
-          title="Tancar Sessió"
+          :title="$t('nav.logout')"
           @click="handleLogout"
         />
       </div>
@@ -95,21 +110,34 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/modules/auth/store'
+import type { SupportedLanguage } from '@/i18n'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { t, locale } = useI18n()
+
+const supportedLangs: { code: SupportedLanguage; label: string }[] = [
+  { code: 'ca', label: 'CA' },
+  { code: 'es', label: 'ES' },
+  { code: 'en', label: 'EN' }
+]
+
+function changeLang(langCode: SupportedLanguage) {
+  authStore.updateLanguage(langCode)
+}
 
 const canAccessTeacherFeatures = computed(() => authStore.isAdmin || authStore.isTeacher)
 
 const roleLabel = computed(() => {
-  if (authStore.isAdmin) return 'Admin'
-  if (authStore.isTeacher) return 'Professor'
-  if (authStore.isStudent) return 'Alumne'
-  return 'Usuari'
+  if (authStore.isAdmin) return t('nav.roles.admin')
+  if (authStore.isTeacher) return t('nav.roles.teacher')
+  if (authStore.isStudent) return t('nav.roles.student')
+  return t('nav.roles.user')
 })
 
 const roleSeverity = computed(() => {
@@ -223,6 +251,42 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   gap: 0.85rem;
+}
+
+.lang-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  background-color: #f1f5f9;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.lang-globe {
+  font-size: 0.85rem;
+  margin-right: 0.15rem;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lang-btn:hover {
+  color: #0f172a;
+}
+
+.lang-btn.active {
+  background-color: #6366f1;
+  color: #ffffff;
 }
 
 .role-tag {
