@@ -65,6 +65,17 @@
           <i class="pi pi-question-circle"></i>
           <span>{{ $t('nav.manual') }}</span>
         </router-link>
+
+        <router-link
+          v-if="authStore.isAdmin"
+          to="/metrics"
+          class="nav-link"
+          :class="{ active: isRouteActive('/metrics') }"
+          data-testid="nav-link-metrics"
+        >
+          <i class="pi pi-chart-line"></i>
+          <span>{{ $t('nav.metrics') }}</span>
+        </router-link>
       </nav>
 
       <!-- Right User Controls -->

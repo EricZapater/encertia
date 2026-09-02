@@ -6,6 +6,7 @@
     "courses": "Cursos",
     "materials": "Materiales",
     "manual": "Manual",
+    "metrics": "Métricas & Auditoría",
     "profile": "Mi perfil",
     "logout": "Cerrar Sesión",
     "roles": {
@@ -182,6 +183,57 @@
     "title": "Manual del Profesorado",
     "subtitle": "Guía de uso pedagógico y técnico de la plataforma Encertia",
     "indexTitle": "Tabla de Contenidos"
+  },
+  "metrics": {
+    "title": "Métricas y Auditoría del Sistema",
+    "subtitle": "Monitorización de salud del servidor, latencias de API y registros de auditoría",
+    "summary": {
+      "activeUsers": "Usuarios Activos Hoy",
+      "totalRequests": "Peticiones Totales Hoy",
+      "avgResponseTime": "Tiempo de Respuesta Medio",
+      "errorRate": "Tasa de Errores",
+      "matchesPlayed": "Partidas Jugadas",
+      "materialsRead": "Materiales Leídos"
+    },
+    "health": {
+      "title": "Salud del Servidor",
+      "uptime": "Tiempo de funcionamiento",
+      "goroutines": "Goroutines activos",
+      "memory": "Uso de memoria",
+      "dbConnections": "Conexiones DB (Uso / Abiertas)"
+    },
+    "latency": {
+      "title": "Ranking de Latencia de API (P95 / P99)",
+      "subtitle": "Endpoints ordenados por volumen y duración de respuesta",
+      "method": "Método",
+      "endpoint": "Endpoint",
+      "requests": "Peticiones",
+      "avgMs": "Media (ms)",
+      "p95Ms": "P95 (ms)",
+      "p99Ms": "P99 (ms)",
+      "errors": "Errores"
+    },
+    "audit": {
+      "title": "Registro de Auditoría de Uso",
+      "subtitle": "Historial de acciones realizadas por los usuarios en la plataforma",
+      "exportCsv": "Exportar a CSV",
+      "exportSuccess": "Archivo CSV exportado con éxito.",
+      "searchPlaceholder": "Buscar por acción, endpoint, usuario...",
+      "filterModule": "Filtrar por módulo",
+      "allModules": "Todos los módulos",
+      "table": {
+        "date": "Fecha / Hora",
+        "user": "Usuario",
+        "role": "Rol",
+        "module": "Módulo",
+        "action": "Acción",
+        "endpoint": "Endpoint",
+        "status": "Estado",
+        "duration": "Duración",
+        "ip": "IP"
+      },
+      "empty": "No se ha encontrado ningún registro de auditoría."
+    }
   },
   "common": {
     "save": "Guardar",

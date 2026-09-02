@@ -6,6 +6,7 @@
     "courses": "Courses",
     "materials": "Materials",
     "manual": "Manual",
+    "metrics": "Metrics & Audit",
     "profile": "My profile",
     "logout": "Log Out",
     "roles": {
@@ -182,6 +183,57 @@
     "title": "Teacher Manual",
     "subtitle": "Pedagogical and technical user guide for Encertia",
     "indexTitle": "Table of Contents"
+  },
+  "metrics": {
+    "title": "System Metrics & Audit",
+    "subtitle": "Server health monitoring, API latencies, and usage audit logs",
+    "summary": {
+      "activeUsers": "Active Users Today",
+      "totalRequests": "Total Requests Today",
+      "avgResponseTime": "Avg Response Time",
+      "errorRate": "Error Rate",
+      "matchesPlayed": "Matches Played",
+      "materialsRead": "Materials Read"
+    },
+    "health": {
+      "title": "Server Health",
+      "uptime": "System Uptime",
+      "goroutines": "Active Goroutines",
+      "memory": "Memory Usage",
+      "dbConnections": "DB Connections (In Use / Open)"
+    },
+    "latency": {
+      "title": "API Latency Ranking (P95 / P99)",
+      "subtitle": "Endpoints ranked by volume and response duration",
+      "method": "Method",
+      "endpoint": "Endpoint",
+      "requests": "Requests",
+      "avgMs": "Avg (ms)",
+      "p95Ms": "P95 (ms)",
+      "p99Ms": "P99 (ms)",
+      "errors": "Errors"
+    },
+    "audit": {
+      "title": "Usage Audit Logs",
+      "subtitle": "History of actions performed by users on the platform",
+      "exportCsv": "Export to CSV",
+      "exportSuccess": "CSV file exported successfully.",
+      "searchPlaceholder": "Search by action, endpoint, user...",
+      "filterModule": "Filter by module",
+      "allModules": "All modules",
+      "table": {
+        "date": "Date / Time",
+        "user": "User",
+        "role": "Role",
+        "module": "Module",
+        "action": "Action",
+        "endpoint": "Endpoint",
+        "status": "Status",
+        "duration": "Duration",
+        "ip": "IP"
+      },
+      "empty": "No audit logs found."
+    }
   },
   "common": {
     "save": "Save",

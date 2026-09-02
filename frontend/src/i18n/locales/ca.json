@@ -6,6 +6,7 @@
     "courses": "Cursos",
     "materials": "Materials",
     "manual": "Manual",
+    "metrics": "Mètriques & Auditoria",
     "profile": "El meu perfil",
     "logout": "Tancar Sessió",
     "roles": {
@@ -182,6 +183,57 @@
     "title": "Manual del Professorat",
     "subtitle": "Guia d'ús pedagògic i tècnic de la plataforma Encertia",
     "indexTitle": "Taula de Continguts"
+  },
+  "metrics": {
+    "title": "Mètriques i Auditoria del Sistema",
+    "subtitle": "Monitoratge de salut del servidor, latències d'API i registres d'auditoria",
+    "summary": {
+      "activeUsers": "Usuaris Actius Avui",
+      "totalRequests": "Peticions Totals Avui",
+      "avgResponseTime": "Temps de Resposta Mitjà",
+      "errorRate": "Taxa d'Errors",
+      "matchesPlayed": "Partides Jugades",
+      "materialsRead": "Materials Llegits"
+    },
+    "health": {
+      "title": "Salut del Servidor",
+      "uptime": "Temps de funcionament",
+      "goroutines": "Goroutines actius",
+      "memory": "Ús de memòria",
+      "dbConnections": "Connexions DB (Ús / Obertes)"
+    },
+    "latency": {
+      "title": "Rànquing de Latència d'API (P95 / P99)",
+      "subtitle": "Endpoints ordenats per volum i durada de resposta",
+      "method": "Mètode",
+      "endpoint": "Endpoint",
+      "requests": "Peticions",
+      "avgMs": "Mitjana (ms)",
+      "p95Ms": "P95 (ms)",
+      "p99Ms": "P99 (ms)",
+      "errors": "Errors"
+    },
+    "audit": {
+      "title": "Registre d'Auditoria d'Ús",
+      "subtitle": "Historial d'accions realitzades pels usuaris a la plataforma",
+      "exportCsv": "Exportar a CSV",
+      "exportSuccess": "Fitxer CSV exportat amb èxit.",
+      "searchPlaceholder": "Cercar per acció, endpoint, usuari...",
+      "filterModule": "Filtrar per mòdul",
+      "allModules": "Tots els mòduls",
+      "table": {
+        "date": "Data / Hora",
+        "user": "Usuari",
+        "role": "Rol",
+        "module": "Mòdul",
+        "action": "Acció",
+        "endpoint": "Endpoint",
+        "status": "Estat",
+        "duration": "Durada",
+        "ip": "IP"
+      },
+      "empty": "No s'ha trobat cap registre d'auditoria."
+    }
   },
   "common": {
     "save": "Desar",

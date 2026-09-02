@@ -28,6 +28,11 @@ APTE.
 7. **evaluation** — panell d'avaluació posterior pel professor, estadístiques per pregunta, qualificació automàtica i ajust manual.
    ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/evaluation.md`).
 
+## v1.2 — Monitoratge, Auditoria i Observabilitat (Admin)
+
+8. **metrics** — registre d'auditoria d'ús ("qui fa servir què"), monitoratge de latència de l'API (p95/p99), salut del servidor/PostgreSQL, mètriques d'engagement de partides/materials i exportació CSV.
+   ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/metrics.md`).
+
 ## Fora de tot abast per ara
 - Multi-tenant / multi-professor a gran escala.
 - Notificacions per email.

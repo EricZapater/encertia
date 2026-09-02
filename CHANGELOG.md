@@ -5,6 +5,23 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-02
+### Added
+- **Contracte d'API i Especificació (`metrics`)**:
+  - Especificació funcional ([`specs/metrics.md`](file:///Users/eric.zapater/Developer/encertia/specs/metrics.md)) i contracte OpenAPI 3.0 ([`contracts/metrics.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/metrics.openapi.yaml)) per al mòdul de mètriques, monitoratge de latència i registre d'auditoria (`metrics`) reservat exclusivament per a l'Admin.
+- **Backend (`internal/metrics` & `internal/shared`)**:
+  - Migració SQL `000011_create_metrics_tables.up.sql` (`audit_logs` amb índexs per `created_at`, `user_id`, `module`, `endpoint`).
+  - Middleware Gin de mètriques (`metrics_middleware.go`) que mesura el temps de resposta en mil·lilisegons (`durationMs`) de cada petició HTTP i ho enregistra de forma asíncrona via goroutines a la base de dades.
+  - Endpoints REST d'Admin: Resum del sistema (`/metrics/summary`), latència i percentils p95/p99 (`/metrics/api-latency`), registre d'auditoria d'ús paginat amb filtres (`/metrics/audit-logs`) i exportació en CSV (`/metrics/audit-logs/export`).
+  - Suite de tests unitaris a `metrics_test.go` amb 100% d'èxit.
+- **Frontend (`src/modules/metrics`)**:
+  - Tipus TypeScript del contracte, client d'API Axios (`api.ts`) i store Pinia (`useMetricsStore`).
+  - Panell de Control per a Admin ([`MetricsDashboardView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/metrics/views/MetricsDashboardView.vue)) amb targetes de salut del servidor/DB, usuaris actius, rànquing de latències p95/p99, taula d'auditoria d'ús paginada i botó d'exportació en CSV.
+  - Ruta `/metrics` protegida per rol Admin a Vue Router i accés directe **`Mètriques & Auditoria`** a `AppNavbar.vue`.
+  - Claus de traducció en Català, Castellà i Anglès afegides a `ca.json`, `es.json` i `en.json`.
+- **QA & Validador**:
+  - Informe de QA aprovat amb veredicte **APTE** ([`qa-reports/metrics.md`](file:///Users/eric.zapater/Developer/encertia/qa-reports/metrics.md)).
+
 ## [1.1.0] - 2026-09-02
 ### Added
 - **Plataforma Multiidioma (i18n: Català `ca`, Castellà `es`, Anglès `en`)**:

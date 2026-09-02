@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  title: Encertia — Metrics & Audit API
+  version: 1.2.0
+  description: >
+    Contracte del mòdul de mètriques, monitoratge de rendiment de l'API i registre
+    d'auditoria d'ús (accés restringit exclusivament al rol admin).
+
+servers:
+  - url: /api/v1
+
+paths:
+  /metrics/summary:
+    get:
+      operationId: getMetricsSummary
+      summary: Retorna el resum global de mètriques del sistema, usuaris actius i salut del servidor
+      tags:
+        - Metrics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Resum de mètriques obtingut amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsSummaryResponse'
+        '401':
+          description: No autenticat
+        '403':
+          description: No autoritzat (només admin)
+
+  /metrics/api-latency:
+    get:
+      operationId: getApiLatencyMetrics
+      summary: Retorna la latència mitjana, p95, p99 i taxa d'errors per endpoint
+      tags:
+        - Metrics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Mètriques de latència obtingudes amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiLatencyMetricsResponse'
+
+  /metrics/audit-logs:
+    get:
+      operationId: getAuditLogs
+      summary: Retorna la llista paginada de registres d'auditoria d'ús (qui ha fet què)
+      tags:
+        - Metrics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: module
+          in: query
+          schema:
+            type: string
+        - name: userId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Llista de registres d'auditoria obtinguda amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogsPaginatedResponse'
+
+  /metrics/audit-logs/export:
+    get:
+      operationId: exportAuditLogsCSV
+      summary: Descarrega el registre d'auditoria d'ús en format CSV
+      tags:
+        - Metrics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Fitxer CSV d'auditoria
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    SystemHealth:
+      type: object
+      properties:
+        uptimeSeconds:
+          type: integer
+        goroutines:
+          type: integer
+        memoryUsageMb:
+          type: number
+        dbOpenConnections:
+          type: integer
+        dbInUseConnections:
+          type: integer
+      required: [uptimeSeconds, goroutines, memoryUsageMb, dbOpenConnections, dbInUseConnections]
+
+    MetricsSummaryResponse:
+      type: object
+      properties:
+        activeUsersToday:
+          type: integer
+        totalRequestsToday:
+          type: integer
+        avgResponseTimeMs:
+          type: number
+        errorRatePercentage:
+          type: number
+        matchesPlayedTotal:
+          type: integer
+        materialsReadTotal:
+          type: integer
+        systemHealth:
+          $ref: '#/components/schemas/SystemHealth'
+      required: [activeUsersToday, totalRequestsToday, avgResponseTimeMs, errorRatePercentage, matchesPlayedTotal, materialsReadTotal, systemHealth]
+
+    EndpointLatencyItem:
+      type: object
+      properties:
+        method:
+          type: string
+        endpoint:
+          type: string
+        requestCount:
+          type: integer
+        avgDurationMs:
+          type: number
+        p95DurationMs:
+          type: number
+        p99DurationMs:
+          type: number
+        errorCount:
+          type: integer
+      required: [method, endpoint, requestCount, avgDurationMs, p95DurationMs, p99DurationMs, errorCount]
+
+    ApiLatencyMetricsResponse:
+      type: object
+      properties:
+        endpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/EndpointLatencyItem'
+      required: [endpoints]
+
+    AuditLogItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        userEmail:
+          type: string
+        userRole:
+          type: string
+        action:
+          type: string
+        module:
+          type: string
+        endpoint:
+          type: string
+        method:
+          type: string
+        statusCode:
+          type: integer
+        durationMs:
+          type: integer
+        ipAddress:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, action, module, endpoint, method, statusCode, durationMs, createdAt]
+
+    AuditLogsPaginatedResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogItem'
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+      required: [items, total, page, pageSize, totalPages]

@@ -136,6 +136,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, roles: ['admin', 'teacher'] }
   },
   {
+    path: '/metrics',
+    name: 'metrics-dashboard',
+    component: () => import('@/modules/metrics/views/MetricsDashboardView.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }

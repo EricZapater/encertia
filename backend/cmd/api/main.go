@@ -12,6 +12,7 @@ import (
 	"github.com/encertia/backend/internal/evaluation"
 	"github.com/encertia/backend/internal/match"
 	"github.com/encertia/backend/internal/material"
+	"github.com/encertia/backend/internal/metrics"
 	"github.com/encertia/backend/internal/quiz"
 	"github.com/encertia/backend/internal/shared"
 	"github.com/encertia/backend/internal/user"
@@ -120,15 +121,21 @@ func main() {
 	materialSvc := material.NewService(materialRepo)
 	materialHandler := material.NewHandler(materialSvc, storageSvc)
 
+	// Metrics Domain
+	metricsRepo := metrics.NewRepository(dbConn)
+	metricsSvc := metrics.NewService(metricsRepo, dbConn)
+	metricsHandler := metrics.NewHandler(metricsSvc)
+
 	// Middleware
 	authMiddleware := shared.AuthMiddleware(authHandler.TokenValidatorAdapter())
+	metricsMiddleware := shared.MetricsMiddleware(metricsHandler.RecorderAdapter())
 
 	// 5. Setup Gin Router
 	ginMode := getEnv("GIN_MODE", gin.ReleaseMode)
 	gin.SetMode(ginMode)
 
 	router := gin.New()
-	router.Use(gin.Logger(), gin.Recovery(), shared.CORSMiddleware())
+	router.Use(gin.Logger(), gin.Recovery(), shared.CORSMiddleware(), metricsMiddleware)
 
 	// Static route for local uploads
 	router.Static("/uploads", storageCfg.LocalUploadDir)
@@ -145,7 +152,7 @@ func main() {
 	router.Match([]string{"GET", "HEAD"}, "/health", healthHandler)
 	router.Match([]string{"GET", "HEAD"}, "/api/health", healthHandler)
 
-	// Register routes directly at root (/auth/*, /users/*, /quizzes/*, /matches/*, /uploads/*, /ws/match/*, /courses/*, /materials/*) as per OpenAPI contract
+	// Register routes directly at root
 	rootGroup := router.Group("")
 	authHandler.RegisterRoutes(rootGroup, authMiddleware)
 	userHandler.RegisterRoutes(rootGroup, authMiddleware)
@@ -154,8 +161,9 @@ func main() {
 	evalHandler.RegisterRoutes(rootGroup, authMiddleware)
 	courseHandler.RegisterRoutes(rootGroup, authMiddleware)
 	materialHandler.RegisterRoutes(rootGroup, authMiddleware)
+	metricsHandler.RegisterRoutes(rootGroup, authMiddleware)
 
-	// Also support /api prefix for proxy convenience (/api/auth/*, /api/users/*, /api/quizzes/*, /api/matches/*, /api/uploads/*, /api/ws/match/*, /api/courses/*, /api/materials/*)
+	// Also support /api prefix for proxy convenience
 	apiGroup := router.Group("/api")
 	authHandler.RegisterRoutes(apiGroup, authMiddleware)
 	userHandler.RegisterRoutes(apiGroup, authMiddleware)
@@ -164,6 +172,7 @@ func main() {
 	evalHandler.RegisterRoutes(apiGroup, authMiddleware)
 	courseHandler.RegisterRoutes(apiGroup, authMiddleware)
 	materialHandler.RegisterRoutes(apiGroup, authMiddleware)
+	metricsHandler.RegisterRoutes(apiGroup, authMiddleware)
 
 	// 6. Start HTTP Server
 	addr := ":" + serverPort

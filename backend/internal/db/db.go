@@ -81,6 +81,7 @@ func RunMigrations(db *sql.DB) error {
 		"migrations/000008_create_course_tables.up.sql",
 		"migrations/000009_create_material_tables.up.sql",
 		"migrations/000010_add_user_language.up.sql",
+		"migrations/000011_create_metrics_tables.up.sql",
 	}
 
 	for _, file := range migrationFiles {

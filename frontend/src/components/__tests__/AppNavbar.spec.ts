@@ -41,6 +41,33 @@ describe('AppNavbar.vue', () => {
     expect(wrapper.text()).toContain('Avaluacions')
     expect(wrapper.text()).toContain('Usuaris')
     expect(wrapper.text()).toContain('Joan Docent')
+    expect(wrapper.find('[data-testid="nav-link-metrics"]').exists()).toBe(false)
+  })
+
+  it('shows metrics link for admin role', () => {
+    const authStore = useAuthStore()
+    authStore.setUser({
+      id: 'a-1',
+      email: 'admin@encertia.cat',
+      firstName: 'Admin',
+      lastName: 'User',
+      role: 'admin',
+      createdAt: '2026-01-01',
+      updatedAt: '2026-01-01'
+    })
+
+    const wrapper = mount(AppNavbar, {
+      global: {
+        stubs: {
+          'router-link': RouterLinkStub,
+          Tag: true,
+          Button: true
+        }
+      }
+    })
+
+    expect(wrapper.find('[data-testid="nav-link-metrics"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Mètriques & Auditoria')
   })
 
   it('hides teacher/admin links for student role', () => {
@@ -68,5 +95,6 @@ describe('AppNavbar.vue', () => {
     expect(wrapper.text()).toContain('Jocs & Quizzes')
     expect(wrapper.text()).not.toContain('Avaluacions')
     expect(wrapper.text()).not.toContain('Usuaris')
+    expect(wrapper.find('[data-testid="nav-link-metrics"]').exists()).toBe(false)
   })
 })
