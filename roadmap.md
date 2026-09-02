@@ -21,8 +21,8 @@ APTE.
    ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/quiz.md`).
 4. **course** — gestió de curs, unitats didàctiques ("unitat" i "classe" són el mateix concepte), matriculacions d'alumnes, vinculació N a N entre unitats i qüestionaris, i **guió de classe** (visor seqüencial de blocs: material, qüestionari, pausa/preguntes).
    ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/course.md`).
-5. **material** — pujada/gestió de documents i vídeo (embegut extern), amb visor de PDF integrat necessari pel guió de classe del mòdul `course`.
-   🔴 Pendent de desenvolupament (Proper mòdul).
+5. **material** — pujada/gestió de documents (PDF/DOCX/PPTX) i vídeo (embegut extern YouTube/Vimeo), amb visor de PDF integrat per al guió de classe i registre d'accessos d'alumnes.
+   ✅ Spec, contracte i implementació completats. QA: **APTE** (`qa-reports/material.md`).
 6. **session / match** (partida en directe) — codi/PIN, unió d'alumnes, preguntes en directe amb temporitzador, WebSockets per rànquing en temps real, podi 3D i doble puntuació.
    ✅ Spec, contracte i implementació completats (`match`). QA: **APTE** (`qa-reports/match.md`).
 7. **evaluation** — panell d'avaluació posterior pel professor, estadístiques per pregunta, qualificació automàtica i ajust manual.

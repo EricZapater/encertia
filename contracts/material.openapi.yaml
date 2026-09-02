@@ -1,0 +1,531 @@
+openapi: 3.0.3
+info:
+  title: Encertia — Mòdul Material API
+  description: Contracte d'API REST per a la gestió de materials didàctics (documents PDF/Word, vídeos incrustats, visor i mètriques d'accés).
+  version: 1.0.0
+
+servers:
+  - url: /api/v1
+    description: API Server v1
+
+paths:
+  /materials:
+    get:
+      summary: Llistar materials didàctics
+      description: Retorna la llista de materials del professor autenticat (o de tots els professors si és admin).
+      operationId: listMaterials
+      tags:
+        - Materials
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: materialType
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [document, video]
+      responses:
+        '200':
+          description: Llista de materials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialListResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '500':
+          $ref: '#/components/responses/500InternalError'
+
+    post:
+      summary: Crear o pujar un nou material didàctic
+      operationId: createMaterial
+      tags:
+        - Materials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMaterialRequest'
+      responses:
+        '201':
+          description: Material creat correctament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+
+  /materials/upload:
+    post:
+      summary: Pujar un fitxer de document (PDF/Word/PPT)
+      operationId: uploadMaterialFile
+      tags:
+        - Materials
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Fitxer pujat amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadFileResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '413':
+          description: Fitxer massa gran (Màxim 50 MB)
+
+  /materials/{id}:
+    get:
+      summary: Obtenir el detall d'un material
+      operationId: getMaterial
+      tags:
+        - Materials
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detall del material
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+    put:
+      summary: Actualitzar un material existent (o substituir-ne el fitxer)
+      operationId: updateMaterial
+      tags:
+        - Materials
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMaterialRequest'
+      responses:
+        '200':
+          description: Material actualitzat amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+    delete:
+      summary: Esborrar un material (Soft-delete)
+      operationId: deleteMaterial
+      tags:
+        - Materials
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Material esborrat
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  /materials/{id}/views:
+    post:
+      summary: Enregistrar visualització de l'alumne sobre un material
+      operationId: recordMaterialView
+      tags:
+        - Views
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Visualització enregistrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  viewCount:
+                    type: integer
+
+    get:
+      summary: Obtenir informe d'accessos dels alumnes a un material (Professor)
+      operationId: getMaterialViewsReport
+      tags:
+        - Views
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Informe d'accessos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialViewsReportResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+
+  /courses/{courseId}/units/{unitId}/materials:
+    get:
+      summary: Llistar materials associats a una unitat didàctica
+      operationId: listUnitMaterials
+      tags:
+        - UnitMaterials
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Llista de materials de la unitat
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaterialResponse'
+
+    post:
+      summary: Vincular un material existent a una unitat didàctica (N:N)
+      operationId: linkMaterialToUnit
+      tags:
+        - UnitMaterials
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [materialId]
+              properties:
+                materialId:
+                  type: string
+                  format: uuid
+                orderIndex:
+                  type: integer
+      responses:
+        '200':
+          description: Material vinculat correctament
+
+  /courses/{courseId}/units/{unitId}/materials/{materialId}:
+    delete:
+      summary: Desvincular un material d'una unitat didàctica
+      operationId: unlinkMaterialFromUnit
+      tags:
+        - UnitMaterials
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: materialId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Material desvinculat
+
+components:
+  schemas:
+    MaterialResponse:
+      type: object
+      required: [id, title, materialType, teacherId, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        materialType:
+          type: string
+          enum: [document, video]
+        fileUrl:
+          type: string
+          nullable: true
+        fileName:
+          type: string
+          nullable: true
+        fileSizeBytes:
+          type: integer
+          nullable: true
+        mimeType:
+          type: string
+          nullable: true
+        pageCount:
+          type: integer
+          default: 0
+        videoUrl:
+          type: string
+          nullable: true
+        videoProvider:
+          type: string
+          nullable: true
+        teacherId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MaterialListResponse:
+      type: object
+      required: [items, total, page, pageSize, totalPages]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaterialResponse'
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+
+    CreateMaterialRequest:
+      type: object
+      required: [title, materialType]
+      properties:
+        title:
+          type: string
+          minLength: 2
+        description:
+          type: string
+        materialType:
+          type: string
+          enum: [document, video]
+        fileUrl:
+          type: string
+        fileName:
+          type: string
+        fileSizeBytes:
+          type: integer
+        mimeType:
+          type: string
+        pageCount:
+          type: integer
+        videoUrl:
+          type: string
+        videoProvider:
+          type: string
+          enum: [youtube, vimeo, external]
+
+    UpdateMaterialRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        fileUrl:
+          type: string
+        fileName:
+          type: string
+        fileSizeBytes:
+          type: integer
+        mimeType:
+          type: string
+        pageCount:
+          type: integer
+        videoUrl:
+          type: string
+        videoProvider:
+          type: string
+
+    UploadFileResponse:
+      type: object
+      required: [fileUrl, fileName, fileSizeBytes, mimeType, pageCount]
+      properties:
+        fileUrl:
+          type: string
+        fileName:
+          type: string
+        fileSizeBytes:
+          type: integer
+        mimeType:
+          type: string
+        pageCount:
+          type: integer
+
+    MaterialViewsReportResponse:
+      type: object
+      required: [materialId, totalViews, totalStudentsViewed, studentViews]
+      properties:
+        materialId:
+          type: string
+          format: uuid
+        totalViews:
+          type: integer
+        totalStudentsViewed:
+          type: integer
+        studentViews:
+          type: array
+          items:
+            type: object
+            properties:
+              studentId:
+                type: string
+                format: uuid
+              studentName:
+                type: string
+              studentEmail:
+                type: string
+              viewCount:
+                type: integer
+              lastViewedAt:
+                type: string
+                format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+  responses:
+    400BadRequest:
+      description: Petició invàlida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    401Unauthorized:
+      description: No autenticat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    403Forbidden:
+      description: Permís denegat per rol
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    404NotFound:
+      description: Recurs no trobat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    500InternalError:
+      description: Error intern del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

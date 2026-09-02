@@ -1,14 +1,14 @@
 # Informe d'Auditoria Global QA — Aplicació Encertia
 
-**Veredicte Final Global**: **APTE**  
+**Veredicte Final Global**: **APTE (v1 Complete Release)**  
 **Data d'auditoria**: 2026-09-02  
-**Mòduls Auditats**: `auth`, `user`, `quiz`, `course`, `match`, `evaluation` (6/6)
+**Mòduls Auditats**: `auth`, `user`, `quiz`, `course`, `material`, `match`, `evaluation` (7/7)
 
 ---
 
 ## 1. Resum Executiu
 
-S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Encertia. Tots els 6 mòduls previstos han estat satisfactòriament implementats, provats i auditats. La suite completa de proves automàtiques del backend en Go i del frontend en Vue 3 / TypeScript s'ha executat amb èxit (100% verda), i l'aplicació s'ha compilat per a producció sense cap avís o error.
+S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Encertia. Tots els 7 mòduls de la v1 (Nucli Mínim) han estat satisfactòriament implementats, provats i auditats. La suite completa de proves automàtiques del backend en Go i del frontend en Vue 3 / TypeScript s'ha executat amb èxit (100% verda - 129 unit tests superats), i l'aplicació s'ha compilat per a producció sense cap avís o error.
 
 ---
 
@@ -22,6 +22,7 @@ S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Enc
   - `github.com/encertia/backend/internal/user`: **PASS**
   - `github.com/encertia/backend/internal/quiz`: **PASS**
   - `github.com/encertia/backend/internal/course`: **PASS**
+  - `github.com/encertia/backend/internal/material`: **PASS**
   - `github.com/encertia/backend/internal/match`: **PASS**
   - `github.com/encertia/backend/internal/shared`: **PASS**
 - **Verificació Go Vet**: Neta, 0 errors o advertències de sintaxi/estàtica.
@@ -31,7 +32,7 @@ S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Enc
 - **Resultat**: **EXIT CODE 0 (PASS)**
 - **Detall**:
   - `vue-tsc -b` (Type-check): **OK** (Sense errors de composició de tipus TypeScript).
-  - `vitest run` (Tests unitaris/component): **22 fitxers de test passed, 115 tests passed (115/115)**.
+  - `vitest run` (Tests unitaris/component): **24 fitxers de test passed, 129 tests passed (129/129)**.
   - `vite build` (Production Build): **OK** (Construcció de paquets finalitzada correctament en `dist/`).
 
 ---
@@ -44,6 +45,7 @@ S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Enc
 | **user** | `contracts/user.openapi.yaml` | `specs/user.md` | PASS | PASS | OK | **APTE** |
 | **quiz** | `contracts/quiz.openapi.yaml` | `specs/quiz.md` | PASS | PASS | OK | **APTE** |
 | **course** | `contracts/course.openapi.yaml` | `specs/course.md` | PASS | PASS | OK | **APTE** |
+| **material**| `contracts/material.openapi.yaml`| `specs/material.md`| PASS | PASS | OK | **APTE** |
 | **match** | `contracts/match.openapi.yaml` | `specs/match.md` | PASS | PASS | OK | **APTE** |
 | **evaluation**| `contracts/evaluation.openapi.yaml`| `specs/evaluation.md`| PASS | PASS | OK | **APTE** |
 

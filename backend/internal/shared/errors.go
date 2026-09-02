@@ -84,6 +84,10 @@ func ErrInternal(err error) *AppError {
 	return NewAppError(http.StatusInternalServerError, ErrCodeInternal, "Error intern del servidor.", nil, err)
 }
 
+func ErrPayloadTooLarge(code, message string, details map[string]interface{}) *AppError {
+	return NewAppError(http.StatusRequestEntityTooLarge, code, message, details, nil)
+}
+
 // RespondWithError writes a standardized JSON error response.
 func RespondWithError(c *gin.Context, appErr *AppError) {
 	c.JSON(appErr.StatusCode, ErrorResponse{

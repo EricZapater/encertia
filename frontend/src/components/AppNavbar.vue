@@ -46,6 +46,15 @@
           <i class="pi pi-book"></i>
           <span>Cursos</span>
         </router-link>
+
+        <router-link
+          to="/materials"
+          class="nav-link"
+          :class="{ active: isRouteActive('/materials') }"
+        >
+          <i class="pi pi-folder-open"></i>
+          <span>Materials</span>
+        </router-link>
       </nav>
 
       <!-- Right User Controls -->

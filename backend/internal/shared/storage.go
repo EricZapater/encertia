@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	MaxImageSizeBytes = 5 * 1024 * 1024 // 5 MB
+	MaxImageSizeBytes    = 5 * 1024 * 1024  // 5 MB
+	MaxDocumentSizeBytes = 50 * 1024 * 1024 // 50 MB
 )
 
 // AllowedImageMIMEs maps accepted MIME types to file extensions.
@@ -31,10 +32,29 @@ var AllowedImageMIMEs = map[string]string{
 	"image/gif":  ".gif",
 }
 
+// AllowedDocumentMIMEs maps accepted document MIME types to file extensions.
+var AllowedDocumentMIMEs = map[string]string{
+	"application/pdf":                                                           ".pdf",
+	"application/msword":                                                        ".doc",
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document":   ".docx",
+	"application/vnd.ms-powerpoint":                                             ".ppt",
+	"application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+	"text/plain":                                                                ".txt",
+}
+
 // UploadResult represents the result of a successful file upload.
 type UploadResult struct {
 	URL string `json:"url"`
 	Key string `json:"key"`
+}
+
+// DocumentUploadResult represents the result of a successful document upload.
+type DocumentUploadResult struct {
+	FileURL       string `json:"fileUrl"`
+	FileName      string `json:"fileName"`
+	FileSizeBytes int64  `json:"fileSizeBytes"`
+	MIMEType      string `json:"mimeType"`
+	PageCount     int    `json:"pageCount"`
 }
 
 // StorageConfig holds configuration for Cloudflare R2 or local storage fallback.
@@ -48,10 +68,11 @@ type StorageConfig struct {
 	BaseURL           string
 }
 
-// StorageService defines the contract for image storage.
+// StorageService defines the contract for file storage.
 type StorageService interface {
 	UploadImage(ctx context.Context, fileHeader *multipart.FileHeader) (*UploadResult, *AppError)
 	UploadImageBytes(ctx context.Context, data []byte, originalFilename, contentType string) (*UploadResult, *AppError)
+	UploadDocument(ctx context.Context, fileHeader *multipart.FileHeader) (*DocumentUploadResult, *AppError)
 }
 
 type storageService struct {
@@ -289,4 +310,101 @@ func getSignatureKey(secret, dateStamp, regionName, serviceName string) []byte {
 	kService := hmacSHA256(kRegion, []byte(serviceName))
 	kSigning := hmacSHA256(kService, []byte("aws4_request"))
 	return kSigning
+}
+
+// UploadDocument processes and validates a document upload (up to 50MB).
+func (s *storageService) UploadDocument(ctx context.Context, fileHeader *multipart.FileHeader) (*DocumentUploadResult, *AppError) {
+	if fileHeader == nil {
+		return nil, ErrBadRequest(ErrCodeValidation, "No s'ha proporcionat cap fitxer per pujar.", map[string]interface{}{"field": "file"})
+	}
+
+	if fileHeader.Size > MaxDocumentSizeBytes {
+		return nil, ErrPayloadTooLarge("FILE_TOO_LARGE", fmt.Sprintf("La mida del fitxer supera el límit màxim permès de 50MB (mida actual: %d bytes).", fileHeader.Size), map[string]interface{}{"field": "file", "size": fileHeader.Size, "maxSize": MaxDocumentSizeBytes})
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, ErrBadRequest(ErrCodeValidation, "No s'ha pogut obrir el fitxer proporcionat.", map[string]interface{}{"raw_error": err.Error()})
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, ErrInternal(fmt.Errorf("error llegint dades del fitxer: %w", err))
+	}
+
+	contentType := fileHeader.Header.Get("Content-Type")
+	detectedMIME := http.DetectContentType(data)
+	if contentType == "" || contentType == "application/octet-stream" {
+		contentType = detectedMIME
+	}
+
+	ext, allowed := AllowedDocumentMIMEs[strings.ToLower(contentType)]
+	if !allowed {
+		ext, allowed = AllowedDocumentMIMEs[strings.ToLower(detectedMIME)]
+		if !allowed {
+			fileExt := strings.ToLower(filepath.Ext(fileHeader.Filename))
+			switch fileExt {
+			case ".pdf":
+				contentType = "application/pdf"
+				ext = ".pdf"
+				allowed = true
+			case ".doc":
+				contentType = "application/msword"
+				ext = ".doc"
+				allowed = true
+			case ".docx":
+				contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+				ext = ".docx"
+				allowed = true
+			case ".ppt":
+				contentType = "application/vnd.ms-powerpoint"
+				ext = ".ppt"
+				allowed = true
+			case ".pptx":
+				contentType = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+				ext = ".pptx"
+				allowed = true
+			case ".txt":
+				contentType = "text/plain"
+				ext = ".txt"
+				allowed = true
+			}
+		}
+	}
+
+	if !allowed {
+		return nil, ErrBadRequest(ErrCodeValidation, "Format de fitxer no permès. Només s'accepten documents PDF, Word, PowerPoint o TXT.", map[string]interface{}{"contentType": contentType, "filename": fileHeader.Filename})
+	}
+
+	now := time.Now().UTC()
+	key := fmt.Sprintf("uploads/documents/%04d/%02d/%s%s", now.Year(), int(now.Month()), uuid.New().String(), ext)
+
+	var uploadRes *UploadResult
+	if s.isR2Configured() {
+		res, err := s.uploadToR2(ctx, key, data, contentType)
+		if err != nil {
+			return nil, ErrInternal(fmt.Errorf("error pujant document a Cloudflare R2: %w", err))
+		}
+		uploadRes = res
+	} else {
+		res, err := s.uploadToLocalStorage(key, data)
+		if err != nil {
+			return nil, ErrInternal(fmt.Errorf("error desant document localment: %w", err))
+		}
+		uploadRes = res
+	}
+
+	pageCount := 0
+	if ext == ".pdf" {
+		pageCount = bytes.Count(data, []byte("/Type /Page"))
+	}
+
+	return &DocumentUploadResult{
+		FileURL:       uploadRes.URL,
+		FileName:      fileHeader.Filename,
+		FileSizeBytes: fileHeader.Size,
+		MIMEType:      contentType,
+		PageCount:     pageCount,
+	}, nil
 }

@@ -124,6 +124,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/materials',
+    name: 'materials-list',
+    component: () => import('@/modules/materials/views/MaterialsListView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }

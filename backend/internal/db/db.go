@@ -79,6 +79,7 @@ func RunMigrations(db *sql.DB) error {
 		"migrations/000006_create_evaluation_tables.up.sql",
 		"migrations/000007_create_revoked_access_tokens.up.sql",
 		"migrations/000008_create_course_tables.up.sql",
+		"migrations/000009_create_material_tables.up.sql",
 	}
 
 	for _, file := range migrationFiles {

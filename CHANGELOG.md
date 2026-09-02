@@ -5,6 +5,29 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-02
+### Added
+- **Contracte d'API i Especificació (`material`)**:
+  - Especificació funcional ([`specs/material.md`](file:///Users/eric.zapater/Developer/encertia/specs/material.md)) i contracte OpenAPI 3.0 ([`contracts/material.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/material.openapi.yaml)) per al mòdul de gestió de materials didàctics, documents PDF/Word, vídeo incrustat i registre d'accessos (`material`).
+- **Backend (`internal/material`)**:
+  - Migració SQL `000009_create_material_tables.up.sql` (`materials`, `unit_materials`, `material_views`).
+  - Capa de persistència amb SQL pur (`repository.go`), servei de domini amb RBAC (`service.go`) i handlers de Gin HTTP (`handler.go`).
+  - Suport d'emmagatzematge de documents (PDF, DOCX, PPTX fins a 50 MB) i gestió de proveïdors de vídeo externs (YouTube, Vimeo) a `internal/shared/storage.go`.
+  - Endpoints REST: CRUD de materials (`/materials`), upload de fitxers (`/materials/upload`), vinculació N:N amb unitats (`/courses/:id/units/:unitId/materials`) i registres/informes d'accessos d'alumnes (`/materials/:id/views`).
+  - Suite de tests unitaris i d'integració a `service_test.go` i `handler_test.go` amb 100% d'èxit.
+- **Frontend (`src/modules/materials`)**:
+  - Tipus TypeScript del contracte, client d'API Axios (`api.ts`) i store Pinia (`useMaterialStore`).
+  - Vistes i components:
+    - Llistat de materials del professor amb filtres per tipus ([`MaterialsListView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/materials/views/MaterialsListView.vue)).
+    - Modal de pujada de documents i enllaçat de vídeos (`MaterialFormModal.vue`).
+    - Visor integrat de PDF pàgina a pàgina i reproductor de vídeo embed (`PdfViewerModal.vue`).
+    - Panell d'informe d'accessos d'alumnes (`MaterialViewsReportModal.vue`).
+  - Ruta `/materials` a Vue Router i accés directe al menú principal `AppNavbar.vue`.
+- **QA & Validador**:
+  - Informe de QA aprovat amb veredicte **APTE** ([`qa-reports/material.md`](file:///Users/eric.zapater/Developer/encertia/qa-reports/material.md)).
+- **Finalització de la v1 (Nucli Mínim)**:
+  - Completats i auditats amb èxit els 7 mòduls del Nucli Mínim (`auth`, `user`, `quiz`, `course`, `material`, `match`, `evaluation`).
+
 ## [0.9.0] - 2026-09-02
 ### Added
 - **Contracte d'API i Especificació (`course`)**:
