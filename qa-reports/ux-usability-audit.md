@@ -129,6 +129,30 @@ En línies generals, Encertia presenta un disseny modern, estructurat i claramen
 
 ---
 
+### 2.9. Mòdul `metrics` (Panell d'Admin de Mètriques, Monitoratge de Latència i Auditoria d'Ús)
+* **Fitxers analitzats**: [MetricsDashboardView.vue](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/metrics/views/MetricsDashboardView.vue), [store.ts](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/metrics/store.ts), [api.ts](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/metrics/api.ts), [types.ts](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/metrics/types.ts)
+
+#### Anàlisi i Troballes UX:
+- **Targetes Resum d'Activitat i Salut del Servidor**:
+  - 6 targetes d'activitat superiors amb icones de colors distintius per a usuari actiu (blau), peticions totals (verd), temps de resposta mitjà (groc), taxa d'errors (vermell si > 5%), partides jugades (lila) i materials llegits (blau cel).
+  - Targeta de salut del servidor amb formatat dinàmic de temps d'activitat (`uptime` en dies/hores/minuts/segons), ús de memòria MB, goroutines actius i ràtio de connexions a la DB (obertes/en ús).
+- **Rànquing de Latència per Endpoint (P95/P99)**:
+  - Taula PrimeVue `DataTable` amb ressaltat visual de latències crítiques: P95 en ambre (`#d97706`) i P99 en vermell negreta (`#dc2626`).
+  - Badges de mètodes HTTP (`GET`, `POST`, `PUT`, `DELETE`) amb colors d'estat de PrimeVue.
+  - Indicador visual d'errors per endpoint ressaltat en vermell quan la quantitat d'errors supera 0.
+- **Registre d'Auditoria Paginat amb Filtres**:
+  - Filtre de cerca amb *debounce* de 350ms i botó per netejar la cerca (`pi pi-times`).
+  - Desplegable de filtrat per mòdul del sistema (`auth`, `users`, `quizzes`, `courses`, `materials`, `match`, `evaluations`, `metrics`).
+  - Botó de reset de filtres (`pi pi-filter-slash`) i refresc en temps real (`pi pi-refresh`) amb estat de càrrega.
+  - Taula `DataTable` amb paginació *lazy* a servidor ([10, 20, 50, 100] registres per pàgina), mostrant usuaris (amb micro-tag de rol), mòdul, acció, endpoint/mètode, codi d'estat HTTP amb badge informatiu, durada en ms i adreça IP.
+- **Exportació a CSV**:
+  - Botó d'exportació CSV amb icona de descàrrega, indicador de càrrega durant l'execució i notificació Toast d'èxit de descàrrega (`t('metrics.audit.exportSuccess')`).
+- **Accessibilitat, Multilingüisme i Responsivitat Mòbil**:
+  - Cobertura completa multilingüisme a `ca.json`, `es.json` i `en.json` sota el domini `metrics`.
+  - Disseny responsive amb adaptació per a dispositius mòbils (apilament vertical de filtres i capçaleres, desplaçament horitzontal per a les taules de dades).
+
+---
+
 ## 3. Anàlisi Transversal de Coherència Visual & UX
 
 | Aspecte UX | Estat Actual | Valoració / Observació |

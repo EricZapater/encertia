@@ -1,14 +1,14 @@
-# Informe d'Auditoria Global QA — Aplicació Encertia
+# Informe d'Auditoria Global QA — Aplicació Encertia (v1.2.0)
 
-**Veredicte Final Global**: **APTE (v1 Complete Release)**  
+**Veredicte Final Global**: **APTE (v1.2.0 Complete Release)**  
 **Data d'auditoria**: 2026-09-02  
-**Mòduls Auditats**: `auth`, `user`, `quiz`, `course`, `material`, `match`, `evaluation` (7/7)
+**Mòduls Auditats**: `auth`, `user`, `quiz`, `course`, `material`, `match`, `evaluation`, `metrics` (8/8 mòduls auditats i APTE)
 
 ---
 
 ## 1. Resum Executiu
 
-S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Encertia. Tots els 7 mòduls de la v1 (Nucli Mínim) han estat satisfactòriament implementats, provats i auditats. La suite completa de proves automàtiques del backend en Go i del frontend en Vue 3 / TypeScript s'ha executat amb èxit (100% verda - 129 unit tests superats), i l'aplicació s'ha compilat per a producció sense cap avís o error.
+S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Encertia (v1.2.0). Tots els 8 mòduls de la plataforma han estat satisfactòriament implementats, provats i auditats. La suite completa de proves automàtiques del backend en Go i del frontend en Vue 3 / TypeScript s'ha executat amb èxit (100% verda - 140 unit/component tests superats), i l'aplicació compila netament per a producció sense cap avís ni error.
 
 ---
 
@@ -24,6 +24,8 @@ S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Enc
   - `github.com/encertia/backend/internal/course`: **PASS**
   - `github.com/encertia/backend/internal/material`: **PASS**
   - `github.com/encertia/backend/internal/match`: **PASS**
+  - `github.com/encertia/backend/internal/evaluation`: **PASS**
+  - `github.com/encertia/backend/internal/metrics`: **PASS**
   - `github.com/encertia/backend/internal/shared`: **PASS**
 - **Verificació Go Vet**: Neta, 0 errors o advertències de sintaxi/estàtica.
 
@@ -32,12 +34,12 @@ S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Enc
 - **Resultat**: **EXIT CODE 0 (PASS)**
 - **Detall**:
   - `vue-tsc -b` (Type-check): **OK** (Sense errors de composició de tipus TypeScript).
-  - `vitest run` (Tests unitaris/component): **24 fitxers de test passed, 129 tests passed (129/129)**.
+  - `vitest run` (Tests unitaris/component): **27 fitxers de test passed, 140 tests passed (140/140)**.
   - `vite build` (Production Build): **OK** (Construcció de paquets finalitzada correctament en `dist/`).
 
 ---
 
-## 3. Auditoria per Mòduls
+## 3. Matriu d'Auditoria per Mòduls
 
 | Mòdul | OpenAPI Contract | Functional Spec | Backend Tests | Frontend Tests | Homogeneïtat | Veredicte |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -48,10 +50,11 @@ S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Enc
 | **material**| `contracts/material.openapi.yaml`| `specs/material.md`| PASS | PASS | OK | **APTE** |
 | **match** | `contracts/match.openapi.yaml` | `specs/match.md` | PASS | PASS | OK | **APTE** |
 | **evaluation**| `contracts/evaluation.openapi.yaml`| `specs/evaluation.md`| PASS | PASS | OK | **APTE** |
+| **metrics**| `contracts/metrics.openapi.yaml`| `specs/metrics.md`| PASS | PASS | OK | **APTE** |
 
 ---
 
-## 4. Detall de Compliment Funcional
+## 4. Detall de Compliment Funcional dels 8 Mòduls
 
 ### 4.1 Autenticació i Sessions (`auth`)
 - Par de tokens JWT (Access Token 15 minuts + Refresh Token 7 dies).
@@ -79,16 +82,28 @@ S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Enc
 - Guió de classe seqüencial per a professors (`ScriptPlayerView`): combina material PDF per pàgines, partides Kahoot en directe i pauses temporitzades.
 - Seguiment de l'estat d'aprenentatge per alumne (`pending`, `in_progress`, `completed`).
 
-### 4.5 Partida en Directe (`match`)
+### 4.5 Material Didàctic (`material`)
+- Pujada i gestió de materials didàctics (fitxers PDF i enllaços a vídeos externs).
+- Visualització integrada de materials amb paginació de PDFs i reproductor per a l'alumnat.
+- Associació de materials a unitats dels cursos.
+
+### 4.6 Partida en Directe (`match`)
 - Creació de partides amb codi PIN únic, generació de codi QR i URL d'accés ràpid.
 - Connectivitat en temps real via WebSockets (`/ws/match/{matchId}`) per a la sincronització de preguntes, respostes i temporitzador.
 - Doble sistema de puntuació: velocitat + encert per al marcador del joc vs encert absolut per a l'avaluació acadèmica.
 - Gestió de concurrència amb mutexes (`sync.RWMutex`), reconnexió de jugadors i opció d'expulsió pel professor host.
 
-### 4.6 Avaluació Acadèmica (`evaluation`)
+### 4.7 Avaluació Acadèmica (`evaluation`)
 - Generació automàtica d'avaluacions en finalitzar una partida via `RegisterFinishedListener`.
 - Estadístiques detallades per qüestionari i pregunta (hit rate, temps mitjà de resposta, respostes no contestades).
 - Consulta de la qualificació individual per alumne amb possibilitat d'ajust manual de la nota final (`finalGrade`) pel professor.
+
+### 4.8 Mètriques, Monitoratge i Auditoria (`metrics`) (v1.2.0)
+- Registre automàtic i asíncron d'auditoria d'accions d'usuari a la taula PostgreSQL `audit_logs`.
+- Taula interactiva paginada amb filtres per usuari, mòdul i cerca global, i botó d'exportació CSV en 1 clic (`GET /metrics/audit-logs/export`).
+- Captura de latència en ms per endpoint via Middleware Gin amb indicadors de temps mitjà, percentils **p95** i **p99**, RPS i taxa d'errors HTTP.
+- Indicadors clau d'engagement (partides jugades, lectura de materials) i salut del sistema (uptime del servidor Go, goroutines actives, memòria RAM i estat del pool de connexions PostgreSQL).
+- **Protecció RBAC estricta**: Accés restringit exclusivament al rol `admin` (`RequireRole("admin")` a Gin i `roles: ['admin']` al router de Vue).
 
 ---
 
@@ -98,11 +113,12 @@ S'ha realitzat una auditoria i verificació QA integral de TOTA l'aplicació Enc
 2. **Estructura Backend**: Pattern per capes unificat a `backend/internal/<modul>` (`handler.go`, `service.go`, `repository.go`, `model.go`). Utilització estandarditzada del paquet `shared` per a respostes d'error (`ErrorResponse`), middleware i transaccions DB.
 3. **Estructura Frontend**: Organització per mòduls a `frontend/src/modules/<moduls>` (`views/`, `components/`, `store.ts`, `api.ts`, `types.ts`). Gestió d'estat centralitzada amb Pinia i crides HTTP unificades via client Axios configurat.
 4. **Maneig d'Errors HTTP**: Estandarditzat amb codis de resposta HTTP adequats (400, 401, 403, 404, 409, 500) i cos JSON estructurat.
+5. **Absència de Divergències**: Cap divergència de nomenclatura o d'estructures entre mòduls detectada.
 
 ---
 
 ## 6. Veredicte Final
 
-L'aplicació **Encertia** ha superat satisfactòriament totes les auditories funcionals, de qualitat de codi, de compliment OpenAPI i d'homogeneïtat entre mòduls.
+L'aplicació **Encertia** en la seva versió 1.2.0 ha superat satisfactòriament totes les auditories funcionals, de qualitat de codi, de compliment OpenAPI i d'homogeneïtat entre els 8 mòduls.
 
-**VEREDICTE FINAL GLOBAL**: **APTE PER A FUSIÓ I DESPLEGAMENT**
+**VEREDICTE FINAL GLOBAL**: **APTE (8/8 MÒDULS APROVATS I LLESTOS PER A FUSIÓ I DESPLEGAMENT)**
