@@ -78,7 +78,7 @@ func (r *repository) ListEvaluations(teacherID string, isAdmin bool, groupID str
 		argIdx++
 	}
 	if groupID != "" {
-		query += fmt.Sprintf(" AND (m.group_id = $%d OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id = $%d AND gs_f.student_id = mp.user_id))", argIdx, argIdx)
+		query += fmt.Sprintf(" AND (m.group_id::text = $%d OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id::text = $%d AND gs_f.student_id = mp.user_id))", argIdx, argIdx)
 		args = append(args, groupID)
 		argIdx++
 	}
@@ -107,7 +107,7 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 		SELECT q.id, q.title, COUNT(DISTINCT m.id)
 		FROM quizzes q
 		LEFT JOIN matches m ON m.quiz_id = q.id AND m.status = 'finished' AND m.deleted_at IS NULL
-		  AND ($2 = '' OR m.group_id = $2 OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id = $2 AND EXISTS (SELECT 1 FROM match_players mp WHERE mp.match_id = m.id AND mp.user_id = gs_f.student_id)))
+		  AND ($2 = '' OR m.group_id::text = $2 OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id::text = $2 AND EXISTS (SELECT 1 FROM match_players mp WHERE mp.match_id = m.id AND mp.user_id = gs_f.student_id)))
 		WHERE q.id = $1 AND q.deleted_at IS NULL
 		GROUP BY q.id, q.title
 	`, quizID, groupID).Scan(&resp.QuizID, &resp.QuizTitle, &resp.TotalMatches)
@@ -150,7 +150,7 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 					FROM match_players mp
 					INNER JOIN matches m ON m.id = mp.match_id
 					WHERE m.quiz_id = $1 AND m.status = 'finished' AND m.deleted_at IS NULL
-					  AND ($3 = '' OR m.group_id = $3 OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id = $3 AND gs_f.student_id = mp.user_id))
+					  AND ($3 = '' OR m.group_id::text = $3 OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id::text = $3 AND gs_f.student_id = mp.user_id))
 					  AND mp.id NOT IN (
 						SELECT player_id FROM match_answers WHERE question_id = $2
 					  )
@@ -160,7 +160,7 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 			INNER JOIN match_players mp ON mp.id = ma.player_id
 			WHERE m.quiz_id = $1 AND m.status = 'finished' AND m.deleted_at IS NULL
 			  AND ma.question_id = $2
-			  AND ($3 = '' OR m.group_id = $3 OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id = $3 AND gs_f.student_id = mp.user_id))
+			  AND ($3 = '' OR m.group_id::text = $3 OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id::text = $3 AND gs_f.student_id = mp.user_id))
 		`, quizID, qid, groupID).Scan(&totalAnswers, &correctAnswers, &sumTimeMs, &noAnswerCount)
 		if err != nil && err != sql.ErrNoRows {
 			return nil, err
@@ -204,7 +204,7 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 				WHERE m.quiz_id = $1 AND m.status = 'finished' AND m.deleted_at IS NULL
 				  AND ma.question_id = $2
 				  AND $3 = ANY(ma.selected_answer_ids)
-				  AND ($4 = '' OR m.group_id = $4 OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id = $4 AND gs_f.student_id = mp.user_id))
+				  AND ($4 = '' OR m.group_id::text = $4 OR EXISTS (SELECT 1 FROM group_students gs_f WHERE gs_f.group_id::text = $4 AND gs_f.student_id = mp.user_id))
 			`, quizID, qid, optId, groupID).Scan(&count)
 
 			pct := 0.0
@@ -266,7 +266,7 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 			OR (e.player_id IS NOT NULL AND e.player_id = mp.id)
 		)
 		WHERE m.quiz_id = $1
-		  AND ($2 = '' OR m.group_id = $2 OR gs_matched.group_id = $2 OR gs.group_id = $2)
+		  AND ($2 = '' OR m.group_id::text = $2 OR gs_matched.group_id::text = $2 OR gs.group_id::text = $2)
 		GROUP BY COALESCE(u.id, mapped_u.id, mp.id::text),
 		         COALESCE(
 			         NULLIF(TRIM(CONCAT(u.first_name, ' ', u.last_name)), ''),

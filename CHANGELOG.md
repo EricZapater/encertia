@@ -5,6 +5,11 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-10-06
+### Fixed
+- **Backend (`internal/evaluation/repository.go`)**:
+  - Resolt l'error HTTP 500 (`INTERNAL_SERVER_ERROR`) en accedir a les avaluacions quan el filtre `groupID` és buit (`""`). S'ha corregit el casat implícit de PostgreSQL afegint `::text` a les comparacions de `group_id` (`m.group_id::text = $2`, `gs_f.group_id::text = $2`, etc.), evitant l'error de sintaxis `invalid input syntax for type uuid: ""`.
+
 ## [1.6.2] - 2026-10-06
 ### Fixed
 - **Frontend Tests (`src/components/__tests__/AppNavbar.spec.ts`)**:
