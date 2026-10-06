@@ -220,9 +220,142 @@
     }
   },
   "manual": {
+    "officialDoc": "Official Documentation",
     "title": "Teacher Manual",
     "subtitle": "Pedagogical and technical user guide for Encertia",
-    "indexTitle": "Table of Contents"
+    "indexTitle": "Table of Contents",
+    "sections": {
+      "intro": {
+        "nav": "1. Introduction & Philosophy",
+        "title": "1. Introduction and Philosophy of Encertia",
+        "desc": "Encertia is an educational evaluation and course management platform designed specifically for university and academic teaching. It combines the motivation of a real-time live game (Kahoot style) with the rigor of a Learning Management System (LMS) and persistent student evaluation records.",
+        "realtimeTitle": "Real-time Game",
+        "realtimeDesc": "Interactive games with PIN code, QR code, timers, and animated 3D podium.",
+        "scoreTitle": "Dual Scoring",
+        "scoreDesc": "Strict separation between game points (speed) and academic grade (absolute accuracy 0-10).",
+        "scriptTitle": "Lesson Script",
+        "scriptDesc": "Sequential viewer combining PDF slides, pauses, and live games in a single click.",
+        "materialsTitle": "Material Management",
+        "materialsDesc": "Integrated PDF viewer, embedded videos, and per-student reading logs."
+      },
+      "auth": {
+        "nav": "2. Authentication & Security",
+        "title": "2. Authentication, Session & Security",
+        "loginTitle": "Sign In and Transparent Renewal",
+        "loginDesc": "Log in with your credentials (email and password) at /login. Encertia uses a secure JWT token pair system:",
+        "accessToken": "Access Token (15 minutes): Used to authorize each HTTP request. Auto-renews transparently in the background.",
+        "refreshToken": "Refresh Token (7 days): Keeps session open securely.",
+        "logoutTitle": "Effective Session Termination (Secure Logout)",
+        "logoutDesc": "Clicking the logout button in the top bar triggers a real server-side logout in Encertia. The active Access Token is immediately invalidated in the PostgreSQL revocation table (revoked_access_tokens), preventing session reuse.",
+        "rbacTitle": "Role-Based Access Control (RBAC)",
+        "rbacDesc": "The platform distinguishes 3 user roles:",
+        "roleAdmin": "Admin: Full access to global settings and all courses.",
+        "roleTeacher": "Teacher: Creation and management of courses, students, quizzes, and evaluations.",
+        "roleStudent": "Student: Participation in live games, material views, and course grades."
+      },
+      "groups": {
+        "nav": "3. Group Management",
+        "title": "3. Group Management & Academic Year",
+        "intro": "The Groups section allows organizing students into cohorts by academic year (e.g. \"Group B&F year 26-27\"), facilitating collective management and game tracking.",
+        "step1Title": "Creation and Editing of Groups by Year",
+        "step1Desc": "Create groups by entering a descriptive name and corresponding academic year (default suggestion: \"26-27\"). You can also link a group to a specific course/subject via UUID.",
+        "step2Title": "Assigning Students to a Group",
+        "step2Desc": "By clicking the student management icon, you can enroll students by entering their UUIDs (separated by commas or line breaks) or view current group members.",
+        "step3Title": "Maintenance & Soft Delete",
+        "step3Desc": "You can edit group name and academic year or deactivate it. Deactivation performs a soft-delete to preserve student evaluation and game history."
+      },
+      "users": {
+        "nav": "4. Student Management",
+        "title": "4. Student and User Management",
+        "intro": "As a teacher or administrator, you can manage student accounts from the Users section.",
+        "step1Title": "Single Student Enrollment",
+        "step1Desc": "Click \"New User\", enter first name, last name, email, and assign the student role. The account is created immediately.",
+        "step2Title": "Bulk CSV Import (Spreadsheet)",
+        "step2Desc": "Use the 3-step import wizard to upload an entire class list from a CSV/TSV file. The parser detects fields automatically and validates each row before registration.",
+        "step3Title": "Administrative Password Reset",
+        "step3Desc": "If a student forgets their password, you can reset it directly from the users table. The new password requires a minimum of 8 characters and terminates prior sessions.",
+        "step4Title": "Logical Deactivation (Soft-Delete)",
+        "step4Desc": "Deactivating a student executes a soft-delete (marks the user as inactive). Academic history and responses are never lost."
+      },
+      "quizzes": {
+        "nav": "5. Quiz Bank",
+        "title": "5. Quiz Bank (Quizzes)",
+        "intro": "From the Games & Quizzes section, you can build and maintain your repository of reusable quizzes.",
+        "styleKahoot": "Kahoot Style: The question editor uses a distinctive 6-color palette and shapes (▲ Red, ◆ Blue, ● Yellow, ■ Green, ★ Purple, ⬡ Orange).",
+        "creationTitle": "Creating & Editing Questions",
+        "questionType": "Question Type: Single Choice (exactly 1 correct answer) or Multiple Choice (1 or more correct answers).",
+        "answerOptions": "Answer Options: Between 2 and 6 options per question.",
+        "timer": "Timer: Configurable per question (5s, 10s, 20s, 30s, 60s, 90s, or 120s).",
+        "images": "Images: Quiz cover image and question image upload (integrated with Cloudflare R2).",
+        "duplicationTitle": "Quiz Duplication",
+        "duplicationDesc": "You can duplicate any existing quiz with the option to copy only question prompts or include base answer choices."
+      },
+      "courses": {
+        "nav": "6. Course Management",
+        "title": "6. Course & Teaching Unit Management",
+        "intro": "In the Courses section, subjects are structured into sequential teaching units (where \"unit\" and \"class lesson\" represent the same concept).",
+        "step1Title": "1. Course Creation",
+        "step1Desc": "Define title, subject code, description, and status (Draft, Active, Archived).",
+        "step2Title": "2. Student Enrollment",
+        "step2Desc": "Enroll class students into the course to grant access to materials and quizzes.",
+        "step3Title": "3. Units & N:N Relations",
+        "step3Desc": "Create teaching units and link one or more quizzes. A quiz can be reused across multiple units.",
+        "step4Title": "4. Reordering Units",
+        "step4Desc": "Reorder teaching units according to term progression."
+      },
+      "materials": {
+        "nav": "7. Teaching Materials",
+        "title": "7. Teaching Materials, PDF Viewer & Metrics",
+        "intro": "The Materials module centralizes the teacher resource repository.",
+        "docsTitle": "Documents & Embedded Videos",
+        "docsDesc": "Documents (PDF, DOCX, PPTX): Upload files up to 50 MB. External Videos: Link YouTube or Vimeo videos with automatic player embedding.",
+        "pdfTitle": "Integrated PDF Viewer",
+        "pdfDesc": "Students and teachers can read PDF documents directly within the app page by page, without downloading beforehand.",
+        "replaceTitle": "Transparent File Replacement",
+        "replaceDesc": "Updating a PDF preserves the material ID, ensuring lesson scripts and teaching units never lose links.",
+        "metricsTitle": "Access & Reading Report (Metrics)",
+        "metricsDesc": "Click the eye icon on any material to view total views, unique student readers, and last reading timestamps."
+      },
+      "script": {
+        "nav": "8. Lesson Script",
+        "title": "8. Lesson Script (Sequential Viewer)",
+        "intro": "The Lesson Script allows designing the exact class presentation sequence to project live in class.",
+        "pdfBlockTitle": "PDF Material Block",
+        "pdfBlockDesc": "Define a document page range (e.g. \"Slides 1 to 15\") to display in the viewer.",
+        "quizBlockTitle": "Quiz Block",
+        "quizBlockDesc": "Automatically launches the live match of an associated quiz when reaching the block.",
+        "breakBlockTitle": "Pause / Question Block",
+        "breakBlockDesc": "Timed pause for open discussions and q&a with the class.",
+        "liveNote": "Live Session: The teacher simply clicks \"Next\" to advance smoothly between explanations and interactive moments."
+      },
+      "match": {
+        "nav": "9. Live Game",
+        "title": "9. Live Games & Anonymous Players",
+        "intro": "When hosting a live game from a quiz or lesson script, a specific class group can be selected.",
+        "step1Title": "Hosting & Lobby",
+        "step1Desc": "Displays a 6-digit PIN code and native interactive QR code. Unregistered or anonymous players can join using the PIN and a Nickname.",
+        "step2Title": "Game Control & Automatic Closing",
+        "step2Desc": "The teacher starts the game and controls reading pace. Questions auto-close when the timer expires or when all active players submit answers.",
+        "step3Title": "Moderator Controls & Navigation",
+        "step3Desc": "After each question, the host can click \"View Leaderboard\" or move directly to \"Next Question\". From the leaderboard, resume by clicking \"Go to next question\".",
+        "step4Title": "Results & Final 3D Podium",
+        "step4Desc": "Vote distribution is projected, and at the end of the game, an animated 3D podium reveals the top 3 players (🥇, 🥈, 🥉)."
+      },
+      "evaluations": {
+        "nav": "10. Evaluation Panel",
+        "title": "10. Academic Evaluation Panel & Collapsible Blocks",
+        "intro": "In the Evaluations section, teachers can review grades and analytics for played matches.",
+        "filtersTitle": "Advanced Filters by Group, Game & Date",
+        "filtersDesc": "Use top filters to select a specific Group, Game/Quiz, or Date range to analyze academic performance.",
+        "panelsTitle": "Collapsible Panels",
+        "panelsDesc": "Results are organized into collapsible panels (Panel :toggleable=\"true\") for readability: \"Global Statistics per Question\" (success rate, average time, answer distribution) and \"Student Results\" (matches played, calculated grade, and final grade).",
+        "scoringTitle": "Dual Scoring System",
+        "gamePoints": "Game Points (Gamification): Accounts for correctness + speed. Powers live leaderboard and podium.",
+        "academicGrade": "Evaluation Grade (Academic): Accounts only for accuracy (0.00 to 10.00). Time pressure does not affect grade.",
+        "gradingTitle": "Automatic Grading & Manual Adjustment",
+        "gradingDesc": "After each match, Encertia calculates the student's grade automatically. Teachers can review question breakdowns and manually adjust the final grade (finalGrade) if needed."
+      }
+    }
   },
   "metrics": {
     "title": "System Metrics & Audit",
@@ -290,5 +423,58 @@
     "back": "Back",
     "language": "Language",
     "noResults": "No results found"
+  },
+  "groups": {
+    "title": "Group Management",
+    "subtitle": "Organize students into groups by academic year and subjects",
+    "createGroup": "New Group",
+    "editGroup": "Edit Group",
+    "deleteGroup": "Delete Group",
+    "searchPlaceholder": "Search by group name...",
+    "academicYearFilter": "Year (e.g. 26-27)",
+    "resetFilters": "Clear filters",
+    "refreshList": "Refresh list",
+    "empty": "No groups found with the selected criteria.",
+    "table": {
+      "name": "Group Name",
+      "academicYear": "Academic Year",
+      "students": "Students",
+      "createdAt": "Creation Date",
+      "actions": "Actions"
+    },
+    "form": {
+      "createTitle": "Create New Group",
+      "editTitle": "Edit Group",
+      "name": "Group Name *",
+      "namePlaceholder": "Group name (e.g. Group B&F, 1A...)",
+      "academicYear": "Academic Year",
+      "academicYearPlaceholder": "26-27",
+      "academicYearHint": "Default suggestion: \"26-27\"",
+      "courseId": "Associated Course UUID (optional)",
+      "courseIdPlaceholder": "Course/subject UUID...",
+      "submitCreate": "Create Group",
+      "submitUpdate": "Update",
+      "nameRequired": "Group name is required."
+    },
+    "deleteModal": {
+      "title": "Confirm Group Deactivation",
+      "confirmText": "Are you sure you want to deactivate group",
+      "softDeleteHint": "This action performs a logical soft-delete preserving student academic records.",
+      "confirmButton": "Confirm Deactivation"
+    },
+    "studentsModal": {
+      "title": "Students in Group: {name}",
+      "manageStudents": "Manage Students",
+      "addTitle": "Assign new students",
+      "addDesc": "Enter student UUIDs separated by commas or new lines:",
+      "placeholder": "UUID1, UUID2...",
+      "addButton": "Add Students",
+      "listTitle": "Assigned students list ({count})",
+      "noStudents": "No students currently assigned to this group.",
+      "remove": "Unassign",
+      "unnamedStudent": "Unnamed Student",
+      "emptyError": "Enter at least one student UUID.",
+      "fetchError": "Error loading group students."
+    }
   }
 }

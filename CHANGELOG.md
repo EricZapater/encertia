@@ -5,6 +5,14 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-10-06
+### Added
+- **Traduccions i Internacionalització (`src/i18n/locales/`)**:
+  - Reauditoria completa i paritat del 100% de les 429 claus de traducció en Català (`ca.json`), Castellà (`es.json`) i Anglès (`en.json`).
+  - Internacionalització integral de les vistes de Grups (`GroupsListView.vue`) i d'Avaluacions.
+- **Manual del Professor (`src/views/TeacherManualView.vue`)**:
+  - Actualització completa del manual d'usuari per incloure totes les noves funcions: Gestió de Grups per curs acadèmic, partides en directe amb jugadors anònims, tancament automàtic de preguntes, botons de control del host ("Veure Rànquing", "Següent Pregunta"), filtres per Grup/Joc/Data i panells d'avaluació col·lapsables (`Panel :toggleable="true"`).
+
 ## [1.7.1] - 2026-10-06
 ### Added
 - **Frontend (`src/modules/evaluations/`)**:

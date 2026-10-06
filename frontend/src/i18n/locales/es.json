@@ -220,9 +220,142 @@
     }
   },
   "manual": {
+    "officialDoc": "Documentación Oficial",
     "title": "Manual del Profesorado",
     "subtitle": "Guía de uso pedagógico y técnico de la plataforma Encertia",
-    "indexTitle": "Tabla de Contenidos"
+    "indexTitle": "Tabla de contenidos",
+    "sections": {
+      "intro": {
+        "nav": "1. Introducción y Filosofía",
+        "title": "1. Introducción y Filosofía de Encertia",
+        "desc": "Encertia es una plataforma educativa de evaluación y gestión de curso diseñada específicamente para la docencia universitaria y académica. Combina la motivación de un juego de preguntas en tiempo real en directo (estilo Kahoot) con la rigurosidad de un sistema de gestión de aprendizaje (LMS) y el registro persistente de evaluación por alumno.",
+        "realtimeTitle": "Juego en tiempo real",
+        "realtimeDesc": "Partidas interactivas con código PIN, código QR, temporizadores y podio 3D animado.",
+        "scoreTitle": "Doble Puntuación",
+        "scoreDesc": "Separación estricta entre puntos de juego (rapidez) y nota académica (acierto absoluto 0-10).",
+        "scriptTitle": "Guión de Clase",
+        "scriptDesc": "Visor secuencial que combina diapositivas PDF, pausas y partidas en un solo clic.",
+        "materialsTitle": "Gestión de Materiales",
+        "materialsDesc": "Visor de PDF integrado, vídeos incrustados y registro de lecturas por alumno."
+      },
+      "auth": {
+        "nav": "2. Autenticación y Seguridad",
+        "title": "2. Autenticación, Sesión y Seguridad",
+        "loginTitle": "Inicio de Sesión y Renovación Transparente",
+        "loginDesc": "Accede con tus credenciales (email y contraseña) en /login. Encertia utiliza un sistema seguro de par de tokens JWT:",
+        "accessToken": "Access Token (15 minutos): Utilizado para autorizar cada petición HTTP. Se auto-renueva de manera transparente en segundo plano.",
+        "refreshToken": "Refresh Token (7 días): Mantiene la sesión abierta de manera segura.",
+        "logoutTitle": "Cierre de Sesión Efectivo (Logout Seguro)",
+        "logoutDesc": "Al hacer clic en el botón de cerrar sesión en la barra superior, Encertia ejecuta un logout real en el servidor. El Access Token activo se invalida inmediatamente en la tabla de revocación de PostgreSQL (revoked_access_tokens), impidiendo que nadie pueda reutilizar la sesión.",
+        "rbacTitle": "Control de Acceso por Rol (RBAC)",
+        "rbacDesc": "La plataforma distingue 3 roles de usuario:",
+        "roleAdmin": "Admin: Acceso total a la configuración global y a todos los cursos.",
+        "roleTeacher": "Profesor: Creación y gestión de sus cursos, alumnos, cuestionarios y evaluaciones.",
+        "roleStudent": "Alumno: Participación en partidas en directo, consulta de materiales y notas de su curso."
+      },
+      "groups": {
+        "nav": "3. Gestión de Grupos",
+        "title": "3. Gestión de Grupos y Curso Académico",
+        "intro": "La sección de Grupos permite organizar a los estudiantes en cohortes por curso académico (ej: \"Grupo B&F curso 26-27\") facilitando la gestión colectiva y el seguimiento de las partidas.",
+        "step1Title": "Creación y Edición de Grupos por Curso",
+        "step1Desc": "Crea grupos introduciendo un nombre descriptivo y el curso académico correspondiente (propuesta por defecto: \"26-27\"). También es posible vincular un grupo a un curso/asignatura específica vía UUID.",
+        "step2Title": "Asignación de Alumnos al Grupo",
+        "step2Desc": "Haciendo clic en el icono de gestión de alumnos, puedes incorporar estudiantes introduciendo sus UUIDs (separados por comas o nuevas líneas) o ver la lista actual de miembros del grupo.",
+        "step3Title": "Mantenimiento y Baja Lógica",
+        "step3Desc": "Puedes modificar el nombre y curso académico de un grupo o darlo de baja. La baja realiza un soft-delete a fin de preservar el historial de evaluaciones y partidas jugadas por los alumnos."
+      },
+      "users": {
+        "nav": "4. Gestión de Alumnos",
+        "title": "4. Gestión de Alumnos y Usuarios",
+        "intro": "Como profesor o administrador, puedes gestionar el listado de alumnos desde la sección Usuarios.",
+        "step1Title": "Alta Individual de Alumno",
+        "step1Desc": "Haz clic en \"Nuevo Usuario\", introduce el nombre, apellidos, email y asigna el rol de alumno. El sistema generará la cuenta inmediatamente.",
+        "step2Title": "Alta Masiva por CSV (Hoja de Cálculo)",
+        "step2Desc": "Utiliza el asistente de importación en 3 pasos para subir todo el grupo-clase desde un archivo CSV/TSV. El buscador detecta automáticamente los campos y valida cada fila antes de dar de alta.",
+        "step3Title": "Reseteo Administrativo de Contraseña",
+        "step3Desc": "Si un alumno olvida la contraseña, puedes resetearla directamente desde la tabla de usuarios. La nueva clave requerirá un mínimo de 8 caracteres y cerrará automáticamente sus sesiones anteriores.",
+        "step4Title": "Baja Lógica (Soft-Delete)",
+        "step4Desc": "Al dar de baja a un alumno, Encertia ejecuta un soft-delete (marca el usuario como inactivo). Ningún historial académico o respuesta se pierde jamás."
+      },
+      "quizzes": {
+        "nav": "5. Banco de Cuestionarios",
+        "title": "5. Banco de Cuestionarios (Quizzes)",
+        "intro": "Desde la sección Juegos & Quizzes, puedes crear y mantener tu banco de cuestionarios reutilizables.",
+        "styleKahoot": "Estilo Kahoot: El editor de preguntas utiliza la paleta visual de 6 colores y formas distintivas (▲ Rojo, ◆ Azul, ● Amarillo, ■ Verde, ★ Lila, ⬡ Naranja).",
+        "creationTitle": "Creación y Edición de Preguntas",
+        "questionType": "Tipo de Pregunta: Opción Única (exactamente 1 respuesta correcta) u Opción Múltiple (1 o más respuestas correctas).",
+        "answerOptions": "Opciones de Respuesta: Entre 2 y 6 opciones por pregunta.",
+        "timer": "Temporizador: Configurable individualmente por pregunta (5s, 10s, 20s, 30s, 60s, 90s o 120s).",
+        "images": "Imágenes: Subida de imagen de portada de quiz e imagen por pregunta (con integración Cloudflare R2).",
+        "duplicationTitle": "Duplicación de Cuestionarios",
+        "duplicationDesc": "Puedes duplicar cualquier cuestionario existente con la opción de copiar solo el enunciado de las preguntas o incluir también todas las respuestas de base."
+      },
+      "courses": {
+        "nav": "6. Gestión de Cursos",
+        "title": "6. Gestión de Cursos y Unidades Didácticas",
+        "intro": "En la sección Cursos, se organiza la asignatura en unidades didácticas secuenciales (donde \"unidad\" y \"clase\" representan el mismo concepto).",
+        "step1Title": "1. Creación del Curso",
+        "step1Desc": "Define el título, código de asignatura, descripción y estado (Borrador, Activo, Archivado).",
+        "step2Title": "2. Matriculación de Alumnos",
+        "step2Desc": "Inscribe a los alumnos del grupo-clase al curso para darles acceso a los materiales y cuestionarios.",
+        "step3Title": "3. Unidades y Relación N:N",
+        "step3Desc": "Crea unidades didácticas y vincula uno o más cuestionarios. Un mismo quiz se puede reutilizar en diferentes unidades.",
+        "step4Title": "4. Reordenación de Unidades",
+        "step4Desc": "Reordena las unidades didácticas según el avance del cuatrimestre."
+      },
+      "materials": {
+        "nav": "7. Materiales Didácticos",
+        "title": "7. Materiales Didácticos, Visor PDF y Métricas",
+        "intro": "El módulo Materiales centraliza el repositorio de recursos del profesor.",
+        "docsTitle": "Documentos y Vídeos Incrustados",
+        "docsDesc": "Documentos (PDF, DOCX, PPTX): Carga archivos de hasta 50 MB. Vídeos Externos: Enlaza vídeos de YouTube o Vimeo. La plataforma detecta automáticamente el proveedor y genera el reproductor incrustado.",
+        "pdfTitle": "Visor de PDF Integrado",
+        "pdfDesc": "Los alumnos y profesores pueden leer los documentos PDF directamente en la aplicación página a página, sin necesidad de descargarlos previamente.",
+        "replaceTitle": "Sustitución Transparente de Archivos",
+        "replaceDesc": "Si actualizas un PDF o documento, puedes subir la nueva versión conservando el mismo ID de material. Esto garantiza que las unidades didácticas y el guión de clase no pierdan jamás el enlace.",
+        "metricsTitle": "Informe de Accesos y Lecturas (Métricas)",
+        "metricsDesc": "Haz clic en el icono de ojo en cualquier material para ver el panel de informe: total de visualizaciones, alumnos únicos que han accedido y la fecha de última lectura de cada uno."
+      },
+      "script": {
+        "nav": "8. Guión de Clase",
+        "title": "8. Guión de Clase (Visor Secuencial)",
+        "intro": "El Guión de Clase permite diseñar de antemano la secuencia exacta de la clase para proyectarla en el aula en directo.",
+        "pdfBlockTitle": "Bloque de Material PDF",
+        "pdfBlockDesc": "Define un rango de páginas de un documento (ej. \"Diapositivas 1 a 15\") para mostrar en el visor.",
+        "quizBlockTitle": "Bloque de Cuestionario",
+        "quizBlockDesc": "Lanza automáticamente la partida en directo (`match`) de un quiz asociado al llegar al bloque.",
+        "breakBlockTitle": "Bloque de Pausa / Preguntas",
+        "breakBlockDesc": "Pausa temporizada para aclaraciones abiertas y debate con el grupo-clase.",
+        "liveNote": "En directo: El profesor solo tiene que ir haciendo clic en \"Siguiente\" para avanzar fluidamente entre explicación y momentos interactivos."
+      },
+      "match": {
+        "nav": "9. Partida en Directo",
+        "title": "9. Partidas en Directo y Jugadores Anónimos",
+        "intro": "Al lanzar un juego en directo desde un quiz o desde el guión de clase, se puede seleccionar un grupo específico de la clase.",
+        "step1Title": "Lanzamiento y Sala de Espera (Lobby)",
+        "step1Desc": "Se muestra el código PIN de 6 dígitos y el código QR interactivo nativo. Los jugadores no registrados o anónimos se pueden unir introduciendo el PIN y un Nickname.",
+        "step2Title": "Control de la Partida y Cierre Automático",
+        "step2Desc": "El profesor comienza la partida y controla el ritmo de lectura. La respuesta se cierra automáticamente cuando se agota el temporizador o cuando todos los jugadores han contestado.",
+        "step3Title": "Controles del Moderador y Navegación",
+        "step3Desc": "Al final de cada pregunta, el moderador puede pulsar \"Ver Ranking\" o ir directamente a la \"Siguiente Pregunta\". Desde el ranking se puede reanudar la partida pulsando \"Ir a la siguiente pregunta\".",
+        "step4Title": "Resultados y Podio 3D Final",
+        "step4Desc": "Se proyecta la distribución de votos y, al final de la partida, se revela el podio 3D animado con los tres mejores jugadores (🥇, 🥈, 🥉)."
+      },
+      "evaluations": {
+        "nav": "10. Panel de Evaluación",
+        "title": "10. Panel de Evaluación Académica y Bloques Colapsables",
+        "intro": "En la sección Evaluaciones, el profesor puede consultar las notas y estadísticas de las partidas jugadas.",
+        "filtersTitle": "Filtros Avanzados por Grupo, Juego y Fecha",
+        "filtersDesc": "Utiliza los filtros superiores para seleccionar un Grupo determinado, un Juego/Quiz específico o un rango de Fechas para analizar el rendimiento académico.",
+        "panelsTitle": "Paneles Colapsables",
+        "panelsDesc": "Los resultados se organizan en paneles colapsables (Panel :toggleable=\"true\") para facilidad de lectura: \"Estadísticas Globales por Pregunta\" (tasa de acierto, tiempo medio, distribución de respuestas) y \"Resultados de los Alumnos\" (partidas jugadas, nota calculada y nota definitiva).",
+        "scoringTitle": "Sistema de Doble Puntuación",
+        "gamePoints": "Puntos de Juego (Gamificación): Considera acierto + rapidez. Alimenta el ranking y el podio en directo.",
+        "academicGrade": "Nota de Evaluación (Académica): Solo considera el acierto absoluto (0.00 a 10.00). La presión del tiempo no afecta a la nota.",
+        "gradingTitle": "Calificación Automática y Ajuste Manual",
+        "gradingDesc": "Al finalizar cada partida, Encertia calcula automáticamente la nota del alumno. El profesor puede revisar el desglose y realizar un ajuste manual de la nota final (finalGrade) si lo considera oportuno."
+      }
+    }
   },
   "metrics": {
     "title": "Métricas y Auditoría del Sistema",
@@ -290,5 +423,58 @@
     "back": "Volver",
     "language": "Idioma",
     "noResults": "No se han encontrado resultados"
+  },
+  "groups": {
+    "title": "Gestión de Grupos",
+    "subtitle": "Organiza los alumnos en grupos por curso académico y asignaturas",
+    "createGroup": "Nuevo Grupo",
+    "editGroup": "Editar Grupo",
+    "deleteGroup": "Eliminar Grupo",
+    "searchPlaceholder": "Buscar por nombre de grupo...",
+    "academicYearFilter": "Curso (ej. 26-27)",
+    "resetFilters": "Limpiar filtros",
+    "refreshList": "Refrescar lista",
+    "empty": "No se ha encontrado ningún grupo con los criterios seleccionados.",
+    "table": {
+      "name": "Nombre del Grupo",
+      "academicYear": "Curso Académico",
+      "students": "Alumnos",
+      "createdAt": "Fecha de creación",
+      "actions": "Acciones"
+    },
+    "form": {
+      "createTitle": "Crear Nuevo Grupo",
+      "editTitle": "Editar Grupo",
+      "name": "Nombre del Grupo *",
+      "namePlaceholder": "Nombre del grupo (ej. Grupo B&F, 1A...)",
+      "academicYear": "Curso Académico",
+      "academicYearPlaceholder": "26-27",
+      "academicYearHint": "Propuesta por defecto: \"26-27\"",
+      "courseId": "UUID Curso Asociado (opcional)",
+      "courseIdPlaceholder": "UUID del curso/asignatura...",
+      "submitCreate": "Crear Grupo",
+      "submitUpdate": "Actualizar",
+      "nameRequired": "El nombre del grupo es obligatorio."
+    },
+    "deleteModal": {
+      "title": "Confirmar Baja de Grupo",
+      "confirmText": "¿Estás seguro de que quieres dar de baja el grupo",
+      "softDeleteHint": "Esta acción realiza una baja lógica (soft-delete) preservando la información académica de los alumnos.",
+      "confirmButton": "Confirmar Baja"
+    },
+    "studentsModal": {
+      "title": "Alumnos del Grupo: {name}",
+      "manageStudents": "Gestionar Alumnos",
+      "addTitle": "Asignar nuevos alumnos",
+      "addDesc": "Introduce los UUIDs de los alumnos separados por comas o nuevas líneas:",
+      "placeholder": "UUID1, UUID2...",
+      "addButton": "Añadir Alumnos",
+      "listTitle": "Lista de alumnos asignados ({count})",
+      "noStudents": "No hay ningún alumno asignado a este grupo actualmente.",
+      "remove": "Desasignar",
+      "unnamedStudent": "Alumno sin nombre",
+      "emptyError": "Introduce al menos un UUID de alumno.",
+      "fetchError": "Error al cargar los alumnos del grupo."
+    }
   }
 }

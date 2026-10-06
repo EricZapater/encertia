@@ -113,7 +113,7 @@ function openEditModal(group: Group) {
 function validateForm(): boolean {
   formErrors.value = {}
   if (!formName.value.trim()) {
-    formErrors.value.name = 'El nom del grup és obligatori.'
+    formErrors.value.name = t('groups.form.nameRequired')
     return false
   }
   return true
@@ -169,7 +169,7 @@ async function openStudentsModal(group: Group) {
   try {
     await groupStore.fetchGroupStudents(group.id)
   } catch (err: any) {
-    studentError.value = 'Error en carregar els alumnes del grup.'
+    studentError.value = t('groups.studentsModal.fetchError')
   }
 }
 
@@ -181,7 +181,7 @@ async function handleAddStudents() {
     .filter(Boolean)
 
   if (ids.length === 0) {
-    studentError.value = 'Introdueix almenys un UUID d\'alumne.'
+    studentError.value = t('groups.studentsModal.emptyError')
     return
   }
 
@@ -224,15 +224,15 @@ function formatDate(dateStr: string) {
     <!-- Capçalera de pàgina -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Gestió de Grups</h1>
+        <h1 class="page-title">{{ $t('groups.title') }}</h1>
         <p class="page-subtitle">
-          Organitza els alumnes en grups per curs acadèmic i assignatures
+          {{ $t('groups.subtitle') }}
         </p>
       </div>
 
       <div v-if="canManage" class="header-actions">
         <Button
-          label="Nou Grup"
+          :label="$t('groups.createGroup')"
           icon="pi pi-plus"
           severity="primary"
           @click="openCreateModal"
@@ -247,7 +247,7 @@ function formatDate(dateStr: string) {
         <i class="pi pi-search search-icon" />
         <InputText
           v-model="searchInput"
-          placeholder="Cercar per nom de grup..."
+          :placeholder="$t('groups.searchPlaceholder')"
           class="search-input"
           @input="handleSearchInput"
           data-testid="input-search-groups"
@@ -266,7 +266,7 @@ function formatDate(dateStr: string) {
       <div class="filter-controls">
         <InputText
           v-model="academicYearInput"
-          placeholder="Curs (ex. 26-27)"
+          :placeholder="$t('groups.academicYearFilter')"
           class="year-filter-input"
           @change="handleAcademicYearFilter"
           data-testid="filter-academic-year-input"
@@ -276,7 +276,7 @@ function formatDate(dateStr: string) {
           icon="pi pi-filter-slash"
           text
           severity="secondary"
-          tooltip="Netejar filtres"
+          :tooltip="$t('groups.resetFilters')"
           @click="handleResetFilters"
           data-testid="btn-reset-filters"
         />
@@ -286,7 +286,7 @@ function formatDate(dateStr: string) {
           text
           severity="secondary"
           :loading="groupStore.isLoading"
-          tooltip="Refrescar llista"
+          :tooltip="$t('groups.refreshList')"
           @click="groupStore.fetchGroups()"
           data-testid="btn-refresh-groups"
         />
@@ -312,11 +312,11 @@ function formatDate(dateStr: string) {
         <template #empty>
           <div class="empty-state">
             <i class="pi pi-folder-open empty-icon" />
-            <p>No s'ha trobat cap grup amb els criteris seleccionats.</p>
+            <p>{{ $t('groups.empty') }}</p>
           </div>
         </template>
 
-        <Column header="Nom del Grup" style="min-width: 14rem">
+        <Column :header="$t('groups.table.name')" style="min-width: 14rem">
           <template #body="{ data }">
             <div class="group-cell">
               <div class="group-icon-sm">
@@ -332,13 +332,13 @@ function formatDate(dateStr: string) {
           </template>
         </Column>
 
-        <Column field="academicYear" header="Curs Acadèmic" style="width: 10rem">
+        <Column field="academicYear" :header="$t('groups.table.academicYear')" style="width: 10rem">
           <template #body="{ data }">
             <span class="badge-year">{{ data.academicYear || '26-27' }}</span>
           </template>
         </Column>
 
-        <Column field="studentCount" header="Alumnes" style="width: 8rem">
+        <Column field="studentCount" :header="$t('groups.table.students')" style="width: 8rem">
           <template #body="{ data }">
             <span class="student-count-badge">
               <i class="pi pi-user"></i> {{ data.studentCount ?? 0 }}
@@ -346,13 +346,13 @@ function formatDate(dateStr: string) {
           </template>
         </Column>
 
-        <Column field="createdAt" header="Data de creació" style="width: 10rem">
+        <Column field="createdAt" :header="$t('groups.table.createdAt')" style="width: 10rem">
           <template #body="{ data }">
             {{ formatDate(data.createdAt) }}
           </template>
         </Column>
 
-        <Column header="Accions" style="width: 11rem; text-align: right">
+        <Column :header="$t('groups.table.actions')" style="width: 11rem; text-align: right">
           <template #body="{ data }">
             <div class="actions-wrapper">
               <Button
@@ -361,7 +361,7 @@ function formatDate(dateStr: string) {
                 rounded
                 severity="info"
                 size="small"
-                tooltip="Gestionar Alumnes"
+                :tooltip="$t('groups.studentsModal.manageStudents')"
                 @click="openStudentsModal(data)"
                 data-testid="btn-manage-students"
               />
@@ -372,7 +372,7 @@ function formatDate(dateStr: string) {
                 rounded
                 severity="secondary"
                 size="small"
-                tooltip="Editar Grup"
+                :tooltip="$t('groups.editGroup')"
                 @click="openEditModal(data)"
                 data-testid="btn-edit-group"
               />
@@ -383,7 +383,7 @@ function formatDate(dateStr: string) {
                 rounded
                 severity="danger"
                 size="small"
-                tooltip="Esborrar Grup"
+                :tooltip="$t('groups.deleteGroup')"
                 @click="openDeleteConfirm(data)"
                 data-testid="btn-delete-group"
               />
@@ -397,17 +397,17 @@ function formatDate(dateStr: string) {
     <Dialog
       v-model:visible="showFormModal"
       modal
-      :header="isEditing ? 'Editar Grup' : 'Crear Nou Grup'"
+      :header="isEditing ? $t('groups.form.editTitle') : $t('groups.form.createTitle')"
       :style="{ width: '90vw', maxWidth: '500px' }"
       data-testid="group-form-dialog"
     >
       <div class="form-container">
         <div class="form-field">
-          <label for="group-name" class="form-label">Nom del Grup *</label>
+          <label for="group-name" class="form-label">{{ $t('groups.form.name') }}</label>
           <InputText
             id="group-name"
             v-model="formName"
-            placeholder="Nom del grup (ex. Grup B&F, 1A...)"
+            :placeholder="$t('groups.form.namePlaceholder')"
             :class="{ 'p-invalid': formErrors.name }"
             class="full-width"
             data-testid="input-group-name"
@@ -416,23 +416,23 @@ function formatDate(dateStr: string) {
         </div>
 
         <div class="form-field">
-          <label for="group-academic-year" class="form-label">Curs Acadèmic</label>
+          <label for="group-academic-year" class="form-label">{{ $t('groups.form.academicYear') }}</label>
           <InputText
             id="group-academic-year"
             v-model="formAcademicYear"
-            placeholder="26-27"
+            :placeholder="$t('groups.form.academicYearPlaceholder')"
             class="full-width"
             data-testid="input-group-academic-year"
           />
-          <small class="hint-text">Proposta per defecte: "26-27"</small>
+          <small class="hint-text">{{ $t('groups.form.academicYearHint') }}</small>
         </div>
 
         <div class="form-field">
-          <label for="group-course-id" class="form-label">UUID Curs Associat (opcional)</label>
+          <label for="group-course-id" class="form-label">{{ $t('groups.form.courseId') }}</label>
           <InputText
             id="group-course-id"
             v-model="formCourseId"
-            placeholder="UUID del curs/assignatura..."
+            :placeholder="$t('groups.form.courseIdPlaceholder')"
             class="full-width"
             data-testid="input-group-course-id"
           />
@@ -441,14 +441,14 @@ function formatDate(dateStr: string) {
 
       <template #footer>
         <Button
-          label="Cancel·lar"
+          :label="$t('common.cancel')"
           icon="pi pi-times"
           text
           severity="secondary"
           @click="showFormModal = false"
         />
         <Button
-          :label="isEditing ? 'Actualitzar' : 'Crear Grup'"
+          :label="isEditing ? $t('groups.form.submitUpdate') : $t('groups.form.submitCreate')"
           icon="pi pi-check"
           severity="primary"
           :loading="groupStore.isSaving"
@@ -462,7 +462,7 @@ function formatDate(dateStr: string) {
     <Dialog
       v-model:visible="showDeleteConfirmModal"
       modal
-      header="Confirmar Baixa de Grup"
+      :header="$t('groups.deleteModal.title')"
       :style="{ width: '90vw', maxWidth: '440px' }"
       data-testid="delete-group-dialog"
     >
@@ -470,24 +470,24 @@ function formatDate(dateStr: string) {
         <i class="pi pi-exclamation-triangle warning-icon" />
         <div>
           <p>
-            Estàs segur que vols donar de baixa el grup
+            {{ $t('groups.deleteModal.confirmText') }}
             <strong>{{ groupToDelete?.name }}</strong>?
           </p>
           <p class="soft-delete-hint">
-            Aquesta acció realitza una baixa lògica (soft-delete) preservant la informació acadèmica dels alumnes.
+            {{ $t('groups.deleteModal.softDeleteHint') }}
           </p>
         </div>
       </div>
       <template #footer>
         <Button
-          label="Cancel·lar"
+          :label="$t('common.cancel')"
           icon="pi pi-times"
           text
           severity="secondary"
           @click="showDeleteConfirmModal = false"
         />
         <Button
-          label="Confirmar Baixa"
+          :label="$t('groups.deleteModal.confirmButton')"
           icon="pi pi-trash"
           severity="danger"
           :loading="groupStore.isLoading"
@@ -501,24 +501,24 @@ function formatDate(dateStr: string) {
     <Dialog
       v-model:visible="showStudentsModal"
       modal
-      :header="`Alumnes del Grup: ${activeGroupForStudents?.name || ''}`"
+      :header="$t('groups.studentsModal.title', { name: activeGroupForStudents?.name || '' })"
       :style="{ width: '90vw', maxWidth: '640px' }"
       data-testid="manage-students-dialog"
     >
       <div class="students-modal-content">
         <div v-if="canManage" class="add-students-section">
-          <h3>Assignar nous alumnes</h3>
-          <p class="section-desc">Introdueix els UUIDs dels alumnes separats per comes o noves línies:</p>
+          <h3>{{ $t('groups.studentsModal.addTitle') }}</h3>
+          <p class="section-desc">{{ $t('groups.studentsModal.addDesc') }}</p>
           <textarea
             v-model="newStudentIdsText"
-            placeholder="UUID1, UUID2..."
+            :placeholder="$t('groups.studentsModal.placeholder')"
             rows="3"
             class="student-ids-textarea"
             data-testid="textarea-add-students"
           ></textarea>
           <div class="add-btn-wrapper">
             <Button
-              label="Afegir Alumnes"
+              :label="$t('groups.studentsModal.addButton')"
               icon="pi pi-user-plus"
               severity="primary"
               size="small"
@@ -531,16 +531,16 @@ function formatDate(dateStr: string) {
         </div>
 
         <div class="students-list-section">
-          <h3>Llista d'alumnes assignats ({{ groupStore.groupStudents.length }})</h3>
+          <h3>{{ $t('groups.studentsModal.listTitle', { count: groupStore.groupStudents.length }) }}</h3>
           <div v-if="groupStore.groupStudents.length === 0" class="no-students">
-            <p>No hi ha cap alumne assignat a aquest grup actualment.</p>
+            <p>{{ $t('groups.studentsModal.noStudents') }}</p>
           </div>
           <ul v-else class="students-list">
             <li v-for="student in groupStore.groupStudents" :key="student.id" class="student-item">
               <div class="student-info">
                 <i class="pi pi-user student-icon"></i>
                 <div>
-                  <div class="student-name">{{ student.fullName || 'Alumne sense nom' }}</div>
+                  <div class="student-name">{{ student.fullName || $t('groups.studentsModal.unnamedStudent') }}</div>
                   <div class="student-email">{{ student.email }}</div>
                 </div>
               </div>
@@ -551,7 +551,7 @@ function formatDate(dateStr: string) {
                 rounded
                 severity="danger"
                 size="small"
-                tooltip="Desassignar"
+                :tooltip="$t('groups.studentsModal.remove')"
                 @click="handleRemoveStudent(student)"
                 data-testid="btn-remove-student"
               />
@@ -561,7 +561,7 @@ function formatDate(dateStr: string) {
       </div>
       <template #footer>
         <Button
-          label="Tancar"
+          :label="$t('common.close')"
           icon="pi pi-times"
           text
           severity="secondary"

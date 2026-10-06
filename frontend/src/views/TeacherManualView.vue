@@ -4,7 +4,7 @@
       <div class="header-content">
         <div class="header-badge">
           <i class="pi pi-book"></i>
-          <span>Documentació Oficial</span>
+          <span>{{ $t('manual.officialDoc') }}</span>
         </div>
         <h1>{{ $t('manual.title') }} — Encertia</h1>
         <p class="header-subtitle">
@@ -17,7 +17,7 @@
       <!-- Sidebar Index Navigation -->
       <aside class="manual-sidebar">
         <div class="sidebar-sticky">
-          <h3 class="sidebar-title">Índex de continguts</h3>
+          <h3 class="sidebar-title">{{ $t('manual.indexTitle') }}</h3>
           <nav class="sidebar-nav">
             <a
               v-for="section in sections"
@@ -40,33 +40,33 @@
         <section id="sec-intro" class="manual-section">
           <div class="section-header">
             <i class="pi pi-compass section-icon"></i>
-            <h2>1. Introducció i Filosofia d'Encertia</h2>
+            <h2>{{ $t('manual.sections.intro.title') }}</h2>
           </div>
           <Card class="doc-card">
             <template #content>
               <p>
-                <strong>Encertia</strong> és una plataforma educativa d'avaluació i gestió de curs dissenyada específicament per a la docència universitària i acadèmica. Combina la motivació d'un joc de preguntes en temps real en directe (estil Kahoot) amb la rigorositat d'un <strong>sistema de gestió d'aprenentatge (LMS)</strong> i el registre persistent d'avaluació per alumne.
+                {{ $t('manual.sections.intro.desc') }}
               </p>
               <div class="features-grid">
                 <div class="feature-box">
                   <i class="pi pi-bolt feature-icon primary"></i>
-                  <h4>Joc en temps real</h4>
-                  <p>Partides interactives amb codi PIN, codi QR, temporitzadors i podi 3D animat.</p>
+                  <h4>{{ $t('manual.sections.intro.realtimeTitle') }}</h4>
+                  <p>{{ $t('manual.sections.intro.realtimeDesc') }}</p>
                 </div>
                 <div class="feature-box">
                   <i class="pi pi-chart-line feature-icon success"></i>
-                  <h4>Doble Puntuació</h4>
-                  <p>Separació estricta entre punts de joc (rapidesa) i nota acadèmica (encert absolut 0-10).</p>
+                  <h4>{{ $t('manual.sections.intro.scoreTitle') }}</h4>
+                  <p>{{ $t('manual.sections.intro.scoreDesc') }}</p>
                 </div>
                 <div class="feature-box">
                   <i class="pi pi-desktop feature-icon warning"></i>
-                  <h4>Guió de Classe</h4>
-                  <p>Visor seqüencial que combina diapositives PDF, pauses i partides en un sol clic.</p>
+                  <h4>{{ $t('manual.sections.intro.scriptTitle') }}</h4>
+                  <p>{{ $t('manual.sections.intro.scriptDesc') }}</p>
                 </div>
                 <div class="feature-box">
                   <i class="pi pi-folder feature-icon info"></i>
-                  <h4>Gestió de Materials</h4>
-                  <p>Visor de PDF integrat, vídeos encastats i registre de lectures per alumne.</p>
+                  <h4>{{ $t('manual.sections.intro.materialsTitle') }}</h4>
+                  <p>{{ $t('manual.sections.intro.materialsDesc') }}</p>
                 </div>
               </div>
             </template>
@@ -77,41 +77,41 @@
         <section id="sec-auth" class="manual-section">
           <div class="section-header">
             <i class="pi pi-shield section-icon"></i>
-            <h2>2. Autenticació, Sessió i Seguretat</h2>
+            <h2>{{ $t('manual.sections.auth.title') }}</h2>
           </div>
           <Card class="doc-card">
             <template #content>
               <Accordion :value="['0']" multiple>
                 <AccordionPanel value="0">
-                  <AccordionHeader>Inici de Sessió i Renovació Transparent</AccordionHeader>
+                  <AccordionHeader>{{ $t('manual.sections.auth.loginTitle') }}</AccordionHeader>
                   <AccordionContent>
-                    <p>Accedeix amb les teves credencials (email i contrasenya) a <code>/login</code>. Encertia utilitza un sistema segur de parell de tokens JWT:</p>
+                    <p>{{ $t('manual.sections.auth.loginDesc') }}</p>
                     <ul>
-                      <li><strong>Access Token (15 minuts)</strong>: Utilitzat per autoritzar cada petició HTTP. S'auto-renova de manera transparent en segon pla.</li>
-                      <li><strong>Refresh Token (7 dies)</strong>: Manté la sessió oberta de manera segura.</li>
+                      <li>{{ $t('manual.sections.auth.accessToken') }}</li>
+                      <li>{{ $t('manual.sections.auth.refreshToken') }}</li>
                     </ul>
                   </AccordionContent>
                 </AccordionPanel>
 
                 <AccordionPanel value="1">
-                  <AccordionHeader>Tancament de Sessió Efectiu (Logout Segur)</AccordionHeader>
+                  <AccordionHeader>{{ $t('manual.sections.auth.logoutTitle') }}</AccordionHeader>
                   <AccordionContent>
-                    <p>En clicar el botó de tancar sessió a la barra superior, Encertia executa un <strong>logout real al servidor</strong>. L'Access Token actiu s'invalida immediatament a la taula de revocació de PostgreSQL (<code>revoked_access_tokens</code>), impedint que ningú pugui reutilitzar la sessió.</p>
+                    <p>{{ $t('manual.sections.auth.logoutDesc') }}</p>
                   </AccordionContent>
                 </AccordionPanel>
 
                 <AccordionPanel value="2">
-                  <AccordionHeader>Control d'Accés per Rol (RBAC)</AccordionHeader>
+                  <AccordionHeader>{{ $t('manual.sections.auth.rbacTitle') }}</AccordionHeader>
                   <AccordionContent>
-                    <p>La plataforma distingeix 3 rols d'usuari:</p>
-                    <div class="tags-container">
-                      <Tag severity="danger">Admin</Tag> Accés total a la configuració global i a tots els cursos.
+                    <p>{{ $t('manual.sections.auth.rbacDesc') }}</p>
+                    <div class="tags-container mb-2">
+                      <Tag severity="danger">Admin</Tag> {{ $t('manual.sections.auth.roleAdmin') }}
+                    </div>
+                    <div class="tags-container mb-2">
+                      <Tag severity="info">{{ $t('nav.roles.teacher') }}</Tag> {{ $t('manual.sections.auth.roleTeacher') }}
                     </div>
                     <div class="tags-container">
-                      <Tag severity="info">Professor</Tag> Creació i gestió dels seus cursos, alumnes, quizes i avaluacions.
-                    </div>
-                    <div class="tags-container">
-                      <Tag severity="success">Alumne</Tag> Participació en partides en directe, consulta de materials i notes del seu curs.
+                      <Tag severity="success">{{ $t('nav.roles.student') }}</Tag> {{ $t('manual.sections.auth.roleStudent') }}
                     </div>
                   </AccordionContent>
                 </AccordionPanel>
@@ -120,46 +120,85 @@
           </Card>
         </section>
 
-        <!-- Section 3: Gestió d'Usuaris -->
-        <section id="sec-users" class="manual-section">
+        <!-- Section 3: Gestió de Grups -->
+        <section id="sec-groups" class="manual-section">
           <div class="section-header">
             <i class="pi pi-users section-icon"></i>
-            <h2>3. Gestió d'Alumnes i Grup-Classe</h2>
+            <h2>{{ $t('manual.sections.groups.title') }}</h2>
           </div>
           <Card class="doc-card">
             <template #content>
-              <p>Com a professor, pots gestionar el llistat d'alumnes des de la secció <router-link to="/users"><strong>Usuaris</strong></router-link>.</p>
-              
+              <p>{{ $t('manual.sections.groups.intro') }}</p>
+
               <div class="steps-list">
                 <div class="step-item">
                   <div class="step-number">1</div>
                   <div class="step-body">
-                    <h4>Alta Individual d'Alumne</h4>
-                    <p>Clica a <strong>"Nou Usuari"</strong>, introdueix el nom, cognoms, email i assigna el rol d'alumne. El sistema generarà el compte immediatament.</p>
+                    <h4>{{ $t('manual.sections.groups.step1Title') }}</h4>
+                    <p>{{ $t('manual.sections.groups.step1Desc') }}</p>
                   </div>
                 </div>
 
                 <div class="step-item">
                   <div class="step-number">2</div>
                   <div class="step-body">
-                    <h4>Alta Massiva per CSV (Full de Càlcul)</h4>
-                    <p>Fes servir l'assistent d'importació en 3 passos per pujar tot el grup-classe des d'un fitxer CSV/TSV. El cercador detecta automàticament els camps i valida cada fila abans de donar d'alta.</p>
+                    <h4>{{ $t('manual.sections.groups.step2Title') }}</h4>
+                    <p>{{ $t('manual.sections.groups.step2Desc') }}</p>
                   </div>
                 </div>
 
                 <div class="step-item">
                   <div class="step-number">3</div>
                   <div class="step-body">
-                    <h4>Reseteig Administratiu de Contrasenya</h4>
-                    <p>Si un alumne oblida la contrasenya, pots resetejar-la directament des de la taula d'usuaris. La nova clau requerirà un mínim de 8 caràcters i tancarà automàticament les seves sessions anteriors.</p>
+                    <h4>{{ $t('manual.sections.groups.step3Title') }}</h4>
+                    <p>{{ $t('manual.sections.groups.step3Desc') }}</p>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </Card>
+        </section>
+
+        <!-- Section 4: Gestió d'Alumnes -->
+        <section id="sec-users" class="manual-section">
+          <div class="section-header">
+            <i class="pi pi-user section-icon"></i>
+            <h2>{{ $t('manual.sections.users.title') }}</h2>
+          </div>
+          <Card class="doc-card">
+            <template #content>
+              <p>{{ $t('manual.sections.users.intro') }}</p>
+
+              <div class="steps-list">
+                <div class="step-item">
+                  <div class="step-number">1</div>
+                  <div class="step-body">
+                    <h4>{{ $t('manual.sections.users.step1Title') }}</h4>
+                    <p>{{ $t('manual.sections.users.step1Desc') }}</p>
+                  </div>
+                </div>
+
+                <div class="step-item">
+                  <div class="step-number">2</div>
+                  <div class="step-body">
+                    <h4>{{ $t('manual.sections.users.step2Title') }}</h4>
+                    <p>{{ $t('manual.sections.users.step2Desc') }}</p>
+                  </div>
+                </div>
+
+                <div class="step-item">
+                  <div class="step-number">3</div>
+                  <div class="step-body">
+                    <h4>{{ $t('manual.sections.users.step3Title') }}</h4>
+                    <p>{{ $t('manual.sections.users.step3Desc') }}</p>
                   </div>
                 </div>
 
                 <div class="step-item">
                   <div class="step-number">4</div>
                   <div class="step-body">
-                    <h4>Baixa Lògica (Soft-Delete)</h4>
-                    <p>Al donar de baixa un alumne, Encertia executa un <em>soft-delete</em> (marca l'usuari com a inactiu). <strong>Cap historial acadèmic o resposta es perd mai.</strong></p>
+                    <h4>{{ $t('manual.sections.users.step4Title') }}</h4>
+                    <p>{{ $t('manual.sections.users.step4Desc') }}</p>
                   </div>
                 </div>
               </div>
@@ -167,109 +206,106 @@
           </Card>
         </section>
 
-        <!-- Section 4: Qüestionaris -->
+        <!-- Section 5: Qüestionaris -->
         <section id="sec-quizzes" class="manual-section">
           <div class="section-header">
             <i class="pi pi-th-large section-icon"></i>
-            <h2>4. Banc de Qüestionaris (Quizzes)</h2>
+            <h2>{{ $t('manual.sections.quizzes.title') }}</h2>
           </div>
           <Card class="doc-card">
             <template #content>
-              <p>Des de la secció <router-link to="/quizzes"><strong>Jocs & Quizzes</strong></router-link>, pots crear i mantenir el teu banc de qüestionaris reutilitzables.</p>
+              <p>{{ $t('manual.sections.quizzes.intro') }}</p>
 
               <Message severity="info" class="mb-4">
-                <strong>Estil Kahoot:</strong> L'editor de preguntes utilitza la paleta visual de 6 colors i formes distintives (▲ Vermell, ◆ Blau, ● Groc, ■ Verd, ★ Lila, ⬡ Taronja).
+                {{ $t('manual.sections.quizzes.styleKahoot') }}
               </Message>
 
               <div class="manual-subsection">
-                <h3>Creació i Edició de Preguntes</h3>
+                <h3>{{ $t('manual.sections.quizzes.creationTitle') }}</h3>
                 <ul>
-                  <li><strong>Tipus de Pregunta</strong>: Opció Única (exactament 1 resposta correcta) o Opció Múltiple (1 o més respostes correctes).</li>
-                  <li><strong>Opcions de Resposta</strong>: Entre 2 i 6 opcions per pregunta.</li>
-                  <li><strong>Temporitzador</strong>: Configurable individualment per pregunta (5s, 10s, 20s, 30s, 60s, 90s o 120s).</li>
-                  <li><strong>Imatges</strong>: Pujada d'imatge de portada de quiz i imatge per pregunta (amb integració Cloudflare R2).</li>
+                  <li>{{ $t('manual.sections.quizzes.questionType') }}</li>
+                  <li>{{ $t('manual.sections.quizzes.answerOptions') }}</li>
+                  <li>{{ $t('manual.sections.quizzes.timer') }}</li>
+                  <li>{{ $t('manual.sections.quizzes.images') }}</li>
                 </ul>
               </div>
 
               <div class="manual-subsection">
-                <h3>Duplicació de Qüestionaris</h3>
-                <p>Pots duplicar qualsevol qüestionari existent amb l'opció de copiar només l'enunciat de les preguntes o incloure també totes les respostes de base.</p>
+                <h3>{{ $t('manual.sections.quizzes.duplicationTitle') }}</h3>
+                <p>{{ $t('manual.sections.quizzes.duplicationDesc') }}</p>
               </div>
             </template>
           </Card>
         </section>
 
-        <!-- Section 5: Cursos i Unitats -->
+        <!-- Section 6: Cursos i Unitats -->
         <section id="sec-courses" class="manual-section">
           <div class="section-header">
             <i class="pi pi-book section-icon"></i>
-            <h2>5. Gestió de Cursos i Unitats Didàctiques</h2>
+            <h2>{{ $t('manual.sections.courses.title') }}</h2>
           </div>
           <Card class="doc-card">
             <template #content>
-              <p>A la secció <router-link to="/courses"><strong>Cursos</strong></router-link>, s'organitza l'assignatura en unitats didàctiques seqüencials (on <em>"unitat"</em> i <em>"classe"</em> representen el mateix concepte).</p>
+              <p>{{ $t('manual.sections.courses.intro') }}</p>
 
               <div class="features-grid">
                 <div class="feature-box">
-                  <h4>1. Creació del Curs</h4>
-                  <p>Defineix el títol, codi d'assignatura, descripció i estat (Esborrany, Actiu, Arxivat).</p>
+                  <h4>{{ $t('manual.sections.courses.step1Title') }}</h4>
+                  <p>{{ $t('manual.sections.courses.step1Desc') }}</p>
                 </div>
                 <div class="feature-box">
-                  <h4>2. Matriculació d'Alumnes</h4>
-                  <p>Inscriu els alumnes del grup-classe al curs per donar-los accés als materials i quizes.</p>
+                  <h4>{{ $t('manual.sections.courses.step2Title') }}</h4>
+                  <p>{{ $t('manual.sections.courses.step2Desc') }}</p>
                 </div>
                 <div class="feature-box">
-                  <h4>3. Unitats i Relació N:N</h4>
-                  <p>Crea unitats didàctiques i vincula-hi un o més qüestionaris. Un mateix quiz es pot reutilitzar en diferents unitats.</p>
+                  <h4>{{ $t('manual.sections.courses.step3Title') }}</h4>
+                  <p>{{ $t('manual.sections.courses.step3Desc') }}</p>
                 </div>
                 <div class="feature-box">
-                  <h4>4. Reordenació d'Unitats</h4>
-                  <p>Reordena les unitats didàctiques segons l'avanç del quadrimestre.</p>
+                  <h4>{{ $t('manual.sections.courses.step4Title') }}</h4>
+                  <p>{{ $t('manual.sections.courses.step4Desc') }}</p>
                 </div>
               </div>
             </template>
           </Card>
         </section>
 
-        <!-- Section 6: Materials Didàctics -->
+        <!-- Section 7: Materials Didàctics -->
         <section id="sec-materials" class="manual-section">
           <div class="section-header">
             <i class="pi pi-folder-open section-icon"></i>
-            <h2>6. Materials Didàctics, Visor PDF i Mètriques</h2>
+            <h2>{{ $t('manual.sections.materials.title') }}</h2>
           </div>
           <Card class="doc-card">
             <template #content>
-              <p>El mòdul <router-link to="/materials"><strong>Materials</strong></router-link> centralitza el repositori de recursos del professor.</p>
+              <p>{{ $t('manual.sections.materials.intro') }}</p>
 
               <Accordion value="0">
                 <AccordionPanel value="0">
-                  <AccordionHeader>Documents i Vídeos Incrustats</AccordionHeader>
+                  <AccordionHeader>{{ $t('manual.sections.materials.docsTitle') }}</AccordionHeader>
                   <AccordionContent>
-                    <ul>
-                      <li><strong>Documents (PDF, DOCX, PPTX)</strong>: Carrega fitxers de fins a 50 MB.</li>
-                      <li><strong>Vídeos Externs</strong>: Enllaça vídeos de YouTube o Vimeo. La plataforma detecta automàticament el proveïdor i genera el reproductor encastat.</li>
-                    </ul>
+                    <p>{{ $t('manual.sections.materials.docsDesc') }}</p>
                   </AccordionContent>
                 </AccordionPanel>
 
                 <AccordionPanel value="1">
-                  <AccordionHeader>Visor de PDF Integrat</AccordionHeader>
+                  <AccordionHeader>{{ $t('manual.sections.materials.pdfTitle') }}</AccordionHeader>
                   <AccordionContent>
-                    <p>Els alumnes i professors poden llegir els documents PDF directament a l'aplicació pàgina a pàgina, sense necessitat de descarregar-los prèviament.</p>
+                    <p>{{ $t('manual.sections.materials.pdfDesc') }}</p>
                   </AccordionContent>
                 </AccordionPanel>
 
                 <AccordionPanel value="2">
-                  <AccordionHeader>Substitució Transparent de Fitxers</AccordionHeader>
+                  <AccordionHeader>{{ $t('manual.sections.materials.replaceTitle') }}</AccordionHeader>
                   <AccordionContent>
-                    <p>Si actualitzes un PDF o document, pots pujar la nova versió conservant el mateix ID de material. Això garanteix que les unitats didàctiques i el guió de classe no perdin mai l'enllaç.</p>
+                    <p>{{ $t('manual.sections.materials.replaceDesc') }}</p>
                   </AccordionContent>
                 </AccordionPanel>
 
                 <AccordionPanel value="3">
-                  <AccordionHeader>Informe d'Accessos i Lectures (Mètriques)</AccordionHeader>
+                  <AccordionHeader>{{ $t('manual.sections.materials.metricsTitle') }}</AccordionHeader>
                   <AccordionContent>
-                    <p>Clica a la icona d'ull a qualsevol material per veure el panell d'informe: total de visualitzacions, alumnes únics que hi han accedit i la data de darrera lectura de cadascun.</p>
+                    <p>{{ $t('manual.sections.materials.metricsDesc') }}</p>
                   </AccordionContent>
                 </AccordionPanel>
               </Accordion>
@@ -277,88 +313,125 @@
           </Card>
         </section>
 
-        <!-- Section 7: Guió de Classe -->
+        <!-- Section 8: Guió de Classe -->
         <section id="sec-script" class="manual-section">
           <div class="section-header">
             <i class="pi pi-desktop section-icon"></i>
-            <h2>7. Guió de Classe (Visor Seqüencial)</h2>
+            <h2>{{ $t('manual.sections.script.title') }}</h2>
           </div>
           <Card class="doc-card">
             <template #content>
-              <p>El <strong>Guió de Classe</strong> permet dissenyar per endavant la seqüència exacta de la classe per projectar-la a l'aula en directe.</p>
+              <p>{{ $t('manual.sections.script.intro') }}</p>
 
               <div class="block-types-container">
                 <div class="block-type-card material-block">
                   <i class="pi pi-file-pdf"></i>
-                  <h4>Bloc de Material PDF</h4>
-                  <p>Defineix un rang de pàgines d'un document (ex. "Diapositives 1 a 15") per mostrar al visor.</p>
+                  <h4>{{ $t('manual.sections.script.pdfBlockTitle') }}</h4>
+                  <p>{{ $t('manual.sections.script.pdfBlockDesc') }}</p>
                 </div>
                 <div class="block-type-card quiz-block">
                   <i class="pi pi-play"></i>
-                  <h4>Bloc de Qüestionari</h4>
-                  <p>Llança automàticament la partida en directe (`match`) d'un quiz associat en arribar al bloc.</p>
+                  <h4>{{ $t('manual.sections.script.quizBlockTitle') }}</h4>
+                  <p>{{ $t('manual.sections.script.quizBlockDesc') }}</p>
                 </div>
                 <div class="block-type-card break-block">
                   <i class="pi pi-clock"></i>
-                  <h4>Bloc de Pausa / Preguntes</h4>
-                  <p>Pausa temporitzada per aclariments oberts i debat amb el grup-classe.</p>
+                  <h4>{{ $t('manual.sections.script.breakBlockTitle') }}</h4>
+                  <p>{{ $t('manual.sections.script.breakBlockDesc') }}</p>
                 </div>
               </div>
 
               <Message severity="success" class="mt-4">
-                <strong>En directe:</strong> El professor només ha d'anar clicant <em>"Següent"</em> per anar avançant fluidament entre explicació i moments interactius.
+                {{ $t('manual.sections.script.liveNote') }}
               </Message>
             </template>
           </Card>
         </section>
 
-        <!-- Section 8: Partida en Directe -->
+        <!-- Section 9: Partida en Directe i Jugadors Anònims -->
         <section id="sec-match" class="manual-section">
           <div class="section-header">
             <i class="pi pi-play-circle section-icon"></i>
-            <h2>8. Partida en Directe (Match)</h2>
+            <h2>{{ $t('manual.sections.match.title') }}</h2>
           </div>
           <Card class="doc-card">
             <template #content>
-              <p>En llançar un joc en directe des d'un quiz o des del guió de classe, s'obre el panell de projecció del moderador (`HostGameView`).</p>
+              <p>{{ $t('manual.sections.match.intro') }}</p>
 
-              <ol class="steps-numbered">
-                <li><strong>Sala d'Espera (Lobby)</strong>: Es mostra el codi PIN de 6 dígits i el <strong>codi QR interactiu natiu</strong> per a la connexió des del mòbil dels alumnes.</li>
-                <li><strong>Control del Ritme</strong>: El professor activa el temps de lectura i inicia el compte enrere quan el grup està a punt.</li>
-                <li><strong>Resultats en Temps Real</strong>: Al tancar el temps de cada pregunta, es projecta un gràfic de barres animat amb la distribució de vots i la resposta correcta.</li>
-                <li><strong>Podi 3D Final</strong>: En acabar la partida, es revela el podi de 3D dels tres primers classificats (🥇, 🥈, 🥉).</li>
-              </ol>
+              <div class="steps-list">
+                <div class="step-item">
+                  <div class="step-number">1</div>
+                  <div class="step-body">
+                    <h4>{{ $t('manual.sections.match.step1Title') }}</h4>
+                    <p>{{ $t('manual.sections.match.step1Desc') }}</p>
+                  </div>
+                </div>
+
+                <div class="step-item">
+                  <div class="step-number">2</div>
+                  <div class="step-body">
+                    <h4>{{ $t('manual.sections.match.step2Title') }}</h4>
+                    <p>{{ $t('manual.sections.match.step2Desc') }}</p>
+                  </div>
+                </div>
+
+                <div class="step-item">
+                  <div class="step-number">3</div>
+                  <div class="step-body">
+                    <h4>{{ $t('manual.sections.match.step3Title') }}</h4>
+                    <p>{{ $t('manual.sections.match.step3Desc') }}</p>
+                  </div>
+                </div>
+
+                <div class="step-item">
+                  <div class="step-number">4</div>
+                  <div class="step-body">
+                    <h4>{{ $t('manual.sections.match.step4Title') }}</h4>
+                    <p>{{ $t('manual.sections.match.step4Desc') }}</p>
+                  </div>
+                </div>
+              </div>
             </template>
           </Card>
         </section>
 
-        <!-- Section 9: Avaluació Acadèmica -->
+        <!-- Section 10: Avaluació Acadèmica i Blocs Col·lapsables -->
         <section id="sec-evaluation" class="manual-section">
           <div class="section-header">
             <i class="pi pi-chart-bar section-icon"></i>
-            <h2>9. Panell d'Avaluació Acadèmica</h2>
+            <h2>{{ $t('manual.sections.evaluations.title') }}</h2>
           </div>
           <Card class="doc-card">
             <template #content>
-              <p>A la secció <router-link to="/evaluations"><strong>Avaluacions</strong></router-link>, el professor consulta l'avaluació acadèmica consolidada.</p>
+              <p>{{ $t('manual.sections.evaluations.intro') }}</p>
 
               <div class="manual-subsection">
-                <h3>Sistema de Doble Puntuació</h3>
+                <h3>{{ $t('manual.sections.evaluations.filtersTitle') }}</h3>
+                <p>{{ $t('manual.sections.evaluations.filtersDesc') }}</p>
+              </div>
+
+              <div class="manual-subsection">
+                <h3>{{ $t('manual.sections.evaluations.panelsTitle') }}</h3>
+                <p>{{ $t('manual.sections.evaluations.panelsDesc') }}</p>
+              </div>
+
+              <div class="manual-subsection">
+                <h3>{{ $t('manual.sections.evaluations.scoringTitle') }}</h3>
                 <div class="score-comparison">
                   <div class="score-card game">
-                    <h4>Punts de Joc (Gamificació)</h4>
-                    <p>Considera encert + rapidesa. Alimenta el rànquing i el podi en directe.</p>
+                    <h4>{{ $t('evaluations.panels.globalStats') }}</h4>
+                    <p>{{ $t('manual.sections.evaluations.gamePoints') }}</p>
                   </div>
                   <div class="score-card academic">
-                    <h4>Nota d'Avaluació (Acadèmica)</h4>
-                    <p>Només considera l'encert absolut (0.00 a 10.00). La pressió del temps no afecta la nota.</p>
+                    <h4>{{ $t('evaluations.panels.studentResults') }}</h4>
+                    <p>{{ $t('manual.sections.evaluations.academicGrade') }}</p>
                   </div>
                 </div>
               </div>
 
               <div class="manual-subsection">
-                <h3>Qualificació Automàtica i Ajust Manual</h3>
-                <p>En finalitzar cada partida, Encertia calcula automàticament la nota de l'alumne. El professor pot revisar el desglossament pregunta per pregunta i realitzar un <strong>ajust manual de la nota final</strong> (`finalGrade`) si ho considera oportú.</p>
+                <h3>{{ $t('manual.sections.evaluations.gradingTitle') }}</h3>
+                <p>{{ $t('manual.sections.evaluations.gradingDesc') }}</p>
               </div>
             </template>
           </Card>
@@ -369,7 +442,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from 'primevue/card'
 import Accordion from 'primevue/accordion'
@@ -379,20 +452,21 @@ import AccordionContent from 'primevue/accordioncontent'
 import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 
-useI18n()
+const { t } = useI18n()
 const activeSection = ref('sec-intro')
 
-const sections = [
-  { id: 'sec-intro', title: '1. Introducció i Filosfia', icon: 'pi pi-compass' },
-  { id: 'sec-auth', title: '2. Autenticació i Seguretat', icon: 'pi pi-shield' },
-  { id: 'sec-users', title: '3. Gestió d\'Alumnes', icon: 'pi pi-users' },
-  { id: 'sec-quizzes', title: '4. Banc de Qüestionaris', icon: 'pi pi-th-large' },
-  { id: 'sec-courses', title: '5. Gestió de Cursos', icon: 'pi pi-book' },
-  { id: 'sec-materials', title: '6. Materials Didàctics', icon: 'pi pi-folder-open' },
-  { id: 'sec-script', title: '7. Guió de Classe', icon: 'pi pi-desktop' },
-  { id: 'sec-match', title: '8. Partida en Directe', icon: 'pi pi-play-circle' },
-  { id: 'sec-evaluation', title: '9. Panell d\'Avaluació', icon: 'pi pi-chart-bar' }
-]
+const sections = computed(() => [
+  { id: 'sec-intro', title: t('manual.sections.intro.nav'), icon: 'pi pi-compass' },
+  { id: 'sec-auth', title: t('manual.sections.auth.nav'), icon: 'pi pi-shield' },
+  { id: 'sec-groups', title: t('manual.sections.groups.nav'), icon: 'pi pi-users' },
+  { id: 'sec-users', title: t('manual.sections.users.nav'), icon: 'pi pi-user' },
+  { id: 'sec-quizzes', title: t('manual.sections.quizzes.nav'), icon: 'pi pi-th-large' },
+  { id: 'sec-courses', title: t('manual.sections.courses.nav'), icon: 'pi pi-book' },
+  { id: 'sec-materials', title: t('manual.sections.materials.nav'), icon: 'pi pi-folder-open' },
+  { id: 'sec-script', title: t('manual.sections.script.nav'), icon: 'pi pi-desktop' },
+  { id: 'sec-match', title: t('manual.sections.match.nav'), icon: 'pi pi-play-circle' },
+  { id: 'sec-evaluation', title: t('manual.sections.evaluations.nav'), icon: 'pi pi-chart-bar' }
+])
 
 function scrollToSection(id: string) {
   activeSection.value = id
@@ -628,7 +702,6 @@ function scrollToSection(id: string) {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
 }
 
 .manual-subsection {

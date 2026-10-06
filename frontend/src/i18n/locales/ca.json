@@ -220,9 +220,142 @@
     }
   },
   "manual": {
+    "officialDoc": "Documentació Oficial",
     "title": "Manual del Professorat",
     "subtitle": "Guia d'ús pedagògic i tècnic de la plataforma Encertia",
-    "indexTitle": "Taula de Continguts"
+    "indexTitle": "Índex de continguts",
+    "sections": {
+      "intro": {
+        "nav": "1. Introducció i Filosofia",
+        "title": "1. Introducció i Filosofia d'Encertia",
+        "desc": "Encertia és una plataforma educativa d'avaluació i gestió de curs dissenyada específicament per a la docència universitària i acadèmica. Combina la motivació d'un joc de preguntes en temps real en directe (estil Kahoot) amb la rigorositat d'un sistema de gestió d'aprenentatge (LMS) i el registre persistent d'avaluació per alumne.",
+        "realtimeTitle": "Joc en temps real",
+        "realtimeDesc": "Partides interactives amb codi PIN, codi QR, temporitzadors i podi 3D animat.",
+        "scoreTitle": "Doble Puntuació",
+        "scoreDesc": "Separació estricta entre punts de joc (rapidesa) i nota acadèmica (encert absolut 0-10).",
+        "scriptTitle": "Guió de Classe",
+        "scriptDesc": "Visor seqüencial que combina diapositives PDF, pauses i partides en un sol clic.",
+        "materialsTitle": "Gestió de Materials",
+        "materialsDesc": "Visor de PDF integrat, vídeos encastats i registre de lectures per alumne."
+      },
+      "auth": {
+        "nav": "2. Autenticació i Seguretat",
+        "title": "2. Autenticació, Sessió i Seguretat",
+        "loginTitle": "Inici de Sessió i Renovació Transparent",
+        "loginDesc": "Accedeix amb les teves credencials (email i contrasenya) a /login. Encertia utilitza un sistema segur de parell de tokens JWT:",
+        "accessToken": "Access Token (15 minuts): Utilitzat per autoritzar cada petició HTTP. S'auto-renova de manera transparent en segon pla.",
+        "refreshToken": "Refresh Token (7 dies): Manté la sessió oberta de manera segura.",
+        "logoutTitle": "Tancament de Sessió Efectiu (Logout Segur)",
+        "logoutDesc": "En clicar el botó de tancar sessió a la barra superior, Encertia executa un logout real al servidor. L'Access Token actiu s'invalida immediatament a la taula de revocació de PostgreSQL (revoked_access_tokens), impedint que ningú pugui reutilitzar la sessió.",
+        "rbacTitle": "Control d'Accés per Rol (RBAC)",
+        "rbacDesc": "La plataforma distingeix 3 rols d'usuari:",
+        "roleAdmin": "Admin: Accés total a la configuració global i a tots els cursos.",
+        "roleTeacher": "Professor: Creació i gestió dels seus cursos, alumnes, quizes i avaluacions.",
+        "roleStudent": "Alumne: Participació en partides en directe, consulta de materials i notes del seu curs."
+      },
+      "groups": {
+        "nav": "3. Gestió de Grups",
+        "title": "3. Gestió de Grups i Curs Acadèmic",
+        "intro": "La secció de Grups permet organitzar els estudiants en coorts per curs acadèmic (ex: \"Grup B&F curs 26-27\") facilitant la gestió col·lectiva i el seguiment de les partides.",
+        "step1Title": "Creació i Edició de Grups per Curs",
+        "step1Desc": "Crea grups introduint un nom descriptiu i el curs acadèmic corresponent (proposta per defecte: \"26-27\"). També és possible vincular un grup a un curs/assignatura específica via UUID.",
+        "step2Title": "Assignació d'Alumnes al Grup",
+        "step2Desc": "Fent clic a la icona de gestió d'alumnes, pots incorporar-hi estudiants introduint els seus UUIDs (separats per comes o noves línies) o veure la llista actual de membres del grup.",
+        "step3Title": "Manteniment i Baixa Lògica",
+        "step3Desc": "Pots modificar el nom i curs acadèmic d'un grup o donar-lo de baixa. La baixa realitza un soft-delete per tal de preservar l'historial d'avaluacions i partides jugades pels alumnes."
+      },
+      "users": {
+        "nav": "4. Gestió d'Alumnes",
+        "title": "4. Gestió d'Alumnes i Usuaris",
+        "intro": "Com a professor o administrador, pots gestionar el llistat d'alumnes des de la secció Usuaris.",
+        "step1Title": "Alta Individual d'Alumne",
+        "step1Desc": "Clica a \"Nou Usuari\", introdueix el nom, cognoms, email i assigna el rol d'alumne. El sistema generarà el compte immediatament.",
+        "step2Title": "Alta Massiva per CSV (Full de Càlcul)",
+        "step2Desc": "Fes servir l'assistent d'importació en 3 passos per pujar tot el grup-classe des d'un fitxer CSV/TSV. El cercador detecta automàticament els camps i valida cada fila abans de donar d'alta.",
+        "step3Title": "Reseteig Administratiu de Contrasenya",
+        "step3Desc": "Si un alumne oblida la contrasenya, pots resetejar-la directament des de la taula d'usuaris. La nova clau requerirà un mínim de 8 caràcters i tancarà automàticament les seves sessions anteriors.",
+        "step4Title": "Baixa Lògica (Soft-Delete)",
+        "step4Desc": "Al donar de baixa un alumne, Encertia executa un soft-delete (marca l'usuari com a inactiu). Cap historial acadèmic o resposta es perd mai."
+      },
+      "quizzes": {
+        "nav": "5. Banc de Qüestionaris",
+        "title": "5. Banc de Qüestionaris (Quizzes)",
+        "intro": "Des de la secció Jocs & Quizzes, pots crear i mantenir el teu banc de qüestionaris reutilitzables.",
+        "styleKahoot": "Estil Kahoot: L'editor de preguntes utilitza la paleta visual de 6 colors i formes distintives (▲ Vermell, ◆ Blau, ● Groc, ■ Verd, ★ Lila, ⬡ Taronja).",
+        "creationTitle": "Creació i Edició de Preguntes",
+        "questionType": "Tipus de Pregunta: Opció Única (exactament 1 resposta correcta) o Opció Múltiple (1 o més respostes correctes).",
+        "answerOptions": "Opcions de Resposta: Entre 2 i 6 opcions per pregunta.",
+        "timer": "Temporitzador: Configurable individualment per pregunta (5s, 10s, 20s, 30s, 60s, 90s o 120s).",
+        "images": "Imatges: Pujada d'imatge de portada de quiz i imatge per pregunta (amb integració Cloudflare R2).",
+        "duplicationTitle": "Duplicació de Qüestionaris",
+        "duplicationDesc": "Pots duplicar qualsevol qüestionari existent amb l'opció de copiar només l'enunciat de les preguntes o incloure també totes les respostes de base."
+      },
+      "courses": {
+        "nav": "6. Gestió de Cursos",
+        "title": "6. Gestió de Cursos i Unitats Didàctiques",
+        "intro": "A la secció Cursos, s'organitza l'assignatura en unitats didàctiques seqüencials (on \"unitat\" i \"classe\" representen el mateix concepte).",
+        "step1Title": "1. Creació del Curs",
+        "step1Desc": "Defineix el títol, codi d'assignatura, descripció i estat (Esborrany, Actiu, Arxivat).",
+        "step2Title": "2. Matriculació d'Alumnes",
+        "step2Desc": "Inscriu els alumnes del grup-classe al curs per donar-los accés als materials i quizes.",
+        "step3Title": "3. Unitats i Relació N:N",
+        "step3Desc": "Crea unitats didàctiques i vincula-hi un o més qüestionaris. Un mateix quiz es pot reutilitzar en diferents unitats.",
+        "step4Title": "4. Reordenació d'Unitats",
+        "step4Desc": "Reordena les unitats didàctiques segons l'avanç del quadrimestre."
+      },
+      "materials": {
+        "nav": "7. Materials Didàctics",
+        "title": "7. Materials Didàctics, Visor PDF i Mètriques",
+        "intro": "El mòdul Materials centralitza el repositori de recursos del professor.",
+        "docsTitle": "Documents i Vídeos Incrustats",
+        "docsDesc": "Documents (PDF, DOCX, PPTX): Carrega fitxers de fins a 50 MB. Vídeos Externs: Enllaça vídeos de YouTube o Vimeo. La plataforma detecta automàticament el proveïdor i genera el reproductor encastat.",
+        "pdfTitle": "Visor de PDF Integrat",
+        "pdfDesc": "Els alumnes i professors poden llegir els documents PDF directament a l'aplicació pàgina a pàgina, sense necessitat de descarregar-los prèviament.",
+        "replaceTitle": "Substitució Transparent de Fitxers",
+        "replaceDesc": "Si actualitzes un PDF o document, pots pujar la nova versió conservant el mateix ID de material. Això garanteix que les unitats didàctiques i el guió de classe no perdin mai l'enllaç.",
+        "metricsTitle": "Informe d'Accessos i Lectures (Mètriques)",
+        "metricsDesc": "Clica a la icona d'ull a qualsevol material per veure el panell d'informe: total de visualitzacions, alumnes únics que hi han accedit i la data de darrera lectura de cadascun."
+      },
+      "script": {
+        "nav": "8. Guió de Classe",
+        "title": "8. Guió de Classe (Visor Seqüencial)",
+        "intro": "El Guió de Classe permet dissenyar per endavant la seqüència exacta de la classe per projectar-la a l'aula en directe.",
+        "pdfBlockTitle": "Bloc de Material PDF",
+        "pdfBlockDesc": "Defineix un rang de pàgines d'un document (ex. \"Diapositives 1 a 15\") per mostrar al visor.",
+        "quizBlockTitle": "Bloc de Qüestionari",
+        "quizBlockDesc": "Llança automàticament la partida en directe (match) d'un quiz associat en arribar al bloc.",
+        "breakBlockTitle": "Bloc de Pausa / Preguntes",
+        "breakBlockDesc": "Pausa temporitzada per aclariments oberts i debat amb el grup-classe.",
+        "liveNote": "En directe: El professor només ha d'anar clicant \"Següent\" per anar avançant fluidament entre explicació i moments interactius."
+      },
+      "match": {
+        "nav": "9. Partida en Directe",
+        "title": "9. Partides en Directe i Jugadors Anònims",
+        "intro": "En llançar un joc en directe des d'un quiz o des del guió de classe, es pot seleccionar un grup específic de la classe.",
+        "step1Title": "Llançament i Sala d'Espera (Lobby)",
+        "step1Desc": "Es mostra el codi PIN de 6 dígits i el codi QR interactiu natiu. Els jugadors no registrats o anònims es poden unir introduint el PIN i un Nickname.",
+        "step2Title": "Control de la Partida i Tancament Automàtic",
+        "step2Desc": "El professor comença la partida i controla el ritme de lectura. La resposta es tanca automàticament quan s'agota el temporitzador o quan tots els jugadors han contestat.",
+        "step3Title": "Controls del Moderador i Navegació",
+        "step3Desc": "Al final de cada pregunta, el moderador pot prémer \"Veure Rànquing\" o anar directament a la \"Següent Pregunta\". Des del rànquing es pot reprendre la partida prement \"Anar a la següent pregunta\".",
+        "step4Title": "Resultats i Podi 3D Final",
+        "step4Desc": "Es projecta la distribució de vots i, al final de la partida, es revela el podi 3D animat amb els tres millors jugadors (🥇, 🥈, 🥉)."
+      },
+      "evaluations": {
+        "nav": "10. Panell d'Avaluació",
+        "title": "10. Panell d'Avaluació Acadèmica i Blocs Col·lapsables",
+        "intro": "A la secció Avaluacions, el professor pot consultar les notes i estadístiques de les partides jugades.",
+        "filtersTitle": "Filtres Avançats per Grup, Joc i Data",
+        "filtersDesc": "Utilitza els filtres superiors per seleccionar un Grup determinat, un Joc/Quiz específic o un rang de Dates per analitzar el rendiment acadèmic.",
+        "panelsTitle": "Panells Col·lapsables",
+        "panelsDesc": "Els resultats s'organitzen en panells col·lapsables (Panel :toggleable=\"true\") per facilitat de lectura: \"Estadístiques Globals per Pregunta\" (taxa d'encert, temps mitjà, distribució de respostes) i \"Resultats dels Alumnes\" (partides jugades, nota calculada i nota definitiva).",
+        "scoringTitle": "Sistema de Doble Puntuació",
+        "gamePoints": "Punts de Joc (Gamificació): Considera encert + rapidesa. Alimenta el rànquing i el podi en directe.",
+        "academicGrade": "Nota d'Avaluació (Acadèmica): Només considera l'encert absolut (0.00 a 10.00). La pressió del temps no afecta la nota.",
+        "gradingTitle": "Qualificació Automàtica i Ajust Manual",
+        "gradingDesc": "En finalitzar cada partida, Encertia calcula automàticament la nota de l'alumne. El professor pot revisar el desglossament i realitzar un ajust manual de la nota final (finalGrade) si ho considers oportú."
+      }
+    }
   },
   "metrics": {
     "title": "Mètriques i Auditoria del Sistema",
@@ -290,5 +423,58 @@
     "back": "Tornar",
     "language": "Idioma",
     "noResults": "No s'han trobat resultats"
+  },
+  "groups": {
+    "title": "Gestió de Grups",
+    "subtitle": "Organitza els alumnes en grups per curs acadèmic i assignatures",
+    "createGroup": "Nou Grup",
+    "editGroup": "Editar Grup",
+    "deleteGroup": "Esborrar Grup",
+    "searchPlaceholder": "Cercar per nom de grup...",
+    "academicYearFilter": "Curs (ex. 26-27)",
+    "resetFilters": "Netejar filtres",
+    "refreshList": "Refrescar llista",
+    "empty": "No s'ha trobat cap grup amb els criteris seleccionats.",
+    "table": {
+      "name": "Nom del Grup",
+      "academicYear": "Curs Acadèmic",
+      "students": "Alumnes",
+      "createdAt": "Data de creació",
+      "actions": "Accions"
+    },
+    "form": {
+      "createTitle": "Crear Nou Grup",
+      "editTitle": "Editar Grup",
+      "name": "Nom del Grup *",
+      "namePlaceholder": "Nom del grup (ex. Grup B&F, 1A...)",
+      "academicYear": "Curs Acadèmic",
+      "academicYearPlaceholder": "26-27",
+      "academicYearHint": "Proposta per defecte: \"26-27\"",
+      "courseId": "UUID Curs Associat (opcional)",
+      "courseIdPlaceholder": "UUID del curs/assignatura...",
+      "submitCreate": "Crear Grup",
+      "submitUpdate": "Actualitzar",
+      "nameRequired": "El nom del grup és obligatori."
+    },
+    "deleteModal": {
+      "title": "Confirmar Baixa de Grup",
+      "confirmText": "Estàs segur que vols donar de baixa el grup",
+      "softDeleteHint": "Aquesta acció realitza una baixa lògica (soft-delete) preservant la informació acadèmica dels alumnes.",
+      "confirmButton": "Confirmar Baixa"
+    },
+    "studentsModal": {
+      "title": "Alumnes del Grup: {name}",
+      "manageStudents": "Gestionar Alumnes",
+      "addTitle": "Assignar nous alumnes",
+      "addDesc": "Introdueix els UUIDs dels alumnes separats per comes o noves línies:",
+      "placeholder": "UUID1, UUID2...",
+      "addButton": "Afegir Alumnes",
+      "listTitle": "Llista d'alumnes assignats ({count})",
+      "noStudents": "No hi ha cap alumne assignat a aquest grup actualment.",
+      "remove": "Desassignar",
+      "unnamedStudent": "Alumne sense nom",
+      "emptyError": "Introdueix almenys un UUID d'alumne.",
+      "fetchError": "Error en carregar els alumnes del grup."
+    }
   }
 }
