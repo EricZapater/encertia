@@ -1,0 +1,36 @@
+CHANGELOG.md
+  h_42175f19913982 8-15
+VERSION
+  h_42175f19913982 1
+contracts/evaluation.spec.md
+  h_42175f19913982 143-146,151,153,156
+frontend/src/i18n/locales/ca.json
+  h_42175f19913982 181-220,291-292
+frontend/src/i18n/locales/en.json
+  h_42175f19913982 181-220,291-292
+frontend/src/i18n/locales/es.json
+  h_42175f19913982 181-220,291-292
+frontend/src/modules/evaluations/__tests__/EvaluationsViews.spec.ts
+  h_42175f19913982 1-183
+frontend/src/modules/evaluations/types.ts
+  h_42175f19913982 43-44
+frontend/src/modules/evaluations/views/EvaluationsListView.vue
+  h_42175f19913982 5-46,50,57-59,64-66,71,76,79,95,100,106,110-111,120-159,172
+frontend/src/modules/evaluations/views/QuizEvaluationView.vue
+  h_42175f19913982 5,8-50,59-84,86-88,90-95,98-132,142,144,149,156,160-161,170-186,190-221,234-235,237,247-252
+qa-reports/evaluation_collapsible.md
+  h_42175f19913982 1-53
+ux-reports/evaluation_collapsible.md
+  h_42175f19913982 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4e8496c37a2c4271be17f0be9173ebe0265681db",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
