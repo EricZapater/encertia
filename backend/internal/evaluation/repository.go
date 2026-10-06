@@ -250,7 +250,8 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 			COUNT(DISTINCT m.id) AS matches_count,
 			COALESCE(MAX(e.calculated_grade), 0.00) AS calculated_grade,
 			MAX(e.final_grade) AS final_grade,
-			COALESCE(BOOL_OR(e.is_graded), false) AS is_graded
+			COALESCE(BOOL_OR(e.is_graded), false) AS is_graded,
+			MAX(m.updated_at) AS last_match_at
 		FROM match_players mp
 		INNER JOIN matches m ON m.id = mp.match_id AND m.status = 'finished' AND m.deleted_at IS NULL
 		LEFT JOIN users u ON mp.user_id = u.id
@@ -290,7 +291,8 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 		var s StudentEvaluationSummary
 		var stGroupID, stGroupName sql.NullString
 		var finalGrade sql.NullFloat64
-		if err := stRows.Scan(&s.StudentID, &s.StudentName, &stGroupID, &stGroupName, &s.MatchesCount, &s.CalculatedGrade, &finalGrade, &s.IsGraded); err != nil {
+		var lastMatchAt sql.NullTime
+		if err := stRows.Scan(&s.StudentID, &s.StudentName, &stGroupID, &stGroupName, &s.MatchesCount, &s.CalculatedGrade, &finalGrade, &s.IsGraded, &lastMatchAt); err != nil {
 			return nil, err
 		}
 		if stGroupID.Valid {
@@ -304,6 +306,9 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 		if finalGrade.Valid {
 			fg := finalGrade.Float64
 			s.FinalGrade = &fg
+		}
+		if lastMatchAt.Valid {
+			s.LastMatchAt = &lastMatchAt.Time
 		}
 		students = append(students, s)
 	}

@@ -382,6 +382,11 @@ components:
           type: boolean
           description: Indica si el professor ha assignat una nota definitiva
           example: true
+        lastMatchAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data i hora de la darrera partida jugada per l'alumne en aquest quiz
 
     # ─── Detall d'un alumne ─────────────────────────────────────────────────
 

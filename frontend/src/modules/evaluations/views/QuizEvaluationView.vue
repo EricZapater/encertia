@@ -214,6 +214,16 @@ const quizOptions = computed(() => {
 const quizId = computed(() => route.params.quizId as string)
 const evalData = computed(() => store.activeQuizEvaluation)
 
+function toLocalDateString(d: Date | string | null | undefined): string {
+  if (!d) return ''
+  const date = typeof d === 'string' ? new Date(d) : d
+  if (isNaN(date.getTime())) return ''
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const filteredStudents = computed(() => {
   if (!evalData.value) return []
   let list = evalData.value.students
@@ -221,16 +231,8 @@ const filteredStudents = computed(() => {
     list = list.filter((s) => !s.groupId || s.groupId === selectedGroupId.value)
   }
   if (selectedDate.value) {
-    const filterDate = new Date(selectedDate.value)
     list = list.filter((s) => {
-      const dateStr = s.lastMatchAt || s.matchDate
-      if (!dateStr) return false
-      const matchDate = new Date(dateStr)
-      return (
-        matchDate.getFullYear() === filterDate.getFullYear() &&
-        matchDate.getMonth() === filterDate.getMonth() &&
-        matchDate.getDate() === filterDate.getDate()
-      )
+      return toLocalDateString(s.lastMatchAt || s.matchDate) === toLocalDateString(selectedDate.value)
     })
   }
   return list

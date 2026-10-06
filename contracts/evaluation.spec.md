@@ -106,7 +106,7 @@ Vista d'avaluació completa d'un quiz:
 - `groupId` (UUID, opcional): Filtra els resultats dels alumnes/participants per un grup d'alumnes en concret.
 
 - **`stats`**: array de mètriques per pregunta (secció 3.5). Ordre: `order_index` de `quiz_questions`.
-- **`students`**: array d'alumnes participants: `studentId`, `studentName`, `groupId`, `groupName`, `matchesCount`, `calculatedGrade`, `finalGrade` (null si no qualificat), `isGraded`.
+- **`students`**: array d'alumnes participants: `studentId`, `studentName`, `groupId`, `groupName`, `matchesCount`, `calculatedGrade`, `finalGrade` (null si no qualificat), `isGraded`, `lastMatchAt` (data i hora de la darrera partida).
 
 **Errors:** `403` si `teacher` accedeix a un quiz que no és seu. `404` si el quiz no existeix o no té partides finalitzades.
 

@@ -5,6 +5,13 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.4] - 2026-10-06
+### Fixed
+- **Backend (`internal/evaluation/`)**:
+  - Afegit el camp `lastMatchAt` (`MAX(m.updated_at)`) a la consulta SQL i a l'estructura `StudentEvaluationSummary` a `GetQuizEvaluation`, permetent saber la data exacta de la darrera partida jugada per cada alumne.
+- **Frontend (`src/modules/evaluations/`)**:
+  - Resolt el problema de filtratge per Data a `EvaluationsListView.vue` i `QuizEvaluationView.vue`. S'ha implementat la funció `toLocalDateString` per comparar exclusivament per data de calendari local (`YYYY-MM-DD`), ignorant components d'hora, minuts i desplaçaments de fus horari UTC.
+
 ## [1.7.3] - 2026-10-06
 ### Changed
 - **Frontend (`src/modules/evaluations/`)**:
