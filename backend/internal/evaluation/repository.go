@@ -40,7 +40,8 @@ func (r *repository) ListEvaluations(teacherID string, isAdmin bool, groupID str
 					WHERE m.group_id IS NOT NULL AND gs.group_id = m.group_id AND (
 						LOWER(TRIM(CONCAT(u.first_name, ' ', u.last_name))) = LOWER(TRIM(mp.nickname)) OR
 						LOWER(TRIM(u.first_name)) = LOWER(TRIM(mp.nickname)) OR
-						LOWER(TRIM(u.username)) = LOWER(TRIM(mp.nickname))
+						LOWER(TRIM(u.email)) = LOWER(TRIM(mp.nickname)) OR
+						LOWER(TRIM(SPLIT_PART(u.email, '@', 1))) = LOWER(TRIM(mp.nickname))
 					)
 					LIMIT 1
 				),
@@ -61,7 +62,8 @@ func (r *repository) ListEvaluations(teacherID string, isAdmin bool, groupID str
 					WHERE m.group_id IS NOT NULL AND gs.group_id = m.group_id AND (
 						LOWER(TRIM(CONCAT(u.first_name, ' ', u.last_name))) = LOWER(TRIM(mp.nickname)) OR
 						LOWER(TRIM(u.first_name)) = LOWER(TRIM(mp.nickname)) OR
-						LOWER(TRIM(u.username)) = LOWER(TRIM(mp.nickname))
+						LOWER(TRIM(u.email)) = LOWER(TRIM(mp.nickname)) OR
+						LOWER(TRIM(SPLIT_PART(u.email, '@', 1))) = LOWER(TRIM(mp.nickname))
 					)
 					LIMIT 1
 				)
@@ -237,7 +239,7 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 	// Students list
 	stRows, err := r.db.Query(`
 		SELECT 
-			COALESCE(u.id, mapped_u.id, mp.id::text) AS student_id,
+			COALESCE(u.id::text, mapped_u.id::text, mp.id::text) AS student_id,
 			COALESCE(
 				NULLIF(TRIM(CONCAT(u.first_name, ' ', u.last_name)), ''),
 				NULLIF(TRIM(CONCAT(mapped_u.first_name, ' ', mapped_u.last_name)), ''),
@@ -256,7 +258,8 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 		LEFT JOIN users mapped_u ON mp.user_id IS NULL AND gs.student_id = mapped_u.id AND (
 			LOWER(TRIM(CONCAT(mapped_u.first_name, ' ', mapped_u.last_name))) = LOWER(TRIM(mp.nickname)) OR
 			LOWER(TRIM(mapped_u.first_name)) = LOWER(TRIM(mp.nickname)) OR
-			LOWER(TRIM(mapped_u.username)) = LOWER(TRIM(mp.nickname))
+			LOWER(TRIM(mapped_u.email)) = LOWER(TRIM(mp.nickname)) OR
+			LOWER(TRIM(SPLIT_PART(mapped_u.email, '@', 1))) = LOWER(TRIM(mp.nickname))
 		)
 		LEFT JOIN groups g_match ON g_match.id = m.group_id AND g_match.deleted_at IS NULL
 		LEFT JOIN group_students gs_matched ON gs_matched.student_id = COALESCE(u.id, mapped_u.id)
@@ -267,7 +270,7 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 		)
 		WHERE m.quiz_id = $1
 		  AND ($2 = '' OR m.group_id::text = $2 OR gs_matched.group_id::text = $2 OR gs.group_id::text = $2)
-		GROUP BY COALESCE(u.id, mapped_u.id, mp.id::text),
+		GROUP BY COALESCE(u.id::text, mapped_u.id::text, mp.id::text),
 		         COALESCE(
 			         NULLIF(TRIM(CONCAT(u.first_name, ' ', u.last_name)), ''),
 			         NULLIF(TRIM(CONCAT(mapped_u.first_name, ' ', mapped_u.last_name)), ''),
@@ -402,7 +405,8 @@ func (r *repository) GetStudentEvaluation(quizID, studentID string) (*StudentEva
 			(mp.user_id IS NULL AND gs.student_id IS NOT NULL AND (
 				LOWER(TRIM(CONCAT(u.first_name, ' ', u.last_name))) = LOWER(TRIM(mp.nickname)) OR
 				LOWER(TRIM(u.first_name)) = LOWER(TRIM(mp.nickname)) OR
-				LOWER(TRIM(u.username)) = LOWER(TRIM(mp.nickname))
+				LOWER(TRIM(u.email)) = LOWER(TRIM(mp.nickname)) OR
+				LOWER(TRIM(SPLIT_PART(u.email, '@', 1))) = LOWER(TRIM(mp.nickname))
 			))
 		) AND m.status = 'finished' AND m.deleted_at IS NULL
 		ORDER BY m.created_at DESC
@@ -445,7 +449,8 @@ func (r *repository) GetStudentEvaluation(quizID, studentID string) (*StudentEva
 					WHERE m2.id = $1 AND (
 						LOWER(TRIM(CONCAT(u2.first_name, ' ', u2.last_name))) = LOWER(TRIM(mp.nickname)) OR
 						LOWER(TRIM(u2.first_name)) = LOWER(TRIM(mp.nickname)) OR
-						LOWER(TRIM(u2.username)) = LOWER(TRIM(mp.nickname))
+						LOWER(TRIM(u2.email)) = LOWER(TRIM(mp.nickname)) OR
+						LOWER(TRIM(SPLIT_PART(u2.email, '@', 1))) = LOWER(TRIM(mp.nickname))
 					)
 				))
 			)
@@ -590,7 +595,8 @@ func (r *repository) UpsertCalculatedGradeForMatch(matchID string) error {
 				WHERE gs.group_id = $1 AND (
 					LOWER(TRIM(CONCAT(u.first_name, ' ', u.last_name))) = LOWER(TRIM($2)) OR
 					LOWER(TRIM(u.first_name)) = LOWER(TRIM($2)) OR
-					LOWER(TRIM(u.username)) = LOWER(TRIM($2))
+					LOWER(TRIM(u.email)) = LOWER(TRIM($2)) OR
+					LOWER(TRIM(SPLIT_PART(u.email, '@', 1))) = LOWER(TRIM($2))
 				)
 				LIMIT 1
 			`, groupID.String, nickname).Scan(&foundID)

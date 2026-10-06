@@ -5,6 +5,11 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.4] - 2026-10-06
+### Fixed
+- **Backend (`internal/evaluation/repository.go`)**:
+  - Resolt l'error HTTP 500 (`INTERNAL_SERVER_ERROR`) al cridar `GET /api/evaluations?groupId=...`. S'ha reemplaçat la columna inexistent `u.username` per `u.email` / `SPLIT_PART(u.email, '@', 1)` i corregit la incompatibilitat de tipus en `COALESCE(u.id::text, mapped_u.id::text, mp.id::text)`.
+
 ## [1.6.3] - 2026-10-06
 ### Fixed
 - **Backend (`internal/evaluation/repository.go`)**:
