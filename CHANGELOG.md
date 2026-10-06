@@ -5,6 +5,14 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-06
+### Added
+- **Backend (`internal/match/`)**:
+  - Tancament automàtic de pregunta quan tots els jugadors connectats han respost: quan `player:submit_answer` rep l'última resposta de la sala, la pregunta passa automàticament a `question_results` i es realitza el broadcast de `match:question_ended`.
+- **Frontend (`src/modules/match/views/HostGameView.vue`)**:
+  - Dos botons d'acció a la pantalla de resultats (`question_results`): **"Veure Rànquing"** i **"Següent Pregunta"**.
+  - Botó d'acció a la pantalla de rànquing (`leaderboard`): **"Anar a la següent pregunta"**.
+
 ## [1.6.4] - 2026-10-06
 ### Fixed
 - **Backend (`internal/evaluation/repository.go`)**:

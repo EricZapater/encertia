@@ -179,4 +179,111 @@ describe('HostGameView.vue', () => {
 
     expect(matchStore.showResults).toHaveBeenCalled()
   })
+
+  it('fase question_results mostra botons per Veure Rànquing i Següent Pregunta', async () => {
+    const authStore = useAuthStore()
+    authStore.user = {
+      id: 'u1',
+      firstName: 'Teacher',
+      lastName: 'Ensenya',
+      email: 'prof@encertia.cat',
+      role: 'teacher',
+      isActive: true,
+      createdAt: '2026-08-21T10:00:00Z',
+      updatedAt: '2026-08-21T10:00:00Z'
+    }
+    authStore.accessToken = 'fake-token'
+    authStore.isInitialized = true
+
+    const matchStore = useMatchStore()
+    matchStore.matchId = 'm123'
+    matchStore.pin = '654321'
+    matchStore.status = 'question_results'
+    matchStore.role = 'host'
+    matchStore.currentQuestion = {
+      id: 'q1',
+      orderIndex: 0,
+      title: 'Resultats de la pregunta',
+      type: 'single_choice',
+      timeLimitSeconds: 20,
+      points: 1,
+      options: [{ id: 'opt-1', text: 'Opció 1' }]
+    }
+    matchStore.isConnected = true
+
+    vi.spyOn(matchStore, 'showLeaderboard')
+    vi.spyOn(matchStore, 'nextQuestion')
+
+    const wrapper = mount(HostGameView, {
+      global: {
+        stubs: {
+          Tag: { template: '<span><slot /></span>' },
+          Button: { template: '<button>{{ label }}<slot /></button>', props: ['label'] },
+          Dialog: { template: '<div></div>' }
+        }
+      }
+    })
+
+    expect(wrapper.find('[data-testid="host-phase-results"]').exists()).toBe(true)
+
+    const showLeaderboardBtn = wrapper.find('[data-testid="btn-show-leaderboard"]')
+    expect(showLeaderboardBtn.exists()).toBe(true)
+    expect(showLeaderboardBtn.text()).toContain('Veure Rànquing')
+    await showLeaderboardBtn.trigger('click')
+    expect(matchStore.showLeaderboard).toHaveBeenCalled()
+
+    const nextQuestionBtn = wrapper.find('[data-testid="btn-next-question"]')
+    expect(nextQuestionBtn.exists()).toBe(true)
+    expect(nextQuestionBtn.text()).toContain('Següent Pregunta')
+    await nextQuestionBtn.trigger('click')
+    expect(matchStore.nextQuestion).toHaveBeenCalled()
+  })
+
+  it('fase leaderboard mostra el botó Anar a la següent pregunta', async () => {
+    const authStore = useAuthStore()
+    authStore.user = {
+      id: 'u1',
+      firstName: 'Teacher',
+      lastName: 'Ensenya',
+      email: 'prof@encertia.cat',
+      role: 'teacher',
+      isActive: true,
+      createdAt: '2026-08-21T10:00:00Z',
+      updatedAt: '2026-08-21T10:00:00Z'
+    }
+    authStore.accessToken = 'fake-token'
+    authStore.isInitialized = true
+
+    const matchStore = useMatchStore()
+    matchStore.matchId = 'm123'
+    matchStore.pin = '654321'
+    matchStore.status = 'leaderboard'
+    matchStore.role = 'host'
+    matchStore.currentQuestionIndex = 0
+    matchStore.totalQuestions = 3
+    matchStore.leaderboard = [
+      { playerId: 'p1', nickname: 'Joan', score: 100 }
+    ]
+    matchStore.isConnected = true
+
+    vi.spyOn(matchStore, 'nextQuestion')
+
+    const wrapper = mount(HostGameView, {
+      global: {
+        stubs: {
+          Tag: { template: '<span><slot /></span>' },
+          Button: { template: '<button>{{ label }}<slot /></button>', props: ['label'] },
+          Dialog: { template: '<div></div>' }
+        }
+      }
+    })
+
+    expect(wrapper.find('[data-testid="host-phase-leaderboard"]').exists()).toBe(true)
+
+    const nextQuestionBtn = wrapper.find('[data-testid="btn-next-question"]')
+    expect(nextQuestionBtn.exists()).toBe(true)
+    expect(nextQuestionBtn.text()).toContain('Anar a la següent pregunta')
+    await nextQuestionBtn.trigger('click')
+    expect(matchStore.nextQuestion).toHaveBeenCalled()
+  })
 })

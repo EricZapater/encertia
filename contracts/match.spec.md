@@ -121,15 +121,14 @@ CREATE INDEX IF NOT EXISTS idx_match_answers_match_question ON match_answers (ma
    ▼ host:start_question_timer
 [Question Active] (respostes obertes + compte enrere)
    │
-   ▼ temps esgotat o tothom ha respost / host:show_results
+   ▼ tothom ha respost (auto-tancament) O temps esgotat O host:show_results
 [Question Results] (gràfic de barres + revelació de correcta)
    │
-   ▼ host:show_leaderboard
-[Leaderboard] (rànquing parcial)
+   ├── Veure Rànquing ──► host:show_leaderboard ──► [Leaderboard] (rànquing parcial)
+   │                                                   │
+   │                                                   └── Anar a la següent pregunta ──► host:next_question ──► [Question Preview]
    │
-   ├── Hi ha més preguntes? ──► host:next_question ──► [Question Preview]
-   │
-   └── Era l'última pregunta? ──► host:next_question ──► [Finished / Podium]
+   └── Següent Pregunta ──► host:next_question ──► [Question Preview / Finished]
 ```
 
 ---
@@ -139,7 +138,11 @@ CREATE INDEX IF NOT EXISTS idx_match_answers_match_question ON match_answers (ma
 2. **Generació de PIN**: PIN numèric aleatori de 6 dígits (ex: `749201`) no utilitzat en cap altra partida activa.
 3. **Puntuació**: 1 punt per pregunta encertada (en `single_choice` requereix la resposta correcta; en `multiple_choice` requereix haver seleccionat totes les correctes sense cap incorrecta).
 4. **Pausa inicial abans de respondre**: Cada pregunta comença en `question_preview` i només s'obre el temps quan el moderador prem *"Iniciar Temps"*.
-5. **Visibilitat de les Respostes**: A la pantalla de l'alumne es mostren els botons grans dels colors i formes Kahoot (▲ Vermell, ◆ Blau, ● Groc, ■ Verd, ★ Lila, ⬡ Taronja) **juntament amb el text de l'opció**.
+5. **Tancament automàtic de pregunta**: Durant la fase activa (`question_active`), tan bon punt tots els jugadors connectats a la partida han enviat la seva resposta, la pregunta es tanca automàticament i la partida passa a l'estat de resultats (`question_results`).
+6. **Navegació des de Resultats**: En la pantalla de resultats (`question_results`), el moderador disposa de 2 opcions:
+   - **"Veure Rànquing"**: Mostra la classificació parcial (`leaderboard`), on hi haurà el botó *"Anar a la següent pregunta"*.
+   - **"Següent Pregunta"**: Avança directament a la següent pregunta (o al podi final si era la darrera).
+7. **Visibilitat de les Respostes**: A la pantalla de l'alumne es mostren els botons grans dels colors i formes Kahoot (▲ Vermell, ◆ Blau, ● Groc, ■ Verd, ★ Lila, ⬡ Taronja) **juntament amb el text de l'opció**.
 
 ---
 

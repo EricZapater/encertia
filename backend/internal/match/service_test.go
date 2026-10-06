@@ -345,3 +345,107 @@ func TestMatchService_WSLifecycle(t *testing.T) {
 	svc.HandleClientDisconnect(ctx, p1Client)
 	svc.HandleClientDisconnect(ctx, hostClient)
 }
+
+func TestMatchService_AutoCloseQuestion(t *testing.T) {
+	ctx := context.Background()
+	_, hub, svc, hostID, qd := setupTestService()
+
+	created, _ := svc.CreateMatch(ctx, hostID, qd.ID, nil)
+	room := hub.GetRoom(created.PIN)
+
+	// Join 2 players
+	p1UserID := uuid.New()
+	join1, _ := svc.JoinMatch(ctx, &p1UserID, created.PIN, "Jugador 1")
+	p2UserID := uuid.New()
+	join2, _ := svc.JoinMatch(ctx, &p2UserID, created.PIN, "Jugador 2")
+
+	// Host WS
+	hostClient := &match.Client{
+		Hub:      hub,
+		Room:     room,
+		Send:     make(chan []byte, 20),
+		UserID:   hostID,
+		Nickname: "Host",
+		IsHost:   true,
+	}
+	room.RegisterClient(hostClient)
+	svc.HandleClientConnect(ctx, hostClient)
+
+	// Player 1 WS
+	p1Client := &match.Client{
+		Hub:      hub,
+		Room:     room,
+		Send:     make(chan []byte, 20),
+		UserID:   p1UserID,
+		PlayerID: &join1.PlayerID,
+		Nickname: "Jugador 1",
+		IsHost:   false,
+	}
+	room.RegisterClient(p1Client)
+	svc.HandleClientConnect(ctx, p1Client)
+
+	// Player 2 WS
+	p2Client := &match.Client{
+		Hub:      hub,
+		Room:     room,
+		Send:     make(chan []byte, 20),
+		UserID:   p2UserID,
+		PlayerID: &join2.PlayerID,
+		Nickname: "Jugador 2",
+		IsHost:   false,
+	}
+	room.RegisterClient(p2Client)
+	svc.HandleClientConnect(ctx, p2Client)
+
+	// Start match & start timer
+	startMsg, _ := json.Marshal(match.WSMessage{Event: match.HostEventStartMatch})
+	svc.HandleWSMessage(ctx, hostClient, startMsg)
+
+	timerMsg, _ := json.Marshal(match.WSMessage{Event: match.HostEventStartQuestionTimer})
+	svc.HandleWSMessage(ctx, hostClient, timerMsg)
+
+	m, _ := svc.GetMatchByID(ctx, created.ID)
+	if m.Status != match.StatusQuestionActive {
+		t.Fatalf("esperava question_active, got %s", m.Status)
+	}
+
+	q1 := qd.Questions[0]
+
+	// 1. Player 1 submits answer
+	p1AnswerMsg, _ := json.Marshal(match.WSMessage{
+		Event: match.PlayerEventSubmitAnswer,
+		Data: func() json.RawMessage {
+			b, _ := json.Marshal(match.SubmitAnswerPayload{
+				QuestionID: q1.ID,
+				AnswerIDs:  []uuid.UUID{q1.Answers[0].ID},
+			})
+			return b
+		}(),
+	})
+	svc.HandleWSMessage(ctx, p1Client, p1AnswerMsg)
+
+	// Should still be active because only 1 of 2 connected players answered
+	m, _ = svc.GetMatchByID(ctx, created.ID)
+	if m.Status != match.StatusQuestionActive {
+		t.Errorf("esperava que la pregunta continués activa després de la 1a resposta, got %s", m.Status)
+	}
+
+	// 2. Player 2 submits answer -> ALL connected players answered
+	p2AnswerMsg, _ := json.Marshal(match.WSMessage{
+		Event: match.PlayerEventSubmitAnswer,
+		Data: func() json.RawMessage {
+			b, _ := json.Marshal(match.SubmitAnswerPayload{
+				QuestionID: q1.ID,
+				AnswerIDs:  []uuid.UUID{q1.Answers[1].ID},
+			})
+			return b
+		}(),
+	})
+	svc.HandleWSMessage(ctx, p2Client, p2AnswerMsg)
+
+	// Question must automatically transition to question_results
+	m, _ = svc.GetMatchByID(ctx, created.ID)
+	if m.Status != match.StatusQuestionResults {
+		t.Errorf("esperava tancament automàtic a question_results quan tots responen, got %s", m.Status)
+	}
+}

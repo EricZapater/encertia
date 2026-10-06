@@ -423,6 +423,15 @@ function handleExitHost() {
           @click="handleShowLeaderboard"
           data-testid="btn-show-leaderboard"
         />
+        <Button
+          label="Següent Pregunta"
+          icon="pi pi-arrow-right"
+          size="large"
+          severity="secondary"
+          class="btn-action-hero"
+          @click="handleNextQuestion"
+          data-testid="btn-next-question"
+        />
       </div>
     </main>
 
@@ -460,7 +469,7 @@ function handleExitHost() {
       <div class="leaderboard-footer">
         <Button
           v-if="!matchStore.isLastQuestion"
-          label="Següent Pregunta"
+          label="Anar a la següent pregunta"
           icon="pi pi-arrow-right"
           size="large"
           severity="primary"
@@ -1023,6 +1032,7 @@ function handleExitHost() {
 .results-control-footer {
   display: flex;
   justify-content: center;
+  gap: 1rem;
   margin-top: 1.5rem;
 }
 

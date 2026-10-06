@@ -434,7 +434,14 @@ func (s *matchService) handleHostShowResults(ctx context.Context, client *Client
 	if !client.IsHost {
 		return
 	}
-	pin := client.Room.PIN
+	s.showQuestionResults(ctx, client.Room)
+}
+
+func (s *matchService) showQuestionResults(ctx context.Context, room *Room) {
+	if room == nil {
+		return
+	}
+	pin := room.PIN
 	m, qDetail, err := s.repo.GetMatchWithQuiz(ctx, pin)
 	if err != nil || m == nil || qDetail == nil || m.CurrentQuestionIndex >= len(qDetail.Questions) {
 		return
@@ -478,7 +485,7 @@ func (s *matchService) handleHostShowResults(ctx context.Context, client *Client
 	}
 
 	// 1. Send Host summary
-	client.Room.SendToHost(OutgoingWSMessage{
+	room.SendToHost(OutgoingWSMessage{
 		Event: ServerEventQuestionEnded,
 		Data: QuestionEndedHostPayload{
 			QuestionID:       currQ.ID,
@@ -504,7 +511,7 @@ func (s *matchService) handleHostShowResults(ctx context.Context, client *Client
 			scoreAwarded = pAns.ScoreAwarded
 		}
 
-		client.Room.SendToPlayer(p.ID, OutgoingWSMessage{
+		room.SendToPlayer(p.ID, OutgoingWSMessage{
 			Event: ServerEventQuestionEnded,
 			Data: QuestionEndedPlayerPayload{
 				QuestionID:       currQ.ID,
@@ -753,4 +760,9 @@ func (s *matchService) handlePlayerSubmitAnswer(ctx context.Context, client *Cli
 			TotalPlayers:  len(players),
 		},
 	})
+
+	connectedCount := client.Room.ConnectedPlayerCount()
+	if connectedCount > 0 && len(answers) >= connectedCount {
+		s.showQuestionResults(ctx, client.Room)
+	}
 }
