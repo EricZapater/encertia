@@ -178,7 +178,46 @@
     "studentEvaluations": "Evaluation by Student",
     "averageScore": "Average Score",
     "successRate": "Success Rate",
-    "exportCsv": "Export to CSV"
+    "exportCsv": "Export to CSV",
+    "filters": {
+      "group": "Group",
+      "allGroups": "All groups",
+      "game": "Game",
+      "allGames": "All games",
+      "selectGame": "Select a game",
+      "date": "Date",
+      "datePlaceholder": "Filter by date"
+    },
+    "panels": {
+      "globalStats": "Global Statistics per Question",
+      "studentResults": "Student Results"
+    },
+    "table": {
+      "quizTitle": "Quiz",
+      "group": "Group",
+      "totalMatches": "Matches Played",
+      "totalStudents": "Participating Students",
+      "gradedCount": "Graded / Total",
+      "lastMatchAt": "Last Match",
+      "actions": "Actions",
+      "questionNumber": "#",
+      "question": "Question",
+      "hitRate": "Success Rate",
+      "avgResponseTime": "Avg Time",
+      "answerDistribution": "Answer Distribution",
+      "noAnswer": "No Answer",
+      "studentName": "Student Name",
+      "matches": "Matches",
+      "calculatedGrade": "Calculated Grade (Last Match)",
+      "finalGrade": "Final Grade",
+      "pending": "Pending"
+    },
+    "actions": {
+      "back": "Back",
+      "viewEvaluation": "View Evaluation",
+      "grade": "Grade",
+      "editGrade": "Edit Grade"
+    }
   },
   "manual": {
     "title": "Teacher Manual",
@@ -249,6 +288,7 @@
     "actions": "Actions",
     "confirm": "Confirm",
     "back": "Back",
-    "language": "Language"
+    "language": "Language",
+    "noResults": "No results found"
   }
 }

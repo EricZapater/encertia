@@ -40,6 +40,8 @@ export interface StudentEvaluationSummary {
   calculatedGrade: number
   finalGrade?: number | null
   isGraded: boolean
+  lastMatchAt?: string | null
+  matchDate?: string | null
 }
 
 export interface QuizEvaluationResponse {

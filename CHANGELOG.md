@@ -5,6 +5,14 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-10-06
+### Added
+- **Frontend (`src/modules/evaluations/`)**:
+  - Blocs col·lapsables en la vista d'avaluació (`QuizEvaluationView.vue`) utilitzant components `Panel` de PrimeVue (`:toggleable="true"`) per a les seccions *Estadístiques Globals per Pregunta* i *Resultats dels Alumnes*.
+  - Barra de filtres superior composta per **Grup** (`Select`), **Joc** (`Select` / cerca) i **Data** (`DatePicker` reactiu) a `EvaluationsListView.vue` i `QuizEvaluationView.vue`.
+  - Suport complet d'i18n (`$t`) en etiquetes de filtre, placeholders i títols de panells.
+  - Slots d'estat buit (`#empty`) a les taules `DataTable` per a una millor experiència d'usuari en filtrar.
+
 ## [1.7.0] - 2026-10-06
 ### Added
 - **Backend (`internal/match/`)**:

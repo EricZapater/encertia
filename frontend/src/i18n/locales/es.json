@@ -178,7 +178,46 @@
     "studentEvaluations": "Evaluación por Alumno",
     "averageScore": "Nota Media",
     "successRate": "Porcentaje de Aciertos",
-    "exportCsv": "Exportar a CSV"
+    "exportCsv": "Exportar a CSV",
+    "filters": {
+      "group": "Grupo",
+      "allGroups": "Todos los grupos",
+      "game": "Juego",
+      "allGames": "Todos los juegos",
+      "selectGame": "Selecciona un juego",
+      "date": "Fecha",
+      "datePlaceholder": "Filtrar por fecha"
+    },
+    "panels": {
+      "globalStats": "Estadísticas Globales por Pregunta",
+      "studentResults": "Resultados de los Alumnos"
+    },
+    "table": {
+      "quizTitle": "Cuestionario",
+      "group": "Grupo",
+      "totalMatches": "Partidas Jugadas",
+      "totalStudents": "Alumnos Participantes",
+      "gradedCount": "Evaluados / Total",
+      "lastMatchAt": "Última Partida",
+      "actions": "Acciones",
+      "questionNumber": "#",
+      "question": "Pregunta",
+      "hitRate": "Tasa de Acierto",
+      "avgResponseTime": "Tiempo Medio",
+      "answerDistribution": "Distribución de Respuestas",
+      "noAnswer": "Sin Respuesta",
+      "studentName": "Nombre del Alumno",
+      "matches": "Partidas",
+      "calculatedGrade": "Nota Calculada (Última Partida)",
+      "finalGrade": "Nota Definitiva",
+      "pending": "Pendiente"
+    },
+    "actions": {
+      "back": "Volver",
+      "viewEvaluation": "Ver Evaluación",
+      "grade": "Calificar",
+      "editGrade": "Editar Nota"
+    }
   },
   "manual": {
     "title": "Manual del Profesorado",
@@ -249,6 +288,7 @@
     "actions": "Acciones",
     "confirm": "Confirmar",
     "back": "Volver",
-    "language": "Idioma"
+    "language": "Idioma",
+    "noResults": "No se han encontrado resultados"
   }
 }

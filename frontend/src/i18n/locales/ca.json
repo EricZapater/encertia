@@ -178,7 +178,46 @@
     "studentEvaluations": "Avaluació per Alumne",
     "averageScore": "Nota Mitjana",
     "successRate": "Percentatge d'Encerts",
-    "exportCsv": "Exportar a CSV"
+    "exportCsv": "Exportar a CSV",
+    "filters": {
+      "group": "Grup",
+      "allGroups": "Tots els grups",
+      "game": "Joc",
+      "allGames": "Tots els jocs",
+      "selectGame": "Selecciona un joc",
+      "date": "Data",
+      "datePlaceholder": "Filtrar per data"
+    },
+    "panels": {
+      "globalStats": "Estadístiques Globals per Pregunta",
+      "studentResults": "Resultats dels Alumnes"
+    },
+    "table": {
+      "quizTitle": "Qüestionari",
+      "group": "Grup",
+      "totalMatches": "Partides Jugades",
+      "totalStudents": "Alumnes Participants",
+      "gradedCount": "Avaluats / Total",
+      "lastMatchAt": "Última Partida",
+      "actions": "Accions",
+      "questionNumber": "#",
+      "question": "Pregunta",
+      "hitRate": "Taxa d'Encert",
+      "avgResponseTime": "Temps Mitjà",
+      "answerDistribution": "Distribució de Respostes",
+      "noAnswer": "Sense Resposta",
+      "studentName": "Nom de l'Alumne",
+      "matches": "Partides",
+      "calculatedGrade": "Nota Calculada (Última Partida)",
+      "finalGrade": "Nota Definitiva",
+      "pending": "Pendent"
+    },
+    "actions": {
+      "back": "Tornar",
+      "viewEvaluation": "Veure Avaluació",
+      "grade": "Qualificar",
+      "editGrade": "Editar Nota"
+    }
   },
   "manual": {
     "title": "Manual del Professorat",
@@ -249,6 +288,7 @@
     "actions": "Accions",
     "confirm": "Confirmar",
     "back": "Tornar",
-    "language": "Idioma"
+    "language": "Idioma",
+    "noResults": "No s'han trobat resultats"
   }
 }
