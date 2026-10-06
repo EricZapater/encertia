@@ -1,0 +1,18 @@
+CHANGELOG.md
+  h_42175f19913982 8-12
+VERSION
+  h_42175f19913982 1
+backend/internal/evaluation/repository.go
+  h_42175f19913982 43-44,65-66,242,261-262,273,408-409,452-453,598-599
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "249286c2593b5afd64a8d53373a8c2a832075183",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
