@@ -5,6 +5,11 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-10-06
+### Fixed
+- **Frontend Tests (`src/components/__tests__/AppNavbar.spec.ts`)**:
+  - Corregida l'asserció del test d'unitat `AppNavbar.spec.ts` per verificar la presència del menú `Grups` en lloc de `Usuaris` (després d'amagar els enllaços de cursos, usuaris i materials). Tots els 144 tests unitaris de Vitest passen ara en verd (100% Passing).
+
 ## [1.6.1] - 2026-10-06
 ### Changed
 - **Frontend (`src/components/AppNavbar.vue`)**:

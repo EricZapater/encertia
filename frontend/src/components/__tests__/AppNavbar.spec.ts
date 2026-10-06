@@ -39,7 +39,7 @@ describe('AppNavbar.vue', () => {
     expect(wrapper.text()).toContain('Encertia')
     expect(wrapper.text()).toContain('Jocs & Quizzes')
     expect(wrapper.text()).toContain('Avaluacions')
-    expect(wrapper.text()).toContain('Usuaris')
+    expect(wrapper.text()).toContain('Grups')
     expect(wrapper.text()).toContain('Joan Docent')
     expect(wrapper.find('[data-testid="nav-link-metrics"]').exists()).toBe(false)
   })
