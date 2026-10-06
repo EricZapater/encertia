@@ -180,4 +180,55 @@ describe('Evaluations Views', () => {
 
     expect(wrapper.text()).toContain('common.noResults')
   })
+
+  it('renders evaluation-filter-panel and clears filters on clear button click in EvaluationsListView', async () => {
+    const evalStore = useEvaluationStore()
+    const fetchSpy = vi.spyOn(evalStore, 'fetchEvaluationsList').mockImplementation(async () => {})
+
+    const wrapper = mount(EvaluationsListView, {
+      global: {
+        plugins: [PrimeVue, ToastService],
+        mocks: {
+          $t: (key: string) => key
+        }
+      }
+    })
+
+    expect(wrapper.find('.evaluation-filter-panel').exists()).toBe(true)
+    expect(wrapper.find('.filter-panel-header').exists()).toBe(true)
+    expect(wrapper.find('.filter-grid').exists()).toBe(true)
+
+    // Trigger clear button
+    const clearBtn = wrapper.find('[data-testid="btn-clear-filters"]')
+    expect(clearBtn.exists()).toBe(true)
+    await clearBtn.trigger('click')
+
+    expect(fetchSpy).toHaveBeenCalled()
+  })
+
+  it('renders evaluation-filter-panel and clears filters in QuizEvaluationView', async () => {
+    const evalStore = useEvaluationStore()
+    const fetchQuizSpy = vi.spyOn(evalStore, 'fetchQuizEvaluation').mockImplementation(async () => {})
+    vi.spyOn(evalStore, 'fetchEvaluationsList').mockImplementation(async () => {})
+
+    const wrapper = mount(QuizEvaluationView, {
+      global: {
+        plugins: [PrimeVue, ToastService],
+        mocks: {
+          $t: (key: string) => key
+        }
+      }
+    })
+
+    expect(wrapper.find('.evaluation-filter-panel').exists()).toBe(true)
+    expect(wrapper.find('.filter-panel-header').exists()).toBe(true)
+    expect(wrapper.find('.filter-grid').exists()).toBe(true)
+
+    const clearBtn = wrapper.find('[data-testid="btn-clear-quiz-filters"]')
+    expect(clearBtn.exists()).toBe(true)
+    await clearBtn.trigger('click')
+
+    expect(fetchQuizSpy).toHaveBeenCalled()
+  })
 })
+

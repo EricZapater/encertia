@@ -5,6 +5,13 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-10-06
+### Changed
+- **Frontend (`src/modules/evaluations/`)**:
+  - Reestructuració visual completa del panell de filtres d'avaluació (`EvaluationsListView.vue` i `QuizEvaluationView.vue`) mitjançant CSS ad-hoc dedicat (`.evaluation-filter-panel`, `.filter-grid`, `.filter-item`) sense dependències de classes d'utilitat Tailwind.
+  - Afegida capçalera de filtres amb icona, títol i botó de neteja ràpida de filtres (`pi pi-filter-slash`).
+  - Distribució adaptable en graella (`CSS Grid`) amb suport complet de Mode Fosc (`.dark-mode` i `@media (prefers-color-scheme: dark)`).
+
 ## [1.7.2] - 2026-10-06
 ### Added
 - **Traduccions i Internacionalització (`src/i18n/locales/`)**:

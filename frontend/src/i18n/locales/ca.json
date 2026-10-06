@@ -180,6 +180,8 @@
     "successRate": "Percentatge d'Encerts",
     "exportCsv": "Exportar a CSV",
     "filters": {
+      "title": "Filtres d'Avaluació",
+      "clear": "Netejar Filtres",
       "group": "Grup",
       "allGroups": "Tots els grups",
       "game": "Joc",

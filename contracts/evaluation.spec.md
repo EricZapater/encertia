@@ -140,15 +140,14 @@ Assigna o modifica la nota definitiva.
 
 ### 5.1 `views/EvaluationsListView.vue` — ruta: `/evaluations`
 Taula de quizzes amb partides finalitzades:
-- Barra de filtres superior amb 3 camps:
-  - **Grup**: Selecció de grup d'alumnes.
-  - **Joc / Quiz**: Cerca o selecció de qüestionari pel nom.
-  - **Data**: Filtre per data de l'última partida (selecció de data o rang).
+- Panell de filtres superior dedicat (dissenyat amb CSS personalitzat ad-hoc, sense utilitats Tailwind):
+  - Capçalera amb icona i títol del panell de filtres amb opció de reseteig ràpid.
+  - Reixeta de 3 camps: **Grup** (selecció de grup), **Joc / Quiz** (selecció o cerca de qüestionari) i **Data** (filtre per data reactiu).
 - Columnes: títol del quiz · partides · alumnes · qualificats/total · data última partida · botó "Veure avaluació".
 - Accés via menú lateral principal.
 
 ### 5.2 `views/QuizEvaluationView.vue` — ruta: `/evaluations/quizzes/:quizId`
-Barra de filtres superior per **Grup**, **Joc** (selector ràpid de quiz) i **Data**, i dues seccions **col·lapsables** (`Panel toggleable`):
+Panell de filtres ad-hoc per **Grup**, **Joc** (selector de quiz) i **Data**, i dues seccions **col·lapsables** (`Panel toggleable`):
 
 **A — Estadístiques globals (Bloc col·lapsable):**
 Taula de preguntes: enunciat · taxa d'encert (%) · temps mitjà (s) · distribució d'opcions (nom + %) · sense resposta.

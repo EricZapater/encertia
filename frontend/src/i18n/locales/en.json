@@ -180,6 +180,8 @@
     "successRate": "Success Rate",
     "exportCsv": "Export to CSV",
     "filters": {
+      "title": "Evaluation Filters",
+      "clear": "Clear Filters",
       "group": "Group",
       "allGroups": "All groups",
       "game": "Game",

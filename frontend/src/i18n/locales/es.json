@@ -180,6 +180,8 @@
     "successRate": "Porcentaje de Aciertos",
     "exportCsv": "Exportar a CSV",
     "filters": {
+      "title": "Filtros de Evaluación",
+      "clear": "Limpiar Filtros",
       "group": "Grupo",
       "allGroups": "Todos los grupos",
       "game": "Juego",
