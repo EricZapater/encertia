@@ -1,0 +1,30 @@
+CHANGELOG.md
+  h_42175f19913982 8-15
+VERSION
+  h_42175f19913982 1
+backend/internal/match/service.go
+  h_42175f19913982 437-444,488,514,763-767
+backend/internal/match/service_test.go
+  h_42175f19913982 348-451
+contracts/match.spec.md
+  h_42175f19913982 124,127-129,131,141-145
+frontend/src/modules/match/__tests__/HostGameView.spec.ts
+  h_42175f19913982 182-288
+frontend/src/modules/match/views/HostGameView.vue
+  h_42175f19913982 426-434,472,1035
+qa-reports/match_flow.md
+  h_42175f19913982 1-36
+ux-reports/match_flow.md
+  h_42175f19913982 1-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "074d5edb236d70b8bd312b8b101811de4574c642",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
