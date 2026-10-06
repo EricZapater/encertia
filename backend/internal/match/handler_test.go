@@ -52,8 +52,10 @@ func TestHTTP_CreateMatch(t *testing.T) {
 	validator := &mockTokenValidator{userID: hostID.String(), role: "teacher", email: "host@encertia.cat"}
 	router := setupTestMatchRouter(svc, hub, validator, hostID, "teacher", "host@encertia.cat")
 
+	groupID := uuid.New()
 	body, _ := json.Marshal(match.CreateMatchRequest{
-		QuizID: qd.ID,
+		QuizID:  qd.ID,
+		GroupID: &groupID,
 	})
 
 	req, _ := http.NewRequest(http.MethodPost, "/matches", bytes.NewBuffer(body))
@@ -70,7 +72,7 @@ func TestHTTP_CreateMatch(t *testing.T) {
 		t.Fatalf("failed to parse response: %v", err)
 	}
 
-	if res.QuizID != qd.ID || len(res.PIN) != 6 {
+	if res.QuizID != qd.ID || len(res.PIN) != 6 || res.GroupID == nil || *res.GroupID != groupID {
 		t.Errorf("resposta inesperada: %+v", res)
 	}
 }
@@ -81,7 +83,7 @@ func TestHTTP_GetMatchByPin(t *testing.T) {
 	validator := &mockTokenValidator{userID: hostID.String(), role: "teacher", email: "host@encertia.cat"}
 	router := setupTestMatchRouter(svc, hub, validator, hostID, "teacher", "host@encertia.cat")
 
-	created, _ := svc.CreateMatch(ctx, hostID, qd.ID)
+	created, _ := svc.CreateMatch(ctx, hostID, qd.ID, nil)
 
 	// Valid PIN
 	req, _ := http.NewRequest(http.MethodGet, "/matches/"+created.PIN, nil)
@@ -108,7 +110,7 @@ func TestHTTP_JoinMatch(t *testing.T) {
 	validator := &mockTokenValidator{userID: playerUserID.String(), role: "student", email: "student@encertia.cat"}
 	router := setupTestMatchRouter(svc, hub, validator, playerUserID, "student", "student@encertia.cat")
 
-	created, _ := svc.CreateMatch(ctx, hostID, qd.ID)
+	created, _ := svc.CreateMatch(ctx, hostID, qd.ID, nil)
 
 	body, _ := json.Marshal(match.JoinMatchRequest{
 		Nickname: "Pol",
@@ -133,13 +135,44 @@ func TestHTTP_JoinMatch(t *testing.T) {
 	}
 }
 
+func TestHTTP_JoinMatch_Anonymous(t *testing.T) {
+	ctx := context.Background()
+	_, hub, svc, hostID, qd := setupTestService()
+	validator := &mockTokenValidator{err: shared.ErrUnauthorized(shared.ErrCodeUnauthorized, "No auth")}
+	router := setupTestMatchRouter(svc, hub, validator, uuid.Nil, "", "")
+
+	created, _ := svc.CreateMatch(ctx, hostID, qd.ID, nil)
+
+	body, _ := json.Marshal(match.JoinMatchRequest{
+		Nickname: "AnonimTest",
+	})
+
+	req, _ := http.NewRequest(http.MethodPost, "/matches/"+created.PIN+"/join", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 OK for anonymous join, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var res match.JoinMatchResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("failed to parse response: %v", err)
+	}
+
+	if res.Nickname != "AnonimTest" || res.PIN != created.PIN || res.UserID != nil || res.PlayerToken == nil || *res.PlayerToken == "" {
+		t.Errorf("resposta d'unió anònima inesperada: %+v", res)
+	}
+}
+
 func TestHTTP_GetMatchSummary(t *testing.T) {
 	ctx := context.Background()
 	_, hub, svc, hostID, qd := setupTestService()
 	validator := &mockTokenValidator{userID: hostID.String(), role: "teacher", email: "host@encertia.cat"}
 	router := setupTestMatchRouter(svc, hub, validator, hostID, "teacher", "host@encertia.cat")
 
-	created, _ := svc.CreateMatch(ctx, hostID, qd.ID)
+	created, _ := svc.CreateMatch(ctx, hostID, qd.ID, nil)
 
 	req, _ := http.NewRequest(http.MethodGet, "/matches/"+created.ID.String()+"/summary", nil)
 	w := httptest.NewRecorder()
@@ -165,7 +198,7 @@ func TestWebSocket_EndpointValidation(t *testing.T) {
 	validator := &mockTokenValidator{userID: hostID.String(), role: "teacher", email: "host@encertia.cat"}
 	router := setupTestMatchRouter(svc, hub, validator, hostID, "teacher", "host@encertia.cat")
 
-	created, _ := svc.CreateMatch(ctx, hostID, qd.ID)
+	created, _ := svc.CreateMatch(ctx, hostID, qd.ID, nil)
 
 	// 1. Invalid PIN length
 	req1, _ := http.NewRequest(http.MethodGet, "/ws/match/123", nil)

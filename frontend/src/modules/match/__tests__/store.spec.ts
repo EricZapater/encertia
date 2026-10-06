@@ -47,11 +47,13 @@ describe('useMatchStore', () => {
     expect(store.isConnected).toBe(false)
   })
 
-  it('initHostMatch crea la partida i configura el rol de host', async () => {
+  it('initHostMatch crea la partida i configura el rol de host amb groupId opcional', async () => {
     const store = useMatchStore()
     vi.mocked(matchApi.createMatch).mockResolvedValueOnce({
       id: 'm123',
       quizId: 'q456',
+      groupId: 'g789',
+      groupName: 'Grup 1r ESO A',
       quizTitle: 'Història de Catalunya',
       hostId: 'u1',
       pin: '987654',
@@ -59,12 +61,14 @@ describe('useMatchStore', () => {
       playUrl: 'https://encertia.ericzapater.cat/play?pin=987654'
     })
 
-    const res = await store.initHostMatch('q456')
+    const res = await store.initHostMatch('q456', 'g789')
 
-    expect(matchApi.createMatch).toHaveBeenCalledWith({ quizId: 'q456' })
+    expect(matchApi.createMatch).toHaveBeenCalledWith({ quizId: 'q456', groupId: 'g789' })
     expect(store.matchId).toBe('m123')
     expect(store.pin).toBe('987654')
     expect(store.quizTitle).toBe('Història de Catalunya')
+    expect(store.groupId).toBe('g789')
+    expect(store.groupName).toBe('Grup 1r ESO A')
     expect(store.isHost).toBe(true)
     expect(res.pin).toBe('987654')
   })

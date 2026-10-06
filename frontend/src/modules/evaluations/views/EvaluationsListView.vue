@@ -1,7 +1,17 @@
 <template>
   <div class="evaluations-list-container p-4">
-    <div class="flex justify-content-between align-items-center mb-4">
+    <div class="flex flex-column sm:flex-row justify-content-between align-items-start sm:align-items-center gap-3 mb-4">
       <h1 class="text-2xl font-bold m-0">{{ $t('evaluations.title') }}</h1>
+      <Select
+        v-model="selectedGroupId"
+        :options="groupOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Tots els grups"
+        showClear
+        class="w-full sm:w-64"
+        @change="onGroupChange"
+      />
     </div>
 
     <DataTable
@@ -13,6 +23,11 @@
       :rows="10"
     >
       <Column field="quizTitle" header="Qüestionari" sortable />
+      <Column field="groupName" header="Grup" sortable>
+        <template #body="slotProps">
+          <span>{{ slotProps.data.groupName || '-' }}</span>
+        </template>
+      </Column>
       <Column field="totalMatches" header="Partides Jugades" sortable align="center" />
       <Column field="totalStudents" header="Alumnes Participants" sortable align="center" />
       <Column header="Avaluats / Total" align="center">
@@ -40,17 +55,29 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useEvaluationStore } from '../store'
+import { useGroupStore } from '@/modules/groups/store'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
+import Select from 'primevue/select'
 import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
 const store = useEvaluationStore()
+const groupStore = useGroupStore()
 const toast = useToast()
+
+const selectedGroupId = ref<string | null>(null)
+
+const groupOptions = computed(() => {
+  return groupStore.groups.map((g) => ({
+    label: g.academicYear ? `${g.name} (${g.academicYear})` : g.name,
+    value: g.id
+  }))
+})
 
 watch(
   () => store.error,
@@ -63,8 +90,13 @@ watch(
 )
 
 onMounted(() => {
+  groupStore.fetchGroups()
   store.fetchEvaluationsList()
 })
+
+function onGroupChange() {
+  store.fetchEvaluationsList(selectedGroupId.value || undefined)
+}
 
 function navigateToQuizEvaluation(quizId: string) {
   router.push(`/evaluations/quizzes/${quizId}`)

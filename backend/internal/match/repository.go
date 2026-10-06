@@ -25,6 +25,7 @@ type Repository interface {
 	UpdateMatchStatus(ctx context.Context, matchID uuid.UUID, status MatchStatus, currentQuestionIndex int, startedAt *time.Time) error
 	AddOrUpdatePlayer(ctx context.Context, player *MatchPlayer) error
 	GetPlayerByMatchAndUser(ctx context.Context, matchID, userID uuid.UUID) (*MatchPlayer, error)
+	GetPlayerByMatchAndToken(ctx context.Context, matchID uuid.UUID, token string) (*MatchPlayer, error)
 	GetPlayerByID(ctx context.Context, playerID uuid.UUID) (*MatchPlayer, error)
 	GetPlayersByMatch(ctx context.Context, matchID uuid.UUID) ([]MatchPlayer, error)
 	UpdatePlayerConnection(ctx context.Context, playerID uuid.UUID, isConnected bool) error
@@ -81,10 +82,10 @@ func (r *sqlRepository) CreateMatch(ctx context.Context, m *Match) error {
 	}
 
 	query := `
-		INSERT INTO matches (id, quiz_id, host_id, pin, status, current_question_index, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO matches (id, quiz_id, host_id, group_id, pin, status, current_question_index, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
-	_, err := r.db.ExecContext(ctx, query, m.ID, m.QuizID, m.HostID, m.PIN, m.Status, m.CurrentQuestionIndex, m.CreatedAt, m.UpdatedAt)
+	_, err := r.db.ExecContext(ctx, query, m.ID, m.QuizID, m.HostID, m.GroupID, m.PIN, m.Status, m.CurrentQuestionIndex, m.CreatedAt, m.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("error creant partida a la bd: %w", err)
 	}
@@ -94,18 +95,19 @@ func (r *sqlRepository) CreateMatch(ctx context.Context, m *Match) error {
 // GetMatchByID fetches a match by its primary key.
 func (r *sqlRepository) GetMatchByID(ctx context.Context, id uuid.UUID) (*Match, error) {
 	query := `
-		SELECT m.id, m.quiz_id, m.host_id, m.pin, m.status, m.current_question_index, m.question_started_at,
-		       m.created_at, m.updated_at, m.deleted_at, q.title, TRIM(CONCAT(u.first_name, ' ', u.last_name)),
+		SELECT m.id, m.quiz_id, m.host_id, m.group_id, m.pin, m.status, m.current_question_index, m.question_started_at,
+		       m.created_at, m.updated_at, m.deleted_at, q.title, g.name AS group_name, TRIM(CONCAT(u.first_name, ' ', u.last_name)),
 		       (SELECT COUNT(*) FROM match_players mp WHERE mp.match_id = m.id AND mp.is_kicked = FALSE) as player_count
 		FROM matches m
 		JOIN quizzes q ON m.quiz_id = q.id
 		JOIN users u ON m.host_id = u.id
+		LEFT JOIN groups g ON m.group_id = g.id
 		WHERE m.id = $1 AND m.deleted_at IS NULL
 	`
 	var m Match
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&m.ID, &m.QuizID, &m.HostID, &m.PIN, &m.Status, &m.CurrentQuestionIndex, &m.QuestionStartedAt,
-		&m.CreatedAt, &m.UpdatedAt, &m.DeletedAt, &m.QuizTitle, &m.HostName, &m.PlayerCount,
+		&m.ID, &m.QuizID, &m.HostID, &m.GroupID, &m.PIN, &m.Status, &m.CurrentQuestionIndex, &m.QuestionStartedAt,
+		&m.CreatedAt, &m.UpdatedAt, &m.DeletedAt, &m.QuizTitle, &m.GroupName, &m.HostName, &m.PlayerCount,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -119,18 +121,19 @@ func (r *sqlRepository) GetMatchByID(ctx context.Context, id uuid.UUID) (*Match,
 // GetMatchByPIN fetches an active match by its 6-digit PIN.
 func (r *sqlRepository) GetMatchByPIN(ctx context.Context, pin string) (*Match, error) {
 	query := `
-		SELECT m.id, m.quiz_id, m.host_id, m.pin, m.status, m.current_question_index, m.question_started_at,
-		       m.created_at, m.updated_at, m.deleted_at, q.title, TRIM(CONCAT(u.first_name, ' ', u.last_name)),
+		SELECT m.id, m.quiz_id, m.host_id, m.group_id, m.pin, m.status, m.current_question_index, m.question_started_at,
+		       m.created_at, m.updated_at, m.deleted_at, q.title, g.name AS group_name, TRIM(CONCAT(u.first_name, ' ', u.last_name)),
 		       (SELECT COUNT(*) FROM match_players mp WHERE mp.match_id = m.id AND mp.is_kicked = FALSE) as player_count
 		FROM matches m
 		JOIN quizzes q ON m.quiz_id = q.id
 		JOIN users u ON m.host_id = u.id
+		LEFT JOIN groups g ON m.group_id = g.id
 		WHERE m.pin = $1 AND m.status != 'finished' AND m.deleted_at IS NULL
 	`
 	var m Match
 	err := r.db.QueryRowContext(ctx, query, pin).Scan(
-		&m.ID, &m.QuizID, &m.HostID, &m.PIN, &m.Status, &m.CurrentQuestionIndex, &m.QuestionStartedAt,
-		&m.CreatedAt, &m.UpdatedAt, &m.DeletedAt, &m.QuizTitle, &m.HostName, &m.PlayerCount,
+		&m.ID, &m.QuizID, &m.HostID, &m.GroupID, &m.PIN, &m.Status, &m.CurrentQuestionIndex, &m.QuestionStartedAt,
+		&m.CreatedAt, &m.UpdatedAt, &m.DeletedAt, &m.QuizTitle, &m.GroupName, &m.HostName, &m.PlayerCount,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -273,17 +276,63 @@ func (r *sqlRepository) AddOrUpdatePlayer(ctx context.Context, p *MatchPlayer) e
 	p.JoinedAt = now
 	p.UpdatedAt = now
 
-	query := `
-		INSERT INTO match_players (id, match_id, user_id, nickname, score, is_connected, is_kicked, joined_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		ON CONFLICT (match_id, user_id) DO UPDATE
-		SET nickname = EXCLUDED.nickname, is_connected = EXCLUDED.is_connected, updated_at = NOW()
-		RETURNING id, score, is_kicked, joined_at, updated_at
-	`
-	err := r.db.QueryRowContext(ctx, query, p.ID, p.MatchID, p.UserID, p.Nickname, p.Score, p.IsConnected, p.IsKicked, p.JoinedAt, p.UpdatedAt).
-		Scan(&p.ID, &p.Score, &p.IsKicked, &p.JoinedAt, &p.UpdatedAt)
-	if err != nil {
-		return fmt.Errorf("error registrant/actualitzant jugador: %w", err)
+	if p.UserID != nil {
+		query := `
+			INSERT INTO match_players (id, match_id, user_id, player_token, nickname, score, is_connected, is_kicked, joined_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			ON CONFLICT (match_id, user_id) DO UPDATE
+			SET nickname = EXCLUDED.nickname, player_token = EXCLUDED.player_token, is_connected = EXCLUDED.is_connected, updated_at = NOW()
+			RETURNING id, score, is_kicked, joined_at, updated_at
+		`
+		err := r.db.QueryRowContext(ctx, query, p.ID, p.MatchID, p.UserID, p.PlayerToken, p.Nickname, p.Score, p.IsConnected, p.IsKicked, p.JoinedAt, p.UpdatedAt).
+			Scan(&p.ID, &p.Score, &p.IsKicked, &p.JoinedAt, &p.UpdatedAt)
+		if err != nil {
+			return fmt.Errorf("error registrant/actualitzant jugador: %w", err)
+		}
+	} else {
+		var existingID uuid.UUID
+		var existingScore int
+		var existingKicked bool
+		var existingJoinedAt, existingUpdatedAt time.Time
+
+		checkQuery := `
+			SELECT id, score, is_kicked, joined_at, updated_at
+			FROM match_players
+			WHERE match_id = $1 AND (id = $2 OR (player_token IS NOT NULL AND player_token = $3))
+		`
+		var tokenVal interface{}
+		if p.PlayerToken != nil {
+			tokenVal = *p.PlayerToken
+		}
+		err := r.db.QueryRowContext(ctx, checkQuery, p.MatchID, p.ID, tokenVal).
+			Scan(&existingID, &existingScore, &existingKicked, &existingJoinedAt, &existingUpdatedAt)
+
+		if err == nil {
+			p.ID = existingID
+			p.Score = existingScore
+			p.IsKicked = existingKicked
+			p.JoinedAt = existingJoinedAt
+			p.UpdatedAt = time.Now().UTC()
+
+			updateQuery := `
+				UPDATE match_players
+				SET nickname = $1, is_connected = $2, updated_at = $3
+				WHERE id = $4
+			`
+			_, err := r.db.ExecContext(ctx, updateQuery, p.Nickname, p.IsConnected, p.UpdatedAt, p.ID)
+			if err != nil {
+				return fmt.Errorf("error actualitzant jugador anònim: %w", err)
+			}
+		} else {
+			insertQuery := `
+				INSERT INTO match_players (id, match_id, user_id, player_token, nickname, score, is_connected, is_kicked, joined_at, updated_at)
+				VALUES ($1, $2, NULL, $3, $4, $5, $6, $7, $8, $9)
+			`
+			_, err := r.db.ExecContext(ctx, insertQuery, p.ID, p.MatchID, p.PlayerToken, p.Nickname, p.Score, p.IsConnected, p.IsKicked, p.JoinedAt, p.UpdatedAt)
+			if err != nil {
+				return fmt.Errorf("error registrant jugador anònim: %w", err)
+			}
+		}
 	}
 	return nil
 }
@@ -291,13 +340,15 @@ func (r *sqlRepository) AddOrUpdatePlayer(ctx context.Context, p *MatchPlayer) e
 // GetPlayerByMatchAndUser gets a player record by match ID and user ID.
 func (r *sqlRepository) GetPlayerByMatchAndUser(ctx context.Context, matchID, userID uuid.UUID) (*MatchPlayer, error) {
 	query := `
-		SELECT id, match_id, user_id, nickname, score, is_connected, is_kicked, joined_at, updated_at
+		SELECT id, match_id, user_id, player_token, nickname, score, is_connected, is_kicked, joined_at, updated_at
 		FROM match_players
 		WHERE match_id = $1 AND user_id = $2
 	`
 	var p MatchPlayer
+	var userIDNull sql.NullString
+	var tokenNull sql.NullString
 	err := r.db.QueryRowContext(ctx, query, matchID, userID).Scan(
-		&p.ID, &p.MatchID, &p.UserID, &p.Nickname, &p.Score, &p.IsConnected, &p.IsKicked, &p.JoinedAt, &p.UpdatedAt,
+		&p.ID, &p.MatchID, &userIDNull, &tokenNull, &p.Nickname, &p.Score, &p.IsConnected, &p.IsKicked, &p.JoinedAt, &p.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -305,19 +356,59 @@ func (r *sqlRepository) GetPlayerByMatchAndUser(ctx context.Context, matchID, us
 		}
 		return nil, fmt.Errorf("error cercant jugador per usuari: %w", err)
 	}
+	if userIDNull.Valid && userIDNull.String != "" {
+		if parsed, err := uuid.Parse(userIDNull.String); err == nil {
+			p.UserID = &parsed
+		}
+	}
+	if tokenNull.Valid && tokenNull.String != "" {
+		p.PlayerToken = &tokenNull.String
+	}
+	return &p, nil
+}
+
+// GetPlayerByMatchAndToken gets a player record by match ID and player_token.
+func (r *sqlRepository) GetPlayerByMatchAndToken(ctx context.Context, matchID uuid.UUID, token string) (*MatchPlayer, error) {
+	query := `
+		SELECT id, match_id, user_id, player_token, nickname, score, is_connected, is_kicked, joined_at, updated_at
+		FROM match_players
+		WHERE match_id = $1 AND player_token = $2
+	`
+	var p MatchPlayer
+	var userIDNull sql.NullString
+	var tokenNull sql.NullString
+	err := r.db.QueryRowContext(ctx, query, matchID, token).Scan(
+		&p.ID, &p.MatchID, &userIDNull, &tokenNull, &p.Nickname, &p.Score, &p.IsConnected, &p.IsKicked, &p.JoinedAt, &p.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error cercant jugador per token: %w", err)
+	}
+	if userIDNull.Valid && userIDNull.String != "" {
+		if parsed, err := uuid.Parse(userIDNull.String); err == nil {
+			p.UserID = &parsed
+		}
+	}
+	if tokenNull.Valid && tokenNull.String != "" {
+		p.PlayerToken = &tokenNull.String
+	}
 	return &p, nil
 }
 
 // GetPlayerByID fetches a player record by its ID.
 func (r *sqlRepository) GetPlayerByID(ctx context.Context, playerID uuid.UUID) (*MatchPlayer, error) {
 	query := `
-		SELECT id, match_id, user_id, nickname, score, is_connected, is_kicked, joined_at, updated_at
+		SELECT id, match_id, user_id, player_token, nickname, score, is_connected, is_kicked, joined_at, updated_at
 		FROM match_players
 		WHERE id = $1
 	`
 	var p MatchPlayer
+	var userIDNull sql.NullString
+	var tokenNull sql.NullString
 	err := r.db.QueryRowContext(ctx, query, playerID).Scan(
-		&p.ID, &p.MatchID, &p.UserID, &p.Nickname, &p.Score, &p.IsConnected, &p.IsKicked, &p.JoinedAt, &p.UpdatedAt,
+		&p.ID, &p.MatchID, &userIDNull, &tokenNull, &p.Nickname, &p.Score, &p.IsConnected, &p.IsKicked, &p.JoinedAt, &p.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -325,13 +416,21 @@ func (r *sqlRepository) GetPlayerByID(ctx context.Context, playerID uuid.UUID) (
 		}
 		return nil, fmt.Errorf("error cercant jugador per id: %w", err)
 	}
+	if userIDNull.Valid && userIDNull.String != "" {
+		if parsed, err := uuid.Parse(userIDNull.String); err == nil {
+			p.UserID = &parsed
+		}
+	}
+	if tokenNull.Valid && tokenNull.String != "" {
+		p.PlayerToken = &tokenNull.String
+	}
 	return &p, nil
 }
 
 // GetPlayersByMatch fetches all non-kicked players for a match.
 func (r *sqlRepository) GetPlayersByMatch(ctx context.Context, matchID uuid.UUID) ([]MatchPlayer, error) {
 	query := `
-		SELECT id, match_id, user_id, nickname, score, is_connected, is_kicked, joined_at, updated_at
+		SELECT id, match_id, user_id, player_token, nickname, score, is_connected, is_kicked, joined_at, updated_at
 		FROM match_players
 		WHERE match_id = $1 AND is_kicked = FALSE
 		ORDER BY joined_at ASC
@@ -345,8 +444,18 @@ func (r *sqlRepository) GetPlayersByMatch(ctx context.Context, matchID uuid.UUID
 	var players []MatchPlayer
 	for rows.Next() {
 		var p MatchPlayer
-		if err := rows.Scan(&p.ID, &p.MatchID, &p.UserID, &p.Nickname, &p.Score, &p.IsConnected, &p.IsKicked, &p.JoinedAt, &p.UpdatedAt); err != nil {
+		var userIDNull sql.NullString
+		var tokenNull sql.NullString
+		if err := rows.Scan(&p.ID, &p.MatchID, &userIDNull, &tokenNull, &p.Nickname, &p.Score, &p.IsConnected, &p.IsKicked, &p.JoinedAt, &p.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("error llegint fila de jugador: %w", err)
+		}
+		if userIDNull.Valid && userIDNull.String != "" {
+			if parsed, err := uuid.Parse(userIDNull.String); err == nil {
+				p.UserID = &parsed
+			}
+		}
+		if tokenNull.Valid && tokenNull.String != "" {
+			p.PlayerToken = &tokenNull.String
 		}
 		players = append(players, p)
 	}
@@ -466,8 +575,14 @@ func (r *sqlRepository) GetLeaderboard(ctx context.Context, matchID uuid.UUID) (
 	var items []PlayerScoreItem
 	for rows.Next() {
 		var item PlayerScoreItem
-		if err := rows.Scan(&item.PlayerID, &item.UserID, &item.Nickname, &item.Score, &item.Rank, &item.CorrectCount, &item.TotalAnswered); err != nil {
+		var userIDNull sql.NullString
+		if err := rows.Scan(&item.PlayerID, &userIDNull, &item.Nickname, &item.Score, &item.Rank, &item.CorrectCount, &item.TotalAnswered); err != nil {
 			return nil, fmt.Errorf("error llegint classificació: %w", err)
+		}
+		if userIDNull.Valid && userIDNull.String != "" {
+			if parsed, err := uuid.Parse(userIDNull.String); err == nil {
+				item.UserID = &parsed
+			}
 		}
 		items = append(items, item)
 	}
@@ -524,6 +639,7 @@ func (r *sqlRepository) GetPublicInfoByPIN(ctx context.Context, pin string) (*Ma
 		ID:          m.ID,
 		PIN:         m.PIN,
 		QuizTitle:   m.QuizTitle,
+		GroupName:   m.GroupName,
 		HostName:    m.HostName,
 		Status:      m.Status,
 		PlayerCount: m.PlayerCount,

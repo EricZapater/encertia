@@ -2,7 +2,10 @@
   <div class="student-evaluation-container p-4">
     <div class="mb-4">
       <Button label="Tornar al Quiz" icon="pi pi-arrow-left" class="p-button-text mb-2" @click="router.push(`/evaluations/quizzes/${quizId}`)" />
-      <h1 class="text-2xl font-bold m-0" v-if="studentData">Avaluació de {{ studentData.studentName }}</h1>
+      <h1 class="text-2xl font-bold m-0 flex align-items-center gap-2" v-if="studentData">
+        <span>Avaluació de {{ studentData.studentName }}</span>
+        <Tag v-if="studentData.groupName" severity="secondary">{{ studentData.groupName }}</Tag>
+      </h1>
     </div>
 
     <div v-if="store.isLoading" class="text-center p-4">
@@ -86,6 +89,7 @@ import Card from 'primevue/card'
 import InputNumber from 'primevue/inputnumber'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()

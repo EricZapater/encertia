@@ -29,8 +29,9 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware gin.Handler
 func (h *Handler) ListEvaluations(c *gin.Context) {
 	userID := c.GetString(shared.CtxKeyUserID)
 	role := c.GetString(shared.CtxKeyUserRole)
+	groupID := c.Query("groupId")
 
-	summaries, err := h.service.ListEvaluations(userID, role)
+	summaries, err := h.service.ListEvaluations(userID, role, groupID)
 	if err != nil {
 		if err == ErrUnauthorized {
 			shared.RespondWithError(c, shared.ErrForbidden("FORBIDDEN", "Accés no permès a les avaluacions"))
@@ -47,8 +48,9 @@ func (h *Handler) GetQuizEvaluation(c *gin.Context) {
 	quizID := c.Param("quizId")
 	userID := c.GetString(shared.CtxKeyUserID)
 	role := c.GetString(shared.CtxKeyUserRole)
+	groupID := c.Query("groupId")
 
-	resp, err := h.service.GetQuizEvaluation(quizID, userID, role)
+	resp, err := h.service.GetQuizEvaluation(quizID, userID, role, groupID)
 	if err != nil {
 		if err == ErrUnauthorized {
 			shared.RespondWithError(c, shared.ErrForbidden("FORBIDDEN", "Accés no permès per a aquest quiz"))

@@ -14,27 +14,42 @@ import {
 
 const isMockEnabled = import.meta.env.VITE_USE_MOCKS === 'true'
 
-export async function listEvaluations(): Promise<EvaluationsListResponse> {
+export async function listEvaluations(groupId?: string): Promise<EvaluationsListResponse> {
+  const params = groupId ? { groupId } : undefined
   if (isMockEnabled) {
     try {
-      const response = await apiClient.get<EvaluationsListResponse>('/evaluations')
+      const response = await apiClient.get<EvaluationsListResponse>('/evaluations', { params })
       return response.data
     } catch {
+      if (groupId) {
+        return {
+          evaluations: mockEvaluationsList.evaluations.filter((e) => e.groupId === groupId)
+        }
+      }
       return mockEvaluationsList
     }
   }
-  const response = await apiClient.get<EvaluationsListResponse>('/evaluations')
+  const response = await apiClient.get<EvaluationsListResponse>('/evaluations', { params })
   return response.data
 }
 
-export async function getQuizEvaluation(quizId: string): Promise<QuizEvaluationResponse> {
+export async function getQuizEvaluation(quizId: string, groupId?: string): Promise<QuizEvaluationResponse> {
+  const params = groupId ? { groupId } : undefined
   if (isMockEnabled) {
     try {
-      const response = await apiClient.get<QuizEvaluationResponse>(`/evaluations/quizzes/${quizId}`)
+      const response = await apiClient.get<QuizEvaluationResponse>(`/evaluations/quizzes/${quizId}`, { params })
       return response.data
     } catch {
       const mockData = mockQuizEvaluations[quizId]
-      if (mockData) return mockData
+      if (mockData) {
+        if (groupId) {
+          return {
+            ...mockData,
+            students: mockData.students.filter((s) => s.groupId === groupId)
+          }
+        }
+        return mockData
+      }
       return {
         quizId,
         quizTitle: 'Qüestionari d’Avaluació',
@@ -57,6 +72,8 @@ export async function getQuizEvaluation(quizId: string): Promise<QuizEvaluationR
           {
             studentId: 's-demo-1',
             studentName: 'Alumne d’Exemple',
+            groupId: groupId || null,
+            groupName: groupId ? 'Grup Exemple' : null,
             matchesCount: 1,
             calculatedGrade: 8.0,
             finalGrade: null,
@@ -66,7 +83,7 @@ export async function getQuizEvaluation(quizId: string): Promise<QuizEvaluationR
       }
     }
   }
-  const response = await apiClient.get<QuizEvaluationResponse>(`/evaluations/quizzes/${quizId}`)
+  const response = await apiClient.get<QuizEvaluationResponse>(`/evaluations/quizzes/${quizId}`, { params })
   return response.data
 }
 

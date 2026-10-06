@@ -8,11 +8,14 @@ export type MatchStatus =
 
 export interface CreateMatchRequest {
   quizId: string
+  groupId?: string | null
 }
 
 export interface MatchCreatedResponse {
   id: string
   quizId: string
+  groupId?: string | null
+  groupName?: string | null
   quizTitle?: string
   hostId: string
   pin: string
@@ -26,6 +29,7 @@ export interface MatchPublicInfo {
   id: string
   pin: string
   quizTitle: string
+  groupName?: string | null
   hostName: string
   status: MatchStatus
   playerCount: number
@@ -39,6 +43,7 @@ export interface JoinMatchResponse {
   matchId: string
   playerId: string
   userId?: string
+  playerToken?: string
   nickname: string
   pin: string
   status: MatchStatus
@@ -56,6 +61,8 @@ export interface PlayerScoreItem {
 
 export interface MatchSummaryResponse {
   matchId: string
+  groupId?: string | null
+  groupName?: string | null
   quizTitle: string
   totalQuestions: number
   totalPlayers: number
@@ -207,6 +214,8 @@ export interface WSMatchStateData {
   pin: string
   status: MatchStatus
   quizTitle?: string
+  groupId?: string | null
+  groupName?: string | null
   currentQuestionIndex: number
   totalQuestions: number
   players: MatchPlayer[]
@@ -269,6 +278,7 @@ export interface WSFinishedData {
   podium?: PlayerScoreItem[]
   leaderboard?: PlayerScoreItem[]
   quizTitle?: string
+  groupName?: string | null
   totalQuestions?: number
   totalPlayers?: number
 }

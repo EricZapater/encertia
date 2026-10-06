@@ -2,7 +2,6 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuizStore } from '../store'
-import { useMatchStore } from '@/modules/match/store'
 import type { Quiz, QuizStatus } from '../types'
 
 import InputText from 'primevue/inputtext'
@@ -14,12 +13,11 @@ import Paginator, { type PageState } from 'primevue/paginator'
 import { useToast } from 'primevue/usetoast'
 
 import DuplicateQuizModal from './DuplicateQuizModal.vue'
+import LaunchMatchModal from '@/modules/match/components/LaunchMatchModal.vue'
 
 const router = useRouter()
 const quizStore = useQuizStore()
-const matchStore = useMatchStore()
 const toast = useToast()
-const isLaunchingMatch = ref<Record<string, boolean>>({})
 
 // Filtres
 const searchInput = ref('')
@@ -38,6 +36,8 @@ const statusFilterOptions = [
 // Modals
 const showDuplicateModal = ref(false)
 const showDeleteConfirmModal = ref(false)
+const showLaunchMatchModal = ref(false)
+const quizToLaunch = ref<{ id: string; title: string } | null>(null)
 const selectedQuiz = ref<Quiz | null>(null)
 const quizToDelete = ref<Quiz | null>(null)
 
@@ -98,17 +98,9 @@ function navigateToEdit(quiz: Quiz) {
   router.push(`/quizzes/${quiz.id}/edit`)
 }
 
-async function handleLaunchMatch(quiz: Quiz) {
-  try {
-    isLaunchingMatch.value[quiz.id] = true
-    const res = await matchStore.initHostMatch(quiz.id)
-    router.push(`/matches/${res.id}/host`)
-  } catch (err: any) {
-    errorFeedback.value =
-      err.response?.data?.error?.message || err.message || 'Error en iniciar la partida.'
-  } finally {
-    isLaunchingMatch.value[quiz.id] = false
-  }
+function handleLaunchMatch(quiz: Quiz) {
+  quizToLaunch.value = { id: quiz.id, title: quiz.title }
+  showLaunchMatchModal.value = true
 }
 
 function openDuplicateModal(quiz: Quiz) {
@@ -366,7 +358,6 @@ function formatDate(dateStr: string) {
               icon="pi pi-play"
               size="small"
               severity="success"
-              :loading="Boolean(isLaunchingMatch[quiz.id])"
               @click="handleLaunchMatch(quiz)"
               data-testid="btn-launch-match"
             />
@@ -444,6 +435,12 @@ function formatDate(dateStr: string) {
       v-model:visible="showDuplicateModal"
       :quiz="selectedQuiz"
       @duplicated="handleDuplicated"
+    />
+
+    <!-- Modal d'Iniciar Partida amb Selecció de Grup -->
+    <LaunchMatchModal
+      v-model:visible="showLaunchMatchModal"
+      :quiz="quizToLaunch"
     />
 
     <!-- Diàleg de confirmació d'Eliminació -->

@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS matches (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     quiz_id UUID NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
     host_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    group_id UUID REFERENCES groups(id) ON DELETE SET NULL,
     pin VARCHAR(6) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'lobby' 
         CHECK (status IN ('lobby', 'question_preview', 'question_active', 'question_results', 'leaderboard', 'finished')),
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS matches (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_matches_active_pin ON matches (pin) WHERE status != 'finished' AND deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_matches_host_id ON matches (host_id);
 CREATE INDEX IF NOT EXISTS idx_matches_quiz_id ON matches (quiz_id);
+CREATE INDEX IF NOT EXISTS idx_matches_group_id ON matches (group_id);
 ```
 
 ### 2.2 Taula `match_players`
@@ -33,8 +35,9 @@ CREATE INDEX IF NOT EXISTS idx_matches_quiz_id ON matches (quiz_id);
 CREATE TABLE IF NOT EXISTS match_players (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     match_id UUID NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL, -- Nullable per a jugadors no registrats/anònims
     nickname VARCHAR(100) NOT NULL,
+    player_token VARCHAR(255), -- Token/session token per a autenticació WS de jugadors anònims
     score INT NOT NULL DEFAULT 0,
     is_connected BOOLEAN NOT NULL DEFAULT TRUE,
     is_kicked BOOLEAN NOT NULL DEFAULT FALSE,
@@ -70,9 +73,9 @@ CREATE INDEX IF NOT EXISTS idx_match_answers_match_question ON match_answers (ma
 ## 3. Protocol de Comunicació WebSocket
 
 ### 3.1 Connexió i Autenticació
-- **URL**: `ws(s)://api.encertia.ericzapater.cat/api/ws/match/:pin?token=JWT_TOKEN`
-- Totes les connexions WebSocket requereixen token JWT d'usuari autenticat.
-- El servidor identifica si l'usuari és el **moderador** (`host_id == user.id`) o un **jugador** registrat (`user_id == user.id`).
+- **URL**: `ws(s)://api.encertia.ericzapater.cat/api/ws/match/:pin?token=TOKEN`
+- La connexió WebSocket admet tant el token JWT d'un usuari registrat (`token=JWT_TOKEN`) com el `player_token` generat per a jugadors anònims (`token=PLAYER_TOKEN`).
+- El servidor identifica si l'usuari és el **moderador** (`host_id == user.id`), un **jugador registrat** (`user_id == user.id`), o un **jugador anònim** autenticat mitjançant el seu `player_token`.
 
 ### 3.2 Format dels Missatges (JSON)
 ```json
@@ -132,7 +135,7 @@ CREATE INDEX IF NOT EXISTS idx_match_answers_match_question ON match_answers (ma
 ---
 
 ## 5. Regles de Negoci
-1. **Autenticació Obligatòria**: Tots els participants han d'haver iniciat sessió a Encertia (`admin`, `teacher`, `student`). Si un usuari accedeix a `/play?pin=123456` sense sessió, se'l redirigeix a `/login?redirect=/play?pin=123456`.
+1. **Autenticació i Unió de Jugadors**: El creador/host ha d'estar autenticat. Els jugadors es poden unir tant com a usuaris registrats com a jugadors anònims introduint un `nickname`. Si s'uneixen de forma anònima, el sistema genera un `player_token` únic que els permet connectar-se per WebSocket i reprendre la seva sessió si es desconnecten.
 2. **Generació de PIN**: PIN numèric aleatori de 6 dígits (ex: `749201`) no utilitzat en cap altra partida activa.
 3. **Puntuació**: 1 punt per pregunta encertada (en `single_choice` requereix la resposta correcta; en `multiple_choice` requereix haver seleccionat totes les correctes sense cap incorrecta).
 4. **Pausa inicial abans de respondre**: Cada pregunta comença en `question_preview` i només s'obre el temps quan el moderador prem *"Iniciar Temps"*.

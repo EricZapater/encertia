@@ -41,7 +41,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware gin.Handler
 	{
 		matchesGroup.POST("", authMiddleware, h.CreateMatch)
 		matchesGroup.GET("/:identifier", h.GetMatchByPin)
-		matchesGroup.POST("/:identifier/join", authMiddleware, h.JoinMatch)
+		matchesGroup.POST("/:identifier/join", h.JoinMatch)
 		matchesGroup.GET("/:identifier/summary", authMiddleware, h.GetMatchSummary)
 	}
 
@@ -63,7 +63,7 @@ func (h *Handler) CreateMatch(c *gin.Context) {
 		return
 	}
 
-	res, err := h.service.CreateMatch(c.Request.Context(), actorID, req.QuizID)
+	res, err := h.service.CreateMatch(c.Request.Context(), actorID, req.QuizID, req.GroupID)
 	if err != nil {
 		if appErr, ok := err.(*shared.AppError); ok {
 			shared.RespondWithError(c, appErr)
@@ -99,10 +99,10 @@ func (h *Handler) GetMatchByPin(c *gin.Context) {
 
 // JoinMatch handles POST /matches/:pin/join
 func (h *Handler) JoinMatch(c *gin.Context) {
+	var userIDPtr *uuid.UUID
 	actorID, _, appErr := getActorFromContext(c)
-	if appErr != nil {
-		shared.RespondWithError(c, appErr)
-		return
+	if appErr == nil && actorID != uuid.Nil {
+		userIDPtr = &actorID
 	}
 
 	pin := strings.TrimSpace(c.Param("identifier"))
@@ -117,7 +117,7 @@ func (h *Handler) JoinMatch(c *gin.Context) {
 		return
 	}
 
-	res, err := h.service.JoinMatch(c.Request.Context(), actorID, pin, req.Nickname)
+	res, err := h.service.JoinMatch(c.Request.Context(), userIDPtr, pin, req.Nickname)
 	if err != nil {
 		if appErr, ok := err.(*shared.AppError); ok {
 			shared.RespondWithError(c, appErr)
@@ -175,8 +175,11 @@ func (h *Handler) HandleWebSocket(c *gin.Context) {
 		return
 	}
 
-	// 1. Authenticate WebSocket connection via token query param or Authorization header
+	// 1. Authenticate WebSocket connection via token query param, playerToken query param or Authorization header
 	tokenStr := c.Query("token")
+	if tokenStr == "" {
+		tokenStr = c.Query("playerToken")
+	}
 	if tokenStr == "" {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader != "" {
@@ -188,19 +191,7 @@ func (h *Handler) HandleWebSocket(c *gin.Context) {
 	}
 
 	if tokenStr == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Manca el token d'autenticació."})
-		return
-	}
-
-	userIDStr, _, _, appErr := h.tokenValidator.ValidateAccessToken(c.Request.Context(), tokenStr)
-	if appErr != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token d'autenticació invàlid o caducat."})
-		return
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Identificador d'usuari invàlid al token."})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Manca el token d'autenticació o playerToken."})
 		return
 	}
 
@@ -211,22 +202,64 @@ func (h *Handler) HandleWebSocket(c *gin.Context) {
 		return
 	}
 
-	// 3. Determine role (Host vs Player)
-	requestedRole := strings.ToLower(strings.TrimSpace(c.Query("role")))
 	var isHost bool
 	var playerID *uuid.UUID
+	var userID uuid.UUID
 	nickname := "Host"
 
-	if requestedRole == "host" {
-		if m.HostID != userID {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Només el creador de la partida pot connectar-se com a moderador (Host)."})
-			return
+	userIDStr, _, _, appErr := h.tokenValidator.ValidateAccessToken(c.Request.Context(), tokenStr)
+	if appErr == nil {
+		parsedUID, err := uuid.Parse(userIDStr)
+		if err == nil {
+			userID = parsedUID
 		}
-		isHost = true
-	} else if requestedRole == "player" {
-		player, err := h.service.GetPlayerByMatchAndUser(c.Request.Context(), m.ID, userID)
+	}
+
+	if userID != uuid.Nil {
+		// 3. Determine role for authenticated user (Host vs Player)
+		requestedRole := strings.ToLower(strings.TrimSpace(c.Query("role")))
+
+		if requestedRole == "host" {
+			if m.HostID != userID {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Només el creador de la partida pot connectar-se com a moderador (Host)."})
+				return
+			}
+			isHost = true
+		} else if requestedRole == "player" {
+			player, err := h.service.GetPlayerByMatchAndUser(c.Request.Context(), m.ID, userID)
+			if err != nil || player == nil {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Cal unir-se a la partida mitjançant l'endpoint REST abans d'iniciar el WebSocket com a jugador."})
+				return
+			}
+			if player.IsKicked {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Has estat expulsat d'aquesta partida."})
+				return
+			}
+			isHost = false
+			playerID = &player.ID
+			nickname = player.Nickname
+		} else {
+			player, err := h.service.GetPlayerByMatchAndUser(c.Request.Context(), m.ID, userID)
+			if err == nil && player != nil {
+				if player.IsKicked {
+					c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Has estat expulsat d'aquesta partida."})
+					return
+				}
+				isHost = false
+				playerID = &player.ID
+				nickname = player.Nickname
+			} else if m.HostID == userID {
+				isHost = true
+			} else {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Cal unir-se a la partida mitjançant l'endpoint REST abans d'iniciar el WebSocket."})
+				return
+			}
+		}
+	} else {
+		// Anonymous player using playerToken
+		player, err := h.service.GetPlayerByMatchAndToken(c.Request.Context(), m.ID, tokenStr)
 		if err != nil || player == nil {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Cal unir-se a la partida mitjançant l'endpoint REST abans d'iniciar el WebSocket com a jugador."})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token d'autenticació o playerToken invàlid."})
 			return
 		}
 		if player.IsKicked {
@@ -236,23 +269,6 @@ func (h *Handler) HandleWebSocket(c *gin.Context) {
 		isHost = false
 		playerID = &player.ID
 		nickname = player.Nickname
-	} else {
-		// Default fallback if role is not explicitly specified in URL
-		player, err := h.service.GetPlayerByMatchAndUser(c.Request.Context(), m.ID, userID)
-		if err == nil && player != nil {
-			if player.IsKicked {
-				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Has estat expulsat d'aquesta partida."})
-				return
-			}
-			isHost = false
-			playerID = &player.ID
-			nickname = player.Nickname
-		} else if m.HostID == userID {
-			isHost = true
-		} else {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Cal unir-se a la partida mitjançant l'endpoint REST abans d'iniciar el WebSocket."})
-			return
-		}
 	}
 
 	// 4. Upgrade connection to WebSocket

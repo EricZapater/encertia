@@ -5,6 +5,8 @@ export interface EvaluationQuizSummary {
   totalStudents: number
   gradedCount: number
   lastMatchAt: string
+  groupId?: string | null
+  groupName?: string | null
 }
 
 export interface EvaluationsListResponse {
@@ -32,6 +34,8 @@ export interface QuestionStats {
 export interface StudentEvaluationSummary {
   studentId: string
   studentName: string
+  groupId?: string | null
+  groupName?: string | null
   matchesCount: number
   calculatedGrade: number
   finalGrade?: number | null
@@ -58,6 +62,8 @@ export interface StudentAnswerDetail {
 
 export interface StudentMatchResult {
   matchId: string
+  groupId?: string | null
+  groupName?: string | null
   matchDate: string
   score: number
   totalQuestions: number
@@ -68,6 +74,8 @@ export interface StudentEvaluationDetail {
   evaluationId: string
   studentId: string
   studentName: string
+  groupId?: string | null
+  groupName?: string | null
   calculatedGrade: number
   finalGrade?: number | null
   isGraded: boolean

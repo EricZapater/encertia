@@ -21,14 +21,6 @@ onMounted(async () => {
     await authStore.initAuth()
   }
 
-  if (!authStore.isAuthenticated) {
-    router.push({
-      name: 'login',
-      query: { redirect: `/play/${pin.value}` }
-    })
-    return
-  }
-
   // Si no està connectat o el PIN no coincideix, reconnecta com a jugador
   if (!matchStore.isConnected || matchStore.pin !== pin.value) {
     if (pin.value) {

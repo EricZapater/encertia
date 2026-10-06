@@ -5,7 +5,9 @@ import "time"
 type Evaluation struct {
 	ID              string     `json:"id"`
 	QuizID          string     `json:"quizId"`
-	StudentID       string     `json:"studentId"`
+	StudentID       *string    `json:"studentId,omitempty"`
+	PlayerID        *string    `json:"playerId,omitempty"`
+	Nickname        *string    `json:"nickname,omitempty"`
 	CalculatedGrade float64    `json:"calculatedGrade"`
 	FinalGrade      *float64   `json:"finalGrade,omitempty"`
 	IsGraded        bool       `json:"isGraded"`
@@ -45,6 +47,8 @@ type QuestionStats struct {
 type StudentEvaluationSummary struct {
 	StudentID       string   `json:"studentId"`
 	StudentName     string   `json:"studentName"`
+	GroupID         *string  `json:"groupId"`
+	GroupName       *string  `json:"groupName"`
 	MatchesCount    int      `json:"matchesCount"`
 	CalculatedGrade float64  `json:"calculatedGrade"`
 	FinalGrade      *float64 `json:"finalGrade"`
@@ -71,6 +75,8 @@ type StudentAnswerDetail struct {
 
 type StudentMatchResult struct {
 	MatchID        string                `json:"matchId"`
+	GroupID        *string               `json:"groupId"`
+	GroupName      *string               `json:"groupName"`
 	MatchDate      time.Time             `json:"matchDate"`
 	Score          int                   `json:"score"`
 	TotalQuestions int                   `json:"totalQuestions"`
@@ -81,6 +87,8 @@ type StudentEvaluationDetail struct {
 	EvaluationID    string               `json:"evaluationId"`
 	StudentID       string               `json:"studentId"`
 	StudentName     string               `json:"studentName"`
+	GroupID         *string              `json:"groupId"`
+	GroupName       *string              `json:"groupName"`
 	CalculatedGrade float64              `json:"calculatedGrade"`
 	FinalGrade      *float64             `json:"finalGrade"`
 	IsGraded        bool                 `json:"isGraded"`

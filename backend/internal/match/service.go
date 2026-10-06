@@ -20,13 +20,14 @@ type MatchFinishedListener interface {
 }
 
 type Service interface {
-	CreateMatch(ctx context.Context, hostID, quizID uuid.UUID) (*MatchCreatedResponse, error)
+	CreateMatch(ctx context.Context, hostID, quizID uuid.UUID, groupID *uuid.UUID) (*MatchCreatedResponse, error)
 	GetMatchPublicInfo(ctx context.Context, pin string) (*MatchPublicInfo, error)
-	JoinMatch(ctx context.Context, userID uuid.UUID, pin string, nickname string) (*JoinMatchResponse, error)
+	JoinMatch(ctx context.Context, userID *uuid.UUID, pin string, nickname string) (*JoinMatchResponse, error)
 	GetMatchSummary(ctx context.Context, userID, matchID uuid.UUID) (*MatchSummaryResponse, error)
 	GetMatchByID(ctx context.Context, id uuid.UUID) (*Match, error)
 	GetMatchByPIN(ctx context.Context, pin string) (*Match, error)
 	GetPlayerByMatchAndUser(ctx context.Context, matchID, userID uuid.UUID) (*MatchPlayer, error)
+	GetPlayerByMatchAndToken(ctx context.Context, matchID uuid.UUID, token string) (*MatchPlayer, error)
 	RegisterFinishedListener(listener MatchFinishedListener)
 
 	// WebSocket handling
@@ -71,7 +72,11 @@ func (s *matchService) GetPlayerByMatchAndUser(ctx context.Context, matchID, use
 	return s.repo.GetPlayerByMatchAndUser(ctx, matchID, userID)
 }
 
-func (s *matchService) CreateMatch(ctx context.Context, hostID, quizID uuid.UUID) (*MatchCreatedResponse, error) {
+func (s *matchService) GetPlayerByMatchAndToken(ctx context.Context, matchID uuid.UUID, token string) (*MatchPlayer, error) {
+	return s.repo.GetPlayerByMatchAndToken(ctx, matchID, token)
+}
+
+func (s *matchService) CreateMatch(ctx context.Context, hostID, quizID uuid.UUID, groupID *uuid.UUID) (*MatchCreatedResponse, error) {
 	pin, err := s.repo.GenerateUniquePIN(ctx)
 	if err != nil {
 		return nil, shared.ErrInternal(err)
@@ -81,6 +86,7 @@ func (s *matchService) CreateMatch(ctx context.Context, hostID, quizID uuid.UUID
 		ID:                   uuid.New(),
 		QuizID:               quizID,
 		HostID:               hostID,
+		GroupID:              groupID,
 		PIN:                  pin,
 		Status:               StatusLobby,
 		CurrentQuestionIndex: 0,
@@ -105,6 +111,8 @@ func (s *matchService) CreateMatch(ctx context.Context, hostID, quizID uuid.UUID
 	return &MatchCreatedResponse{
 		ID:        m.ID,
 		QuizID:    m.QuizID,
+		GroupID:   matchWithQuiz.GroupID,
+		GroupName: matchWithQuiz.GroupName,
 		QuizTitle: qDetail.Title,
 		HostID:    m.HostID,
 		PIN:       m.PIN,
@@ -126,7 +134,7 @@ func (s *matchService) GetMatchPublicInfo(ctx context.Context, pin string) (*Mat
 	return info, nil
 }
 
-func (s *matchService) JoinMatch(ctx context.Context, userID uuid.UUID, pin string, nickname string) (*JoinMatchResponse, error) {
+func (s *matchService) JoinMatch(ctx context.Context, userID *uuid.UUID, pin string, nickname string) (*JoinMatchResponse, error) {
 	m, err := s.repo.GetMatchByPIN(ctx, pin)
 	if err != nil {
 		return nil, shared.ErrInternal(err)
@@ -139,13 +147,17 @@ func (s *matchService) JoinMatch(ctx context.Context, userID uuid.UUID, pin stri
 		return nil, shared.NewAppError(http.StatusConflict, "MATCH_ALREADY_STARTED", "La partida ja ha començat i no admet nous jugadors.", nil, nil)
 	}
 
-	// Check if player is already kicked
-	existingPlayer, err := s.repo.GetPlayerByMatchAndUser(ctx, m.ID, userID)
-	if err != nil {
-		return nil, shared.ErrInternal(err)
-	}
-	if existingPlayer != nil && existingPlayer.IsKicked {
-		return nil, shared.NewAppError(http.StatusConflict, "PLAYER_KICKED", "Has estat expulsat d'aquesta partida.", nil, nil)
+	var existingPlayer *MatchPlayer
+	if userID != nil {
+		// Check if player is already kicked
+		var findErr error
+		existingPlayer, findErr = s.repo.GetPlayerByMatchAndUser(ctx, m.ID, *userID)
+		if findErr != nil {
+			return nil, shared.ErrInternal(findErr)
+		}
+		if existingPlayer != nil && existingPlayer.IsKicked {
+			return nil, shared.NewAppError(http.StatusConflict, "PLAYER_KICKED", "Has estat expulsat d'aquesta partida.", nil, nil)
+		}
 	}
 
 	player := &MatchPlayer{
@@ -157,6 +169,12 @@ func (s *matchService) JoinMatch(ctx context.Context, userID uuid.UUID, pin stri
 		IsConnected: true,
 		IsKicked:    false,
 	}
+
+	if userID == nil {
+		token := uuid.New().String()
+		player.PlayerToken = &token
+	}
+
 	if existingPlayer != nil {
 		player.ID = existingPlayer.ID
 		player.Score = existingPlayer.Score
@@ -167,12 +185,13 @@ func (s *matchService) JoinMatch(ctx context.Context, userID uuid.UUID, pin stri
 	}
 
 	return &JoinMatchResponse{
-		MatchID:  m.ID,
-		PlayerID: player.ID,
-		UserID:   userID,
-		Nickname: nickname,
-		PIN:      m.PIN,
-		Status:   m.Status,
+		MatchID:     m.ID,
+		PlayerID:    player.ID,
+		UserID:      player.UserID,
+		PlayerToken: player.PlayerToken,
+		Nickname:    nickname,
+		PIN:         m.PIN,
+		Status:      m.Status,
 	}, nil
 }
 

@@ -82,6 +82,10 @@ func RunMigrations(db *sql.DB) error {
 		"migrations/000009_create_material_tables.up.sql",
 		"migrations/000010_add_user_language.up.sql",
 		"migrations/000011_create_metrics_tables.up.sql",
+		"migrations/000012_create_group_tables.up.sql",
+		"migrations/000013_add_group_id_to_matches.up.sql",
+		"migrations/000014_allow_anonymous_match_players.up.sql",
+		"migrations/000015_allow_anonymous_evaluations.up.sql",
 	}
 
 	for _, file := range migrationFiles {

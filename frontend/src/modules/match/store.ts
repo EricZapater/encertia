@@ -24,9 +24,14 @@ export const useMatchStore = defineStore('match', () => {
   const pin = ref<string | null>(null)
   const status = ref<MatchStatus | null>(null)
   const quizTitle = ref<string>('')
+  const groupId = ref<string | null>(null)
+  const groupName = ref<string | null>(null)
   const role = ref<'host' | 'player' | null>(null)
   const myPlayerId = ref<string | null>(null)
   const myNickname = ref<string>('')
+  const playerToken = ref<string | null>(
+    typeof window !== 'undefined' ? localStorage.getItem('encertia_player_token') : null
+  )
   const qrCodeUrl = ref<string | null>(null)
   const playUrl = ref<string | null>(null)
 
@@ -154,6 +159,8 @@ export const useMatchStore = defineStore('match', () => {
       if (data.pin) pin.value = data.pin
       if (data.status) status.value = data.status
       if (data.quizTitle) quizTitle.value = data.quizTitle
+      if (data.groupId !== undefined) groupId.value = data.groupId
+      if (data.groupName !== undefined) groupName.value = data.groupName
       if (data.role) role.value = data.role
       if (data.playerId) myPlayerId.value = data.playerId
       if (typeof data.score === 'number') myScore.value = data.score
@@ -312,9 +319,11 @@ export const useMatchStore = defineStore('match', () => {
         summary.value = data.summary
         podium.value = data.summary.podium || []
         leaderboard.value = data.summary.leaderboard || []
+        if (data.summary.groupName) groupName.value = data.summary.groupName
       } else {
         podium.value = data.podium || []
         leaderboard.value = data.leaderboard || []
+        if (data.groupName) groupName.value = data.groupName
       }
     })
 
@@ -327,15 +336,17 @@ export const useMatchStore = defineStore('match', () => {
 
   // --- Actions del Moderador (Host) ---
 
-  async function initHostMatch(quizId: string): Promise<MatchCreatedResponse> {
+  async function initHostMatch(quizId: string, targetGroupId?: string | null): Promise<MatchCreatedResponse> {
     isLoading.value = true
     error.value = null
     try {
-      const res = await matchApi.createMatch({ quizId })
+      const res = await matchApi.createMatch({ quizId, groupId: targetGroupId || undefined })
       matchId.value = res.id
       pin.value = res.pin
       status.value = res.status
       quizTitle.value = res.quizTitle || 'Partida en directe'
+      groupId.value = res.groupId || null
+      groupName.value = res.groupName || null
       qrCodeUrl.value = res.qrCodeUrl || null
       playUrl.value = res.playUrl
       role.value = 'host'
@@ -409,6 +420,15 @@ export const useMatchStore = defineStore('match', () => {
       myPlayerId.value = res.playerId
       myNickname.value = res.nickname
       role.value = 'player'
+      if (res.playerToken) {
+        playerToken.value = res.playerToken
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('encertia_player_token', res.playerToken)
+        }
+      }
+      if (res.playerId && typeof window !== 'undefined') {
+        localStorage.setItem('encertia_player_id', res.playerId)
+      }
 
       // Connectar al WebSocket com a jugador
       await connectAsPlayer(targetPin)
@@ -429,7 +449,9 @@ export const useMatchStore = defineStore('match', () => {
       wsClient.disconnect()
     }
 
-    wsClient = new MatchWSClient({ pin: targetPin, role: 'player' })
+    const pToken = playerToken.value || (typeof window !== 'undefined' ? localStorage.getItem('encertia_player_token') : null) || undefined
+
+    wsClient = new MatchWSClient({ pin: targetPin, role: 'player', playerToken: pToken })
     setupWebSocketListeners(wsClient)
     await wsClient.connect()
   }
@@ -498,10 +520,17 @@ export const useMatchStore = defineStore('match', () => {
       wsClient.disconnect()
       wsClient = null
     }
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('encertia_player_token')
+      localStorage.removeItem('encertia_player_id')
+    }
+    playerToken.value = null
     matchId.value = null
     pin.value = null
     status.value = null
     quizTitle.value = ''
+    groupId.value = null
+    groupName.value = null
     role.value = null
     myPlayerId.value = null
     players.value = []
@@ -533,9 +562,12 @@ export const useMatchStore = defineStore('match', () => {
     pin,
     status,
     quizTitle,
+    groupId,
+    groupName,
     role,
     myPlayerId,
     myNickname,
+    playerToken,
     qrCodeUrl,
     playUrl,
     players,

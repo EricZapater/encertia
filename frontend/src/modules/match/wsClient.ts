@@ -1,12 +1,15 @@
 import { ACCESS_TOKEN_KEY } from '@/api/client'
 import type { WSEvent, WSEventName } from './types'
 
+export const PLAYER_TOKEN_KEY = 'encertia_player_token'
+
 export type WSEventHandler<T = any> = (data: T) => void
 
 export interface WSClientOptions {
   pin: string
   role?: 'host' | 'player'
   token?: string
+  playerToken?: string
   autoReconnect?: boolean
   maxReconnectAttempts?: number
   heartbeatIntervalMs?: number
@@ -16,6 +19,7 @@ export class MatchWSClient {
   private pin: string
   private role?: 'host' | 'player'
   private token: string | null = null
+  private playerToken: string | null = null
   private ws: WebSocket | null = null
   private listeners: Map<string, Set<WSEventHandler>> = new Map()
   private autoReconnect: boolean
@@ -31,13 +35,14 @@ export class MatchWSClient {
     this.pin = options.pin
     this.role = options.role
     this.token = options.token || (typeof window !== 'undefined' ? localStorage.getItem(ACCESS_TOKEN_KEY) : null)
+    this.playerToken = options.playerToken || (typeof window !== 'undefined' ? localStorage.getItem(PLAYER_TOKEN_KEY) : null)
     this.autoReconnect = options.autoReconnect ?? true
     this.maxReconnectAttempts = options.maxReconnectAttempts ?? 5
     this.heartbeatIntervalMs = options.heartbeatIntervalMs ?? 20000
   }
 
   /**
-   * Construeix la URL WebSocket amb token JWT i PIN.
+   * Construeix la URL WebSocket amb token JWT / playerToken i PIN.
    */
   private buildWSUrl(): string {
     const rawWsUrl = import.meta.env.VITE_WS_URL
@@ -54,12 +59,21 @@ export class MatchWSClient {
       baseUrl = 'ws://localhost:8080'
     }
 
-    const token = this.token || (typeof window !== 'undefined' ? localStorage.getItem(ACCESS_TOKEN_KEY) || '' : '')
+    const userToken = this.token || (typeof window !== 'undefined' ? localStorage.getItem(ACCESS_TOKEN_KEY) || '' : '')
+    const playerToken = this.playerToken || (typeof window !== 'undefined' ? localStorage.getItem(PLAYER_TOKEN_KEY) || '' : '')
     const cleanPin = encodeURIComponent(this.pin)
-    const cleanToken = encodeURIComponent(token)
     const roleParam = this.role ? `&role=${encodeURIComponent(this.role)}` : ''
 
-    return `${baseUrl}/api/ws/match/${cleanPin}?token=${cleanToken}${roleParam}`
+    if (userToken) {
+      const cleanToken = encodeURIComponent(userToken)
+      return `${baseUrl}/api/ws/match/${cleanPin}?token=${cleanToken}${roleParam}`
+    } else if (playerToken) {
+      const cleanPlayerToken = encodeURIComponent(playerToken)
+      return `${baseUrl}/api/ws/match/${cleanPin}?playerToken=${cleanPlayerToken}${roleParam}`
+    } else {
+      const firstParam = this.role ? `?role=${encodeURIComponent(this.role)}` : ''
+      return `${baseUrl}/api/ws/match/${cleanPin}${firstParam}`
+    }
   }
 
   /**

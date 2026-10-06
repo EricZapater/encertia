@@ -29,32 +29,15 @@
         </router-link>
 
         <router-link
-          v-if="canAccessTeacherFeatures"
-          to="/users"
+          to="/groups"
           class="nav-link"
-          :class="{ active: isRouteActive('/users') }"
+          :class="{ active: isRouteActive('/groups') }"
         >
           <i class="pi pi-users"></i>
-          <span>{{ $t('nav.users') }}</span>
+          <span>{{ $t('nav.groups') }}</span>
         </router-link>
 
-        <router-link
-          to="/courses"
-          class="nav-link"
-          :class="{ active: isRouteActive('/courses') }"
-        >
-          <i class="pi pi-book"></i>
-          <span>{{ $t('nav.courses') }}</span>
-        </router-link>
 
-        <router-link
-          to="/materials"
-          class="nav-link"
-          :class="{ active: isRouteActive('/materials') }"
-        >
-          <i class="pi pi-folder-open"></i>
-          <span>{{ $t('nav.materials') }}</span>
-        </router-link>
 
         <router-link
           v-if="canAccessTeacherFeatures"

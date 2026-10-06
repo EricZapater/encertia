@@ -28,6 +28,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/groups',
+    name: 'groups-list',
+    component: () => import('@/modules/groups/views/GroupsListView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/users',
     name: 'users-list',
     component: () => import('@/modules/users/views/UsersListView.vue'),
@@ -60,14 +66,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/play',
     name: 'match-join',
-    component: () => import('@/modules/match/views/PlayerJoinView.vue'),
-    meta: { requiresAuth: true }
+    component: () => import('@/modules/match/views/PlayerJoinView.vue')
   },
   {
     path: '/play/:pin',
     name: 'match-player',
-    component: () => import('@/modules/match/views/PlayerGameView.vue'),
-    meta: { requiresAuth: true }
+    component: () => import('@/modules/match/views/PlayerGameView.vue')
   },
   {
     path: '/matches/:id/host',

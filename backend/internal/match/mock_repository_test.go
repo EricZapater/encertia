@@ -56,6 +56,10 @@ func (m *mockRepository) CreateMatch(ctx context.Context, matchObj *match.Match)
 	if matchObj.ID == uuid.Nil {
 		matchObj.ID = uuid.New()
 	}
+	if matchObj.GroupID != nil && matchObj.GroupName == nil {
+		gName := "Grup de Prova"
+		matchObj.GroupName = &gName
+	}
 	matchObj.CreatedAt = time.Now()
 	matchObj.UpdatedAt = time.Now()
 	m.matches[matchObj.ID] = matchObj
@@ -72,6 +76,10 @@ func (m *mockRepository) GetMatchByID(ctx context.Context, id uuid.UUID) (*match
 
 	if matchObj, ok := m.matches[id]; ok && matchObj.DeletedAt == nil {
 		copy := *matchObj
+		if copy.GroupID != nil && copy.GroupName == nil {
+			gName := "Grup de Prova"
+			copy.GroupName = &gName
+		}
 		return &copy, nil
 	}
 	return nil, nil
@@ -88,6 +96,10 @@ func (m *mockRepository) GetMatchByPIN(ctx context.Context, pin string) (*match.
 	for _, matchObj := range m.matches {
 		if matchObj.PIN == pin && matchObj.Status != match.StatusFinished && matchObj.DeletedAt == nil {
 			copy := *matchObj
+			if copy.GroupID != nil && copy.GroupName == nil {
+				gName := "Grup de Prova"
+				copy.GroupName = &gName
+			}
 			return &copy, nil
 		}
 	}
@@ -122,6 +134,10 @@ func (m *mockRepository) GetMatchWithQuizByID(ctx context.Context, id uuid.UUID)
 
 	matchCopy := *matchObj
 	matchCopy.QuizTitle = qd.Title
+	if matchCopy.GroupID != nil && matchCopy.GroupName == nil {
+		gName := "Grup de Prova"
+		matchCopy.GroupName = &gName
+	}
 	qdCopy := *qd
 	return &matchCopy, &qdCopy, nil
 }
@@ -152,17 +168,21 @@ func (m *mockRepository) AddOrUpdatePlayer(ctx context.Context, player *match.Ma
 		return errors.New("db error")
 	}
 
-	// Check if exists by match_id and user_id
+	// Check if exists by match_id and user_id / token / id
 	for _, p := range m.players {
-		if p.MatchID == player.MatchID && p.UserID == player.UserID {
-			p.Nickname = player.Nickname
-			p.IsConnected = player.IsConnected
-			p.UpdatedAt = time.Now()
-			player.ID = p.ID
-			player.Score = p.Score
-			player.IsKicked = p.IsKicked
-			player.JoinedAt = p.JoinedAt
-			return nil
+		if p.MatchID == player.MatchID {
+			if (player.UserID != nil && p.UserID != nil && *p.UserID == *player.UserID) ||
+				(player.PlayerToken != nil && p.PlayerToken != nil && *p.PlayerToken == *player.PlayerToken) ||
+				(p.ID == player.ID) {
+				p.Nickname = player.Nickname
+				p.IsConnected = player.IsConnected
+				p.UpdatedAt = time.Now()
+				player.ID = p.ID
+				player.Score = p.Score
+				player.IsKicked = p.IsKicked
+				player.JoinedAt = p.JoinedAt
+				return nil
+			}
 		}
 	}
 
@@ -184,7 +204,24 @@ func (m *mockRepository) GetPlayerByMatchAndUser(ctx context.Context, matchID, u
 	}
 
 	for _, p := range m.players {
-		if p.MatchID == matchID && p.UserID == userID {
+		if p.MatchID == matchID && p.UserID != nil && *p.UserID == userID {
+			copy := *p
+			return &copy, nil
+		}
+	}
+	return nil, nil
+}
+
+func (m *mockRepository) GetPlayerByMatchAndToken(ctx context.Context, matchID uuid.UUID, token string) (*match.MatchPlayer, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	if m.forceError {
+		return nil, errors.New("db error")
+	}
+
+	for _, p := range m.players {
+		if p.MatchID == matchID && p.PlayerToken != nil && *p.PlayerToken == token {
 			copy := *p
 			return &copy, nil
 		}
@@ -407,6 +444,7 @@ func (m *mockRepository) GetPublicInfoByPIN(ctx context.Context, pin string) (*m
 		ID:          matchObj.ID,
 		PIN:         matchObj.PIN,
 		QuizTitle:   title,
+		GroupName:   matchObj.GroupName,
 		HostName:    "Host User",
 		Status:      matchObj.Status,
 		PlayerCount: playerCount,

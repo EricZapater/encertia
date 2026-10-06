@@ -90,6 +90,9 @@ Totes les mètriques es computen en temps real des de `match_answers` i `match_p
 ### 4.1 `GET /evaluations`
 Llista els quizzes que tenen almenys una partida finalitzada.
 
+**Paràmetres de consulta:**
+- `groupId` (UUID, opcional): Filtra la llista de quizzes/avaluacions per al grup especificat.
+
 **Resposta:** array de `{ quizId, quizTitle, totalMatches, totalStudents, gradedCount, lastMatchAt }`.
 
 **RBAC:** `admin` veu tots; `teacher` veu només els seus.
@@ -99,18 +102,21 @@ Llista els quizzes que tenen almenys una partida finalitzada.
 ### 4.2 `GET /evaluations/quizzes/{quizId}`
 Vista d'avaluació completa d'un quiz:
 
+**Paràmetres de consulta:**
+- `groupId` (UUID, opcional): Filtra els resultats dels alumnes/participants per un grup d'alumnes en concret.
+
 - **`stats`**: array de mètriques per pregunta (secció 3.5). Ordre: `order_index` de `quiz_questions`.
-- **`students`**: array d'alumnes participants: `studentId`, `studentName`, `matchesCount`, `calculatedGrade`, `finalGrade` (null si no qualificat), `isGraded`.
+- **`students`**: array d'alumnes participants: `studentId`, `studentName`, `groupId`, `groupName`, `matchesCount`, `calculatedGrade`, `finalGrade` (null si no qualificat), `isGraded`.
 
 **Errors:** `403` si `teacher` accedeix a un quiz que no és seu. `404` si el quiz no existeix o no té partides finalitzades.
 
 ---
 
 ### 4.3 `GET /evaluations/quizzes/{quizId}/students/{studentId}`
-Detall d'un alumne per a un quiz:
+Detall d'un alumne/participant per a un quiz:
 
-- Dades del registre: `calculatedGrade`, `finalGrade`, `isGraded`, `gradedBy`, `gradedAt`.
-- Array de **partides** participades: `matchId`, `matchDate`, `score`, `totalQuestions`.
+- Dades del registre: `calculatedGrade`, `finalGrade`, `isGraded`, `gradedBy`, `gradedAt`, `groupId`, `groupName`.
+- Array de **partides** participades: `matchId`, `matchDate`, `groupId`, `groupName`, `score`, `totalQuestions`.
 - Per a cada partida, array de **respostes**: `questionId`, `questionText`, `selectedAnswerIds`, `correctAnswerIds`, `isCorrect`, `responseTimeMs`. Si l'alumne no va respondre, `selectedAnswerIds: []`, `isCorrect: false`.
 
 **Errors:** `403`, `404` (quiz, alumne no trobat, o alumne sense participació en cap partida d'aquest quiz).

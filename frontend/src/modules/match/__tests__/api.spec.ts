@@ -19,11 +19,13 @@ describe('Match API', () => {
     vi.clearAllMocks()
   })
 
-  it('createMatch crida correctament a POST /matches amb el quizId', async () => {
+  it('createMatch crida correctament a POST /matches amb el quizId i groupId opcional', async () => {
     const mockResponse = {
       data: {
         id: 'm123',
         quizId: 'q456',
+        groupId: 'g789',
+        groupName: 'Grup 1r ESO A',
         hostId: 'u789',
         pin: '123456',
         status: 'lobby',
@@ -32,11 +34,12 @@ describe('Match API', () => {
     }
     vi.mocked(apiClient.post).mockResolvedValueOnce(mockResponse)
 
-    const result = await createMatch({ quizId: 'q456' })
+    const result = await createMatch({ quizId: 'q456', groupId: 'g789' })
 
-    expect(apiClient.post).toHaveBeenCalledWith('/matches', { quizId: 'q456' })
+    expect(apiClient.post).toHaveBeenCalledWith('/matches', { quizId: 'q456', groupId: 'g789' })
     expect(result.pin).toBe('123456')
     expect(result.status).toBe('lobby')
+    expect(result.groupName).toBe('Grup 1r ESO A')
   })
 
   it('getMatchByPin crida a GET /matches/:pin', async () => {

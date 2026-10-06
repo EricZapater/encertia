@@ -59,7 +59,8 @@ func TestMatchService_CreateAndPublicInfo(t *testing.T) {
 	ctx := context.Background()
 	_, _, svc, hostID, qd := setupTestService()
 
-	created, err := svc.CreateMatch(ctx, hostID, qd.ID)
+	groupID := uuid.New()
+	created, err := svc.CreateMatch(ctx, hostID, qd.ID, &groupID)
 	if err != nil {
 		t.Fatalf("error creant partida: %v", err)
 	}
@@ -73,6 +74,12 @@ func TestMatchService_CreateAndPublicInfo(t *testing.T) {
 	if created.QuizTitle != qd.Title {
 		t.Errorf("títol incorrecte: got %s, want %s", created.QuizTitle, qd.Title)
 	}
+	if created.GroupID == nil || *created.GroupID != groupID {
+		t.Errorf("groupID incorrecte: got %v, want %s", created.GroupID, groupID)
+	}
+	if created.GroupName == nil || *created.GroupName != "Grup de Prova" {
+		t.Errorf("groupName incorrecte: got %v", created.GroupName)
+	}
 
 	// Public Info
 	info, err := svc.GetMatchPublicInfo(ctx, created.PIN)
@@ -82,35 +89,48 @@ func TestMatchService_CreateAndPublicInfo(t *testing.T) {
 	if info.PIN != created.PIN || info.Status != match.StatusLobby {
 		t.Errorf("dades públiques incorrectes: %+v", info)
 	}
+	if info.GroupName == nil || *info.GroupName != "Grup de Prova" {
+		t.Errorf("groupName públic incorrecte: got %v", info.GroupName)
+	}
 }
 
 func TestMatchService_JoinMatch(t *testing.T) {
 	ctx := context.Background()
 	repo, _, svc, hostID, qd := setupTestService()
 
-	created, _ := svc.CreateMatch(ctx, hostID, qd.ID)
+	created, _ := svc.CreateMatch(ctx, hostID, qd.ID, nil)
 	userID := uuid.New()
 
-	// 1. Successful Join
-	joinRes, err := svc.JoinMatch(ctx, userID, created.PIN, "Joan")
+	// 1. Successful Join with authenticated user
+	joinRes, err := svc.JoinMatch(ctx, &userID, created.PIN, "Joan")
 	if err != nil {
 		t.Fatalf("error unint-se a la partida: %v", err)
 	}
-	if joinRes.Nickname != "Joan" || joinRes.PIN != created.PIN {
+	if joinRes.Nickname != "Joan" || joinRes.PIN != created.PIN || joinRes.UserID == nil || *joinRes.UserID != userID {
 		t.Errorf("dades d'unió incorrectes: %+v", joinRes)
 	}
 
-	// 2. Conflict when match already started
+	// 2. Successful Join with anonymous user
+	anonJoinRes, err := svc.JoinMatch(ctx, nil, created.PIN, "Anonim")
+	if err != nil {
+		t.Fatalf("error unint-se com anònim: %v", err)
+	}
+	if anonJoinRes.Nickname != "Anonim" || anonJoinRes.UserID != nil || anonJoinRes.PlayerToken == nil || *anonJoinRes.PlayerToken == "" {
+		t.Errorf("dades d'unió anònima incorrectes: %+v", anonJoinRes)
+	}
+
+	// 3. Conflict when match already started
 	_ = repo.UpdateMatchStatus(ctx, created.ID, match.StatusQuestionActive, 0, nil)
-	_, err = svc.JoinMatch(ctx, uuid.New(), created.PIN, "Maria")
+	otherUserID := uuid.New()
+	_, err = svc.JoinMatch(ctx, &otherUserID, created.PIN, "Maria")
 	if err == nil {
 		t.Errorf("esperava error 409 ja que la partida ha començat")
 	}
 
-	// 3. Conflict when player kicked
+	// 4. Conflict when player kicked
 	_ = repo.UpdateMatchStatus(ctx, created.ID, match.StatusLobby, 0, nil)
 	_ = repo.KickPlayer(ctx, created.ID, joinRes.PlayerID)
-	_, err = svc.JoinMatch(ctx, userID, created.PIN, "Joan")
+	_, err = svc.JoinMatch(ctx, &userID, created.PIN, "Joan")
 	if err == nil {
 		t.Errorf("esperava error 409 ja que el jugador ha estat expulsat")
 	}
@@ -120,16 +140,16 @@ func TestMatchService_WSLifecycle(t *testing.T) {
 	ctx := context.Background()
 	_, hub, svc, hostID, qd := setupTestService()
 
-	created, _ := svc.CreateMatch(ctx, hostID, qd.ID)
+	created, _ := svc.CreateMatch(ctx, hostID, qd.ID, nil)
 	room := hub.GetRoom(created.PIN)
 
 	// Join player 1
 	p1UserID := uuid.New()
-	join1, _ := svc.JoinMatch(ctx, p1UserID, created.PIN, "Alumne 1")
+	join1, _ := svc.JoinMatch(ctx, &p1UserID, created.PIN, "Alumne 1")
 
 	// Join player 2
 	p2UserID := uuid.New()
-	join2, _ := svc.JoinMatch(ctx, p2UserID, created.PIN, "Alumne 2")
+	join2, _ := svc.JoinMatch(ctx, &p2UserID, created.PIN, "Alumne 2")
 
 	// Connect Host WS
 	hostClient := &match.Client{

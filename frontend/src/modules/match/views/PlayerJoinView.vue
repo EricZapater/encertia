@@ -35,17 +35,6 @@ onMounted(async () => {
     await authStore.initAuth()
   }
 
-  // Si no està autenticat, redirigeix al login guardant el redirect
-  if (!authStore.isAuthenticated) {
-    const currentPin = (route.query.pin as string) || ''
-    const redirectUrl = currentPin ? `/play?pin=${encodeURIComponent(currentPin)}` : '/play'
-    router.push({
-      name: 'login',
-      query: { redirect: redirectUrl }
-    })
-    return
-  }
-
   // Pre-omplir el PIN des del query param si existeix
   if (route.query.pin && typeof route.query.pin === 'string') {
     pin.value = route.query.pin.trim()
@@ -163,8 +152,11 @@ async function handleSubmit() {
 
       <!-- Peu de pàgina informatiu -->
       <div class="join-footer">
-        <p>
+        <p v-if="authStore.isAuthenticated">
           Connectat com a <strong>{{ authStore.fullName || authStore.currentUser?.email }}</strong>
+        </p>
+        <p v-else>
+          Jugant com a <strong>no registrat (anònim)</strong>
         </p>
       </div>
     </div>

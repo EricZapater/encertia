@@ -33,6 +33,14 @@ paths:
       operationId: listEvaluations
       security:
         - BearerAuth: []
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filtrar avaluacions pel grup especificat
       responses:
         '200':
           description: Llista de quizzes amb resum d'avaluació
@@ -63,6 +71,13 @@ paths:
             type: string
             format: uuid
           description: ID del quiz a avaluar
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filtrar els resultats dels alumnes/participants per un grup concret
       responses:
         '200':
           description: Avaluació completa del quiz
@@ -336,6 +351,14 @@ components:
         studentName:
           type: string
           example: "Joan Garcia"
+        groupId:
+          type: string
+          format: uuid
+          nullable: true
+        groupName:
+          type: string
+          nullable: true
+          example: "Grup B&F"
         matchesCount:
           type: integer
           description: Nombre de partides d'aquest quiz en que ha participat
@@ -381,6 +404,14 @@ components:
         studentName:
           type: string
           example: "Joan Garcia"
+        groupId:
+          type: string
+          format: uuid
+          nullable: true
+        groupName:
+          type: string
+          nullable: true
+          example: "Grup B&F"
         calculatedGrade:
           type: number
           format: float
@@ -427,6 +458,14 @@ components:
         matchId:
           type: string
           format: uuid
+        groupId:
+          type: string
+          format: uuid
+          nullable: true
+        groupName:
+          type: string
+          nullable: true
+          example: "Grup B&F"
         matchDate:
           type: string
           format: date-time

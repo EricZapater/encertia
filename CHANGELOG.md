@@ -5,6 +5,77 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-06
+### Changed
+- **Frontend (`src/components/AppNavbar.vue`)**:
+  - Amagats/eliminats els enllaços de la barra de navegació superior per a `Cursos` (`/courses`), `Usuaris` (`/users`) i `Materials` (`/materials`).
+
+## [1.6.0] - 2026-10-06
+### Added
+- **Contracte d'API i Especificació (`evaluation` + `group`)**:
+  - Actualitzada l'especificació ([`contracts/evaluation.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/evaluation.spec.md)) i el contracte OpenAPI 3.0 ([`contracts/evaluation.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/evaluation.openapi.yaml)) afegint el paràmetre de consulta `groupId` a `GET /evaluations` i `GET /evaluations/quizzes/{quizId}` i exposant `groupId` i `groupName` als resultats per persona.
+- **Backend (`internal/evaluation`)**:
+  - Mòdul `internal/evaluation` (model, repository, service i handler) actualitzat per rebre el filtre `groupId`, realitzant les consultes i JOINs corresponents amb la taula `groups` i `group_students`.
+  - Proves unitàries actualitzades a `service_test.go` amb 100% d'èxit (`go test ./internal/evaluation/...`).
+- **Frontend (`src/modules/evaluations`)**:
+  - Afegit el desplegable PrimeVue `Select` a `EvaluationsListView.vue` i `QuizEvaluationView.vue` per filtrar avaluacions per grup de la classe.
+  - Visualització del nom del grup (`groupName`) a les taules i a la capçalera de detall d'alumne (`StudentEvaluationView.vue`).
+  - 144 proves unitaries de Vitest passades i `pnpm build` finalitzat amb èxit.
+- **QA & UX**:
+  - Informe de QA aprovat amb veredicte **APTE** ([`qa-reports/evaluation_group.md`](file:///Users/eric.zapater/Developer/encertia/qa-reports/evaluation_group.md)).
+  - Informe de UX aprovat amb veredicte **A MILLORAR** ([`ux-reports/evaluation_group.md`](file:///Users/eric.zapater/Developer/encertia/ux-reports/evaluation_group.md)).
+
+## [1.5.0] - 2026-10-06
+### Added
+- **Contracte d'API i Especificació (`match` + `evaluation`)**:
+  - Actualitzada l'especificació ([`contracts/match.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/match.spec.md)) i el contracte OpenAPI 3.0 ([`contracts/match.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/match.openapi.yaml)) per permetre la unió de jugadors no registrats / anònims (`security` opcional a `/matches/{pin}/join` i retorn de `playerToken`).
+- **Backend (`internal/match`, `internal/evaluation` & `internal/db`)**:
+  - Migració SQL `000014_allow_anonymous_match_players.up.sql` (`user_id` NULLABLE a `match_players`, afegida columna `player_token`).
+  - Migració SQL `000015_allow_anonymous_evaluations.up.sql` (`student_id` NULLABLE a `evaluations`, afegits camps `player_id` i `nickname`).
+  - Permesa la connexió i reconnexió WebSocket mitjançant `playerToken` per a jugadors anònims.
+  - Paquet `internal/evaluation` actualitzat per calcular i persistir notes calculades vinculant el Nom del jugador (`nickname`) + Grup (`group_id`) + Partida (`match_id`).
+  - Proves unitaries afegides a `internal/evaluation/service_test.go` i actualitzades a `internal/match/` amb 100% d'èxit.
+- **Frontend (`src/modules/match`)**:
+  - Eliminada la requisió d'autenticació prèvia a `PlayerJoinView.vue` i `PlayerGameView.vue` per permetre l'accés directe des de `/play`.
+  - Gestió i emmagatzematge de `playerToken` a `store` i `localStorage` per establir la connexió WebSocket (`ws/match/:pin?playerToken=...&role=player`).
+  - 142 proves unitaries de Vitest passades i `pnpm build` finalitzat amb èxit.
+- **QA & UX**:
+  - Informe de QA aprovat amb veredicte **APTE** ([`qa-reports/anonymous_players.md`](file:///Users/eric.zapater/Developer/encertia/qa-reports/anonymous_players.md)).
+  - Informe de UX aprovat amb veredicte **APTE** ([`ux-reports/anonymous_players.md`](file:///Users/eric.zapater/Developer/encertia/ux-reports/anonymous_players.md)).
+
+## [1.4.0] - 2026-10-06
+### Added
+- **Contracte d'API i Especificació (`match` + `group`)**:
+  - Actualitzada l'especificació ([`contracts/match.spec.md`](file:///Users/eric.zapater/Developer/encertia/contracts/match.spec.md)) i el contracte OpenAPI 3.0 ([`contracts/match.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/match.openapi.yaml)) per admetre el camp opcional `groupId` a `CreateMatchRequest` i exposar `groupName` a les respostes de la partida (`MatchCreatedResponse`, `MatchPublicInfo`, `MatchSummaryResponse`).
+- **Backend (`internal/match` & `internal/db`)**:
+  - Migració SQL `000013_add_group_id_to_matches.up.sql` (`group_id UUID REFERENCES groups(id) ON DELETE SET NULL` i l'índex `idx_matches_group_id`).
+  - Actualitzat el repository `internal/match` amb `LEFT JOIN groups` per persistir i recuperar `group_id` i `group_name`.
+  - Actualitzats els serveis, handlers i tests unitaris a `service_test.go` i `handler_test.go` amb 100% d'èxit.
+- **Frontend (`src/modules/match`)**:
+  - Nou modal reutilitzable [`LaunchMatchModal.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/match/components/LaunchMatchModal.vue) integrat a `QuizzesListView.vue` per seleccionar el grup abans de llançar una partida.
+  - Visualització del nom del grup mitjançant un tag distintiu al Lobby del host i a la pantalla de resum/podi final (`HostGameView.vue`).
+  - Proves de Vitest actualitzades i passing (`npm test`).
+- **QA & UX**:
+  - Informe de QA aprovat amb veredicte **APTE** ([`qa-reports/match_group.md`](file:///Users/eric.zapater/Developer/encertia/qa-reports/match_group.md)).
+  - Informe de UX aprovat amb veredicte **APTE** ([`ux-reports/match_group.md`](file:///Users/eric.zapater/Developer/encertia/ux-reports/match_group.md)).
+
+## [1.3.0] - 2026-10-06
+### Added
+- **Contracte d'API i Especificació (`group`)**:
+  - Especificació funcional ([`specs/group.md`](file:///Users/eric.zapater/Developer/encertia/specs/group.md)) i contracte OpenAPI 3.0 ([`contracts/group.openapi.yaml`](file:///Users/eric.zapater/Developer/encertia/contracts/group.openapi.yaml)) per al nou mòdul mestre de Grups d'alumnes (`group`), que demana el nom del grup i suggereix el curs acadèmic amb el placeholder i valor per defecte `"26-27"`.
+- **Backend (`internal/group` & `internal/db`)**:
+  - Migració SQL `000012_create_group_tables.up.sql` (`groups` i `group_students` amb clau forània i índexs).
+  - Paquet de domini `internal/group` (model, repository amb SQL pur, service amb RBAC i validacions, i handler HTTP Gin).
+  - Endpoints REST `/groups`, `/groups/:id`, `/groups/:id/students` i `/groups/:id/students/:studentId`.
+  - Suite de tests unitaris a `service_test.go` amb 100% d'èxit.
+- **Frontend (`src/modules/groups`)**:
+  - Tipus TypeScript del contracte, client d'API Axios (`api.ts`) i store Pinia (`store.ts`).
+  - Vista principal ([`GroupsListView.vue`](file:///Users/eric.zapater/Developer/encertia/frontend/src/modules/groups/views/GroupsListView.vue)) amb taula PrimeVue, cerca, formulari de creació amb placeholder i valor per defecte `"26-27"`, gestió d'alumnes i esborrat lògic.
+  - Ruta `/groups` a Vue Router i accés directe al menú de navegació `AppNavbar.vue` amb suport i18n (`ca`, `es`, `en`).
+- **QA & UX**:
+  - Informe de QA aprovat amb veredicte **APTE** ([`qa-reports/group.md`](file:///Users/eric.zapater/Developer/encertia/qa-reports/group.md)).
+  - Informe de UX generat amb veredicte **A MILLORAR** ([`ux-reports/group.md`](file:///Users/eric.zapater/Developer/encertia/ux-reports/group.md)).
+
 ## [1.2.0] - 2026-09-02
 ### Added
 - **Contracte d'API i Especificació (`metrics`)**:

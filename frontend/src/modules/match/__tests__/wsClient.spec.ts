@@ -60,6 +60,21 @@ describe('MatchWSClient', () => {
     expect(wsInstance.url).toContain('/api/ws/match/123456?token=fake-jwt-token')
   })
 
+  it('construeix la URL amb playerToken quan no hi ha token d’usuari', async () => {
+    localStorage.clear()
+    const client = new MatchWSClient({
+      pin: '123456',
+      playerToken: 'fake-player-token',
+      role: 'player'
+    })
+
+    await client.connect()
+    expect(client.isConnected).toBe(true)
+
+    const wsInstance = MockWebSocket.instances[0]
+    expect(wsInstance.url).toContain('/api/ws/match/123456?playerToken=fake-player-token&role=player')
+  })
+
   it('envia missatges JSON correctament amb send()', async () => {
     const client = new MatchWSClient({ pin: '123456', token: 'token' })
     await client.connect()

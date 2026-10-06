@@ -1,8 +1,20 @@
 <template>
   <div class="quiz-evaluation-container p-4">
-    <div class="mb-4">
-      <Button label="Tornar" icon="pi pi-arrow-left" class="p-button-text mb-2" @click="router.push('/evaluations')" />
-      <h1 class="text-2xl font-bold m-0" v-if="evalData">{{ evalData.quizTitle }}</h1>
+    <div class="flex flex-column sm:flex-row justify-content-between align-items-start sm:align-items-center gap-3 mb-4">
+      <div>
+        <Button label="Tornar" icon="pi pi-arrow-left" class="p-button-text mb-2" @click="router.push('/evaluations')" />
+        <h1 class="text-2xl font-bold m-0" v-if="evalData">{{ evalData.quizTitle }}</h1>
+      </div>
+      <Select
+        v-model="selectedGroupId"
+        :options="groupOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Tots els grups"
+        showClear
+        class="w-full sm:w-64"
+        @change="onGroupChange"
+      />
     </div>
 
     <div v-if="store.isLoading" class="text-center p-4">
@@ -57,6 +69,11 @@
         <template #content>
           <DataTable :value="evalData.students" class="p-datatable-sm" paginator :rows="10">
             <Column field="studentName" header="Nom de l'Alumne" sortable />
+            <Column field="groupName" header="Grup" sortable>
+              <template #body="slotProps">
+                <span>{{ slotProps.data.groupName || '-' }}</span>
+              </template>
+            </Column>
             <Column field="matchesCount" header="Partides" sortable align="center" />
             <Column header="Nota Calculada (Última Partida)" sortable field="calculatedGrade" align="center">
               <template #body="slotProps">
@@ -89,20 +106,32 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEvaluationStore } from '../store'
+import { useGroupStore } from '@/modules/groups/store'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import Select from 'primevue/select'
 import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()
 const router = useRouter()
 const store = useEvaluationStore()
+const groupStore = useGroupStore()
 const toast = useToast()
+
+const selectedGroupId = ref<string | null>(null)
+
+const groupOptions = computed(() => {
+  return groupStore.groups.map((g) => ({
+    label: g.academicYear ? `${g.name} (${g.academicYear})` : g.name,
+    value: g.id
+  }))
+})
 
 const quizId = computed(() => route.params.quizId as string)
 const evalData = computed(() => store.activeQuizEvaluation)
@@ -118,10 +147,17 @@ watch(
 )
 
 onMounted(() => {
+  groupStore.fetchGroups()
   if (quizId.value) {
     store.fetchQuizEvaluation(quizId.value)
   }
 })
+
+function onGroupChange() {
+  if (quizId.value) {
+    store.fetchQuizEvaluation(quizId.value, selectedGroupId.value || undefined)
+  }
+}
 
 function navigateToStudentEvaluation(studentId: string) {
   router.push(`/evaluations/quizzes/${quizId.value}/students/${studentId}`)

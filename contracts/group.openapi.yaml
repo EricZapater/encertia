@@ -1,0 +1,464 @@
+openapi: 3.0.3
+info:
+  title: Encertia — Mòdul Group API
+  description: Contracte d'API REST per a la gestió de grups d'alumnes i curs acadèmic a la plataforma Encertia.
+  version: 1.0.0
+
+servers:
+  - url: /api
+    description: API Server Base URL
+
+paths:
+  /groups:
+    get:
+      summary: Llistar grups
+      description: Retorna la llista de grups d'alumnes. Admins i professors veuen els grups gestionats o creats; Alumnes veuen els grups als quals estan assignats.
+      operationId: listGroups
+      tags:
+        - Groups
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          description: Cerca per nom del grup
+          required: false
+          schema:
+            type: string
+        - name: academicYear
+          in: query
+          description: Filtrar per curs acadèmic (ex. 26-27)
+          required: false
+          schema:
+            type: string
+        - name: courseId
+          in: query
+          description: Filtrar per UUID del curs/assignatura associat
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Llista de grups trobats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Crear un nou grup
+      description: Crea un grup nou amb nom i curs acadèmic (amb '26-27' com a proposta per defecte).
+      operationId: createGroup
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+      responses:
+        '201':
+          description: Grup creat correctament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /groups/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: UUID del grup
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Obtenir detall d'un grup
+      operationId: getGroupById
+      tags:
+        - Groups
+      responses:
+        '200':
+          description: Detall del grup
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      summary: Actualitzar un grup
+      operationId: updateGroup
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupRequest'
+      responses:
+        '200':
+          description: Grup actualitzat correctament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Esborrar un grup (soft-delete)
+      operationId: deleteGroup
+      tags:
+        - Groups
+      responses:
+        '204':
+          description: Grup esborrat correctament
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /groups/{id}/students:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: UUID del grup
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Llistar alumnes d'un grup
+      operationId: listGroupStudents
+      tags:
+        - Groups
+      responses:
+        '200':
+          description: Llista d'alumnes assignats al grup
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupStudentListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Assignar alumnes al grup
+      operationId: addStudentsToGroup
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStudentsToGroupRequest'
+      responses:
+        '200':
+          description: Alumnes afegits al grup satisfactòriament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupStudentListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /groups/{id}/students/{studentId}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: UUID del grup
+        schema:
+          type: string
+          format: uuid
+      - name: studentId
+        in: path
+        required: true
+        description: UUID de l'alumne a treure del grup
+        schema:
+          type: string
+          format: uuid
+
+    delete:
+      summary: Desassignar un alumne del grup
+      operationId: removeStudentFromGroup
+      tags:
+        - Groups
+      responses:
+        '204':
+          description: Alumne desassignat del grup correctament
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Group:
+      type: object
+      required:
+        - id
+        - name
+        - academicYear
+        - teacherId
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        name:
+          type: string
+          example: "Grup B&F"
+        academicYear:
+          type: string
+          example: "26-27"
+        courseId:
+          type: string
+          format: uuid
+          nullable: true
+          example: "b1febc99-9c0b-4ef8-bb6d-6bb9bd380a22"
+        courseTitle:
+          type: string
+          nullable: true
+          example: "Matemàtiques I"
+        teacherId:
+          type: string
+          format: uuid
+          example: "c2febc99-9c0b-4ef8-bb6d-6bb9bd380a33"
+        studentCount:
+          type: integer
+          example: 25
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateGroupRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Grup B&F"
+        academicYear:
+          type: string
+          default: "26-27"
+          example: "26-27"
+        courseId:
+          type: string
+          format: uuid
+          nullable: true
+          example: "b1febc99-9c0b-4ef8-bb6d-6bb9bd380a22"
+
+    UpdateGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Grup B&F Segon Quatrimestre"
+        academicYear:
+          type: string
+          example: "26-27"
+        courseId:
+          type: string
+          format: uuid
+          nullable: true
+
+    GroupResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Group'
+
+    GroupListResponse:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - pageSize
+        - totalPages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Group'
+        total:
+          type: integer
+          example: 1
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        totalPages:
+          type: integer
+          example: 1
+
+    AddStudentsToGroupRequest:
+      type: object
+      required:
+        - studentIds
+      properties:
+        studentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    GroupStudent:
+      type: object
+      required:
+        - id
+        - email
+        - fullName
+        - assignedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        fullName:
+          type: string
+        assignedAt:
+          type: string
+          format: date-time
+
+    GroupStudentListResponse:
+      type: object
+      required:
+        - items
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupStudent'
+        total:
+          type: integer
+
+    AppError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          example: "El nom del grup és obligatori."
+        details:
+          type: object
+
+  responses:
+    BadRequestError:
+      description: Petició invàlida o dades de formulari incorrectes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    UnauthorizedError:
+      description: Manca autenticació o token invàlid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ForbiddenError:
+      description: Accés no permès per al rol de l'usuari
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFoundError:
+      description: Recurs no trobat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Error intern del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+
+security:
+  - BearerAuth: []

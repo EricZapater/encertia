@@ -25,7 +25,7 @@ export async function getMatchByPin(pin: string): Promise<MatchPublicInfo> {
 }
 
 /**
- * Registra l'usuari autenticat com a jugador a una partida en estat lobby.
+ * Registra un jugador (autenticat o anònim/no registrat) a una partida en estat lobby.
  */
 export async function joinMatch(
   pin: string,

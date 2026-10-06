@@ -72,6 +72,24 @@ describe('useEvaluationStore', () => {
     expect(store.activeQuizEvaluation?.students.length).toBe(1)
   })
 
+  it('fetches evaluations list with groupId filter', async () => {
+    const { listEvaluations } = await import('../api')
+    const store = useEvaluationStore()
+    await store.fetchEvaluationsList('group-123')
+
+    expect(listEvaluations).toHaveBeenCalledWith('group-123')
+    expect(store.evaluationsList.length).toBe(1)
+  })
+
+  it('fetches quiz evaluation with groupId filter', async () => {
+    const { getQuizEvaluation } = await import('../api')
+    const store = useEvaluationStore()
+    await store.fetchQuizEvaluation('q-test-1', 'group-123')
+
+    expect(getQuizEvaluation).toHaveBeenCalledWith('q-test-1', 'group-123')
+    expect(store.activeQuizEvaluation).not.toBeNull()
+  })
+
   it('saves student grade correctly and updates reactive state', async () => {
     const store = useEvaluationStore()
     await store.fetchQuizEvaluation('q-test-1')

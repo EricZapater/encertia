@@ -151,6 +151,14 @@ function handleExitHost() {
         <span class="quiz-title-badge">
           <i class="pi pi-bolt" /> {{ matchStore.quizTitle || 'Partida Encertia' }}
         </span>
+        <Tag
+          v-if="matchStore.groupName"
+          severity="info"
+          icon="pi pi-users"
+          :value="matchStore.groupName"
+          class="group-header-badge"
+          data-testid="host-header-group-name"
+        />
       </div>
 
       <div class="host-header-center">
@@ -188,6 +196,14 @@ function handleExitHost() {
       <div class="lobby-grid">
         <!-- Panell esquerre: PIN i Codi QR -->
         <div class="lobby-card qr-card">
+          <Tag
+            v-if="matchStore.groupName"
+            severity="info"
+            icon="pi pi-users"
+            :value="`Grup: ${matchStore.groupName}`"
+            class="mb-3"
+            data-testid="host-lobby-group-name"
+          />
           <h2 class="qr-instructions">Uneix-te a la partida des del teu mòbil o navegador:</h2>
           <p class="join-link-text">
             Entra a <strong>{{ joinUrl }}</strong>
@@ -474,6 +490,9 @@ function handleExitHost() {
       <div class="podium-header-box">
         <h1 class="podium-title">🎉 Podi de Campions 🎉</h1>
         <p class="podium-subtitle">{{ matchStore.quizTitle }}</p>
+        <p v-if="matchStore.groupName" class="podium-group-subtitle mt-2" data-testid="host-podium-group-name">
+          <Tag severity="info" icon="pi pi-users" :value="`Grup: ${matchStore.groupName}`" />
+        </p>
       </div>
 
       <!-- Podi dels 3 primers (2n, 1r, 3r) -->

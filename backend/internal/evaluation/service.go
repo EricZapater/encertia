@@ -17,8 +17,8 @@ var (
 )
 
 type Service interface {
-	ListEvaluations(userID, role string) ([]EvaluationQuizSummary, error)
-	GetQuizEvaluation(quizID, userID, role string) (*QuizEvaluationResponse, error)
+	ListEvaluations(userID, role string, groupID string) ([]EvaluationQuizSummary, error)
+	GetQuizEvaluation(quizID, userID, role string, groupID string) (*QuizEvaluationResponse, error)
 	GetStudentEvaluation(quizID, studentID, userID, role string) (*StudentEvaluationDetail, error)
 	GradeStudent(quizID, studentID, teacherID, role string, finalGrade float64) (*GradeResponse, error)
 	OnMatchFinished(matchID string) error
@@ -36,15 +36,15 @@ func NewService(repo Repository, quizService quiz.Service) Service {
 	}
 }
 
-func (s *service) ListEvaluations(userID, role string) ([]EvaluationQuizSummary, error) {
+func (s *service) ListEvaluations(userID, role string, groupID string) ([]EvaluationQuizSummary, error) {
 	if role == "student" {
 		return nil, ErrUnauthorized
 	}
 	isAdmin := role == "admin"
-	return s.repo.ListEvaluations(userID, isAdmin)
+	return s.repo.ListEvaluations(userID, isAdmin, groupID)
 }
 
-func (s *service) GetQuizEvaluation(quizID, userID, role string) (*QuizEvaluationResponse, error) {
+func (s *service) GetQuizEvaluation(quizID, userID, role string, groupID string) (*QuizEvaluationResponse, error) {
 	if role == "student" {
 		return nil, ErrUnauthorized
 	}
@@ -67,7 +67,7 @@ func (s *service) GetQuizEvaluation(quizID, userID, role string) (*QuizEvaluatio
 		}
 	}
 
-	return s.repo.GetQuizEvaluation(quizID)
+	return s.repo.GetQuizEvaluation(quizID, groupID)
 }
 
 func (s *service) GetStudentEvaluation(quizID, studentID, userID, role string) (*StudentEvaluationDetail, error) {

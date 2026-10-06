@@ -23,11 +23,11 @@ export const useEvaluationStore = defineStore('evaluations', () => {
 
   const hasEvaluations = computed(() => evaluationsList.value.length > 0)
 
-  async function fetchEvaluationsList() {
+  async function fetchEvaluationsList(groupId?: string) {
     isLoading.value = true
     error.value = null
     try {
-      const response = await listEvaluations()
+      const response = await listEvaluations(groupId)
       evaluationsList.value = response.evaluations || []
     } catch (err: any) {
       error.value = err.response?.data?.error?.message || err.message || 'Error en carregar les avaluacions.'
@@ -36,11 +36,11 @@ export const useEvaluationStore = defineStore('evaluations', () => {
     }
   }
 
-  async function fetchQuizEvaluation(quizId: string) {
+  async function fetchQuizEvaluation(quizId: string, groupId?: string) {
     isLoading.value = true
     error.value = null
     try {
-      const data = await getQuizEvaluation(quizId)
+      const data = await getQuizEvaluation(quizId, groupId)
       activeQuizEvaluation.value = data
     } catch (err: any) {
       error.value = err.response?.data?.error?.message || err.message || 'Error en carregar l’avaluació del quiz.'

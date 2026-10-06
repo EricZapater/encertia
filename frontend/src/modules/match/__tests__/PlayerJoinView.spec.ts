@@ -102,4 +102,42 @@ describe('PlayerJoinView.vue', () => {
     expect(matchStore.joinAndConnectAsPlayer).toHaveBeenCalledWith('123456', 'Pol')
     expect(mockPush).toHaveBeenCalledWith('/play/123456')
   })
+
+  it('permet a un usuari no registrat introduir el PIN i Nickname i unir-se a la partida', async () => {
+    const authStore = useAuthStore()
+    authStore.user = null
+    authStore.accessToken = null
+    authStore.isInitialized = true
+
+    const matchStore = useMatchStore()
+    vi.spyOn(matchStore, 'joinAndConnectAsPlayer').mockResolvedValue(undefined)
+
+    const wrapper = mount(PlayerJoinView, {
+      global: {
+        stubs: {
+          Card: { template: '<div class="p-card"><slot name="content" /></div>' },
+          InputText: {
+            props: ['modelValue', 'id'],
+            template: '<input :id="id" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />'
+          },
+          Button: {
+            props: ['disabled'],
+            template: '<button type="submit" :disabled="disabled"><slot /></button>'
+          },
+          Message: { template: '<div><slot /></div>' }
+        }
+      }
+    })
+
+    await flushPromises()
+
+    const nickInput = wrapper.find('[data-testid="input-player-nickname"]')
+    await nickInput.setValue('Anonim123')
+
+    const form = wrapper.find('[data-testid="form-join-match"]')
+    await form.trigger('submit.prevent')
+
+    expect(matchStore.joinAndConnectAsPlayer).toHaveBeenCalledWith('123456', 'Anonim123')
+    expect(mockPush).toHaveBeenCalledWith('/play/123456')
+  })
 })

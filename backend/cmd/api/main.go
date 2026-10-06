@@ -10,6 +10,7 @@ import (
 	"github.com/encertia/backend/internal/course"
 	"github.com/encertia/backend/internal/db"
 	"github.com/encertia/backend/internal/evaluation"
+	"github.com/encertia/backend/internal/group"
 	"github.com/encertia/backend/internal/match"
 	"github.com/encertia/backend/internal/material"
 	"github.com/encertia/backend/internal/metrics"
@@ -121,6 +122,11 @@ func main() {
 	materialSvc := material.NewService(materialRepo)
 	materialHandler := material.NewHandler(materialSvc, storageSvc)
 
+	// Group Domain
+	groupRepo := group.NewRepository(dbConn)
+	groupSvc := group.NewService(groupRepo)
+	groupHandler := group.NewHandler(groupSvc)
+
 	// Metrics Domain
 	metricsRepo := metrics.NewRepository(dbConn)
 	metricsSvc := metrics.NewService(metricsRepo, dbConn)
@@ -161,6 +167,7 @@ func main() {
 	evalHandler.RegisterRoutes(rootGroup, authMiddleware)
 	courseHandler.RegisterRoutes(rootGroup, authMiddleware)
 	materialHandler.RegisterRoutes(rootGroup, authMiddleware)
+	groupHandler.RegisterRoutes(rootGroup, authMiddleware)
 	metricsHandler.RegisterRoutes(rootGroup, authMiddleware)
 
 	// Also support /api prefix for proxy convenience
@@ -172,6 +179,7 @@ func main() {
 	evalHandler.RegisterRoutes(apiGroup, authMiddleware)
 	courseHandler.RegisterRoutes(apiGroup, authMiddleware)
 	materialHandler.RegisterRoutes(apiGroup, authMiddleware)
+	groupHandler.RegisterRoutes(apiGroup, authMiddleware)
 	metricsHandler.RegisterRoutes(apiGroup, authMiddleware)
 
 	// 6. Start HTTP Server

@@ -24,6 +24,7 @@ type Match struct {
 	ID                   uuid.UUID   `json:"id"`
 	QuizID               uuid.UUID   `json:"quizId"`
 	HostID               uuid.UUID   `json:"hostId"`
+	GroupID              *uuid.UUID  `json:"groupId,omitempty"`
 	PIN                  string      `json:"pin"`
 	Status               MatchStatus `json:"status"`
 	CurrentQuestionIndex int         `json:"currentQuestionIndex"`
@@ -33,22 +34,24 @@ type Match struct {
 	DeletedAt            *time.Time  `json:"deletedAt,omitempty"`
 
 	// Enriched fields from joins
-	QuizTitle   string `json:"quizTitle,omitempty"`
-	HostName    string `json:"hostName,omitempty"`
-	PlayerCount int    `json:"playerCount,omitempty"`
+	QuizTitle   string  `json:"quizTitle,omitempty"`
+	GroupName   *string `json:"groupName,omitempty"`
+	HostName    string  `json:"hostName,omitempty"`
+	PlayerCount int     `json:"playerCount,omitempty"`
 }
 
 // MatchPlayer represents a participant in a live match.
 type MatchPlayer struct {
-	ID          uuid.UUID `json:"id"`
-	MatchID     uuid.UUID `json:"matchId"`
-	UserID      uuid.UUID `json:"userId"`
-	Nickname    string    `json:"nickname"`
-	Score       int       `json:"score"`
-	IsConnected bool      `json:"isConnected"`
-	IsKicked    bool      `json:"isKicked"`
-	JoinedAt    time.Time `json:"joinedAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	ID          uuid.UUID  `json:"id"`
+	MatchID     uuid.UUID  `json:"matchId"`
+	UserID      *uuid.UUID `json:"userId"`
+	PlayerToken *string    `json:"playerToken,omitempty"`
+	Nickname    string     `json:"nickname"`
+	Score       int        `json:"score"`
+	IsConnected bool       `json:"isConnected"`
+	IsKicked    bool       `json:"isKicked"`
+	JoinedAt    time.Time  `json:"joinedAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 }
 
 // MatchAnswer represents a recorded answer by a player for a specific question.
@@ -68,13 +71,16 @@ type MatchAnswer struct {
 
 // CreateMatchRequest defines the payload required to create a new match.
 type CreateMatchRequest struct {
-	QuizID uuid.UUID `json:"quizId" binding:"required"`
+	QuizID  uuid.UUID  `json:"quizId" binding:"required"`
+	GroupID *uuid.UUID `json:"groupId,omitempty"`
 }
 
 // MatchCreatedResponse defines the response after successfully creating a match.
 type MatchCreatedResponse struct {
 	ID        uuid.UUID   `json:"id"`
 	QuizID    uuid.UUID   `json:"quizId"`
+	GroupID   *uuid.UUID  `json:"groupId"`
+	GroupName *string     `json:"groupName"`
 	QuizTitle string      `json:"quizTitle"`
 	HostID    uuid.UUID   `json:"hostId"`
 	PIN       string      `json:"pin"`
@@ -89,6 +95,7 @@ type MatchPublicInfo struct {
 	ID          uuid.UUID   `json:"id"`
 	PIN         string      `json:"pin"`
 	QuizTitle   string      `json:"quizTitle"`
+	GroupName   *string     `json:"groupName"`
 	HostName    string      `json:"hostName"`
 	Status      MatchStatus `json:"status"`
 	PlayerCount int         `json:"playerCount"`
@@ -101,23 +108,24 @@ type JoinMatchRequest struct {
 
 // JoinMatchResponse defines the response after a player joins.
 type JoinMatchResponse struct {
-	MatchID  uuid.UUID   `json:"matchId"`
-	PlayerID uuid.UUID   `json:"playerId"`
-	UserID   uuid.UUID   `json:"userId"`
-	Nickname string      `json:"nickname"`
-	PIN      string      `json:"pin"`
-	Status   MatchStatus `json:"status"`
+	MatchID     uuid.UUID   `json:"matchId"`
+	PlayerID    uuid.UUID   `json:"playerId"`
+	UserID      *uuid.UUID  `json:"userId"`
+	PlayerToken *string     `json:"playerToken,omitempty"`
+	Nickname    string      `json:"nickname"`
+	PIN         string      `json:"pin"`
+	Status      MatchStatus `json:"status"`
 }
 
 // PlayerScoreItem defines a player's rank and score in a match.
 type PlayerScoreItem struct {
-	PlayerID      uuid.UUID `json:"playerId"`
-	UserID        uuid.UUID `json:"userId"`
-	Nickname      string    `json:"nickname"`
-	Score         int       `json:"score"`
-	Rank          int       `json:"rank"`
-	CorrectCount  int       `json:"correctCount"`
-	TotalAnswered int       `json:"totalAnswered"`
+	PlayerID      uuid.UUID  `json:"playerId"`
+	UserID        *uuid.UUID `json:"userId"`
+	Nickname      string     `json:"nickname"`
+	Score         int        `json:"score"`
+	Rank          int        `json:"rank"`
+	CorrectCount  int        `json:"correctCount"`
+	TotalAnswered int        `json:"totalAnswered"`
 }
 
 // MatchSummaryResponse defines the final podium and statistics.
