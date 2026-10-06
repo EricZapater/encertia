@@ -1,0 +1,32 @@
+CHANGELOG.md
+  h_42175f19913982 8-14
+VERSION
+  h_42175f19913982 1
+backend/internal/evaluation/model.go
+  h_42175f19913982 48-56
+backend/internal/evaluation/repository.go
+  h_42175f19913982 253-254,294-295,310-312
+contracts/evaluation.openapi.yaml
+  h_42175f19913982 385-389
+contracts/evaluation.spec.md
+  h_42175f19913982 109
+frontend/src/modules/evaluations/views/EvaluationsListView.vue
+  h_42175f19913982 161-170,184
+frontend/src/modules/evaluations/views/QuizEvaluationView.vue
+  h_42175f19913982 217-226,235
+qa-reports/evaluation_date_filter.md
+  h_42175f19913982 1-73
+ux-reports/evaluation_date_filter.md
+  h_42175f19913982 1-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e77a98fdaa73b8484ced8e5a91079c431b5844c",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
