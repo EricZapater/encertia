@@ -1,0 +1,24 @@
+CHANGELOG.md
+  h_42175f19913982 8-12
+VERSION
+  h_42175f19913982 1
+frontend/src/components/AppNavbar.vue
+  h_42175f19913982 40-57,59-66
+frontend/src/components/__tests__/AppNavbar.spec.ts
+  h_42175f19913982 43-45,74-76,102-103
+qa-reports/restore_navbar_menus.md
+  h_42175f19913982 1-39
+ux-reports/restore_navbar_menus.md
+  h_42175f19913982 1-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e0e5bb0f30dac9dcfae6668ba9c6d8fd32fd1ceb",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
