@@ -5,6 +5,11 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.5] - 2026-10-09
+### Added
+- **Frontend (`src/components/AppNavbar.vue`)**:
+  - Recuperats els menús de **Cursos** (`/courses`), **Materials** (`/materials`) i **Usuaris** (`/users`) a la barra de navegació superior, amb suport complet d'i18n i control d'accés per rols (RBAC).
+
 ## [1.7.4] - 2026-10-06
 ### Fixed
 - **Backend (`internal/evaluation/`)**:

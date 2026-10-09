@@ -37,7 +37,33 @@
           <span>{{ $t('nav.groups') }}</span>
         </router-link>
 
+        <router-link
+          v-if="canAccessTeacherFeatures"
+          to="/users"
+          class="nav-link"
+          :class="{ active: isRouteActive('/users') }"
+        >
+          <i class="pi pi-user-plus"></i>
+          <span>{{ $t('nav.users') }}</span>
+        </router-link>
 
+        <router-link
+          to="/courses"
+          class="nav-link"
+          :class="{ active: isRouteActive('/courses') }"
+        >
+          <i class="pi pi-book"></i>
+          <span>{{ $t('nav.courses') }}</span>
+        </router-link>
+
+        <router-link
+          to="/materials"
+          class="nav-link"
+          :class="{ active: isRouteActive('/materials') }"
+        >
+          <i class="pi pi-folder-open"></i>
+          <span>{{ $t('nav.materials') }}</span>
+        </router-link>
 
         <router-link
           v-if="canAccessTeacherFeatures"
