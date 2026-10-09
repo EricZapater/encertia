@@ -26,6 +26,10 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 jobs:
   build-and-push:
     name: Build & Publish Container Images
@@ -126,6 +130,6 @@ jobs:
             cd ~/encertia
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             docker compose pull
-            docker compose up -d --remove-orphans
+            docker compose up -d --remove-orphans || (sleep 4 && docker compose up -d --remove-orphans)
             docker image prune -f
             docker compose ps

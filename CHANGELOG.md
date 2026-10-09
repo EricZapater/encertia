@@ -5,6 +5,12 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.6] - 2026-10-09
+### Fixed
+- **CI/CD (`.github/workflows/deploy.yml`)**:
+  - Afegit control de concurrència (`concurrency: deploy-production`) per evitar col·lisions d'execució simultània a la VPS quan es publiquen la branca `main` i el tag `v*` alhora.
+  - Afegit mecanisme de reintent amb espera (`sleep`) a `docker compose up` per evitar errors de cursa quan un contenidor anterior encara s'està aturant/eliminant (`removal of container is already in progress`).
+
 ## [1.7.5] - 2026-10-09
 ### Added
 - **Frontend (`src/components/AppNavbar.vue`)**:
