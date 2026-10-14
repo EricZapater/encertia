@@ -5,7 +5,18 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [1.8.3] - 2026-10-14
+## [1.8.4] - 2026-10-14
+### Added
+- **Favicon Oficial de la Plataforma Web (`frontend/public/favicon.svg`, `frontend/public/favicon.ico`)**:
+  - Incorporat el logotip de la marca (la casella de verificació `#6366f1` de la capçalera `pi-check-square`) com a favicon SVG vectorial natiu i favicon ICO multiresolució (16x16 fins a 256x256).
+  - Actualitzat `frontend/index.html` per enllaçar tant el favicon SVG modern com el fallback multiresolució ICO per a màxima compatibilitat amb tots els navegadors.
+- **Icona Multiplataforma Integrada als Executables de l'Agent (`agent/assets/`, `agent/build.sh`, `backend/Dockerfile`)**:
+  - Generats els recursos visuals oficials a `agent/assets/` (`icon.svg`, `icon.png` a 512x512, `icon.ico` multiresolució i `icon.icns` per a macOS Retina).
+  - Incrustació nativa de la icona a l'executable de Windows (`encertia-agent-windows.exe`) mitjançant recurs COFF PE `.rsrc` (`rsrc_windows_amd64.syso`), visible directament a l'Explorador de Fitxers de Windows.
+  - Incrustació de metadades d'icona per al binari de macOS (`encertia-agent-darwin`) mitjançant `Rez` i `SetFile`.
+  - Actualitzada la compilació a `agent/build.sh` i `backend/Dockerfile` per compilar el paquet `./cmd` enllaçant automàticament els recursos gràfics.
+
+
 ### Added
 - **Menú Desplegable d'Usuari a la Capçalera (`AppNavbar.vue`)**:
   - Reemplaçats els controls directes de la capçalera per un menú desplegable (dropdown) que s'activa en fer clic al perfil / nom d'usuari (`user-menu-trigger`).

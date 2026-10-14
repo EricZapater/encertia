@@ -29,9 +29,9 @@ RUN mkdir -p /app/downloads && \
     if [ -n "$AGENT_SRC" ]; then \
         echo "Building agent binaries from $AGENT_SRC..." && \
         cd "$AGENT_SRC" && \
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /app/downloads/encertia-agent-linux ./cmd/main.go && \
-        CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o /app/downloads/encertia-agent-darwin ./cmd/main.go && \
-        CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o /app/downloads/encertia-agent-windows.exe ./cmd/main.go && \
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /app/downloads/encertia-agent-linux ./cmd && \
+        CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o /app/downloads/encertia-agent-darwin ./cmd && \
+        CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o /app/downloads/encertia-agent-windows.exe ./cmd && \
         if [ -f "$AGENT_SRC/certs/encertia-codesign.cer" ]; then \
             cp "$AGENT_SRC/certs/encertia-codesign.cer" /app/downloads/encertia-codesign.cer; \
         elif [ -f "$AGENT_SRC/certs/encertia-codesign.crt" ]; then \
