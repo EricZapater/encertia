@@ -8,6 +8,7 @@
     "materials": "Materiales",
     "manual": "Manual",
     "metrics": "Métricas & Auditoría",
+    "devices": "Dispositivos",
     "profile": "Mi perfil",
     "logout": "Cerrar Sesión",
     "roles": {
@@ -479,5 +480,70 @@
       "emptyError": "Introduce al menos un UUID de alumno.",
       "fetchError": "Error al cargar los alumnos del grupo."
     }
+  },
+  "devices": {
+    "title": "Gestión de Dispositivos & Agentes",
+    "subtitle": "Autorización de equipos físicos de aula para docentes y descarga de agentes de escritorio.",
+    "refresh": "Actualizar",
+    "downloads": {
+      "title": "Descarga de Agentes y Certificados",
+      "subtitle": "Descarga los binarios de inicio para los ordenadores de aula o el certificado público de firma."
+    },
+    "cards": {
+      "windows": {
+        "title": "Windows",
+        "desc": "Ejecutable autónomo para Windows 10/11. Doble clic para el docente, o registro con el asistente de administrador:",
+        "instruction": "Asistente de registro por consola:",
+        "button": "Descargar para Windows (.exe)"
+      },
+      "darwin": {
+        "title": "macOS",
+        "desc": "Binario nativo universal con soporte para Apple Silicon (M1/M2/M3) e Intel (x86_64).",
+        "instruction": "Permisos de ejecución necesarios:",
+        "button": "Descargar para macOS"
+      },
+      "linux": {
+        "title": "Linux",
+        "desc": "Binario estático compilado para distribuciones Linux de 64 bits (amd64).",
+        "instruction": "Permisos de ejecución necesarios:",
+        "button": "Descargar para Linux"
+      },
+      "cert": {
+        "title": "Certificado Público",
+        "desc": "Certificado público de firma (.cer) para instalar en los equipos de aula como entidad de confianza.",
+        "instruction": "Instalación como Root Publisher (PowerShell admin):",
+        "button": "Descargar Certificado (.cer)"
+      }
+    },
+    "table": {
+      "title": "Dispositivos Autorizados",
+      "subtitle": "Listado de ordenadores de aula registrados vinculados a un profesor.",
+      "name": "Nombre del ordenador",
+      "teacher": "Profesor asignado",
+      "status": "Estado",
+      "lastActivity": "Última actividad",
+      "registeredAt": "Fecha de registro",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "revoked": "Revocado"
+    },
+    "never": "Nunca",
+    "noDevices": "No hay ningún dispositivo registrado.",
+    "revokeTooltip": "Revocar dispositivo",
+    "copiedTitle": "Comando copiado",
+    "downloadSuccessTitle": "Descarga iniciada",
+    "downloadErrorTitle": "Error de descarga",
+    "downloadError": "No se ha podido descargar el archivo.",
+    "revokeModal": {
+      "title": "Confirmar Revocación de Dispositivo",
+      "confirmText": "¿Estás seguro de que deseas revocar la autorización del dispositivo",
+      "hint": "Este equipo dejará de permitir el acceso del docente inmediatamente. El equipo se podrá registrar de nuevo más adelante.",
+      "cancel": "Cancelar",
+      "confirm": "Revocar Dispositivo"
+    },
+    "revokeSuccess": "Dispositivo revocado satisfactoriamente.",
+    "revokeError": "Error al revocar el dispositivo."
   }
 }

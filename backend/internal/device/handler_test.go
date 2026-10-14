@@ -3,8 +3,11 @@ package device_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -154,3 +157,149 @@ func TestHTTP_AdminDevices_CRUD(t *testing.T) {
 		t.Fatalf("expected status 204 No Content, got %d: %s", w.Code, w.Body.String())
 	}
 }
+
+func TestHTTP_DownloadAgent(t *testing.T) {
+	adminID := uuid.New()
+	router, _, _, _ := setupTestRouter("admin", adminID)
+
+	// 1. Plataforma desconeguda -> 400 Bad Request
+	req, _ := http.NewRequest(http.MethodGet, "/admin/devices/download/unknown-os", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 Bad Request for unknown platform, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var errResp shared.ErrorResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &errResp); err != nil {
+		t.Fatalf("failed to decode error response: %v", err)
+	}
+	if errResp.Error.Code != shared.ErrCodeValidation {
+		t.Errorf("expected error code %s, got %s", shared.ErrCodeValidation, errResp.Error.Code)
+	}
+
+	// 2. Descàrrega vàlida de binaris i certificat
+	testDir := t.TempDir()
+	t.Setenv("AGENT_DOWNLOADS_DIR", testDir)
+
+	files := map[string]string{
+		"encertia-agent-windows.exe": "dummy-windows-binary-content",
+		"encertia-agent-darwin":      "dummy-darwin-binary-content",
+		"encertia-agent-linux":       "dummy-linux-binary-content",
+		"encertia-codesign.cer":      "dummy-cert-content",
+	}
+
+	for name, content := range files {
+		err := os.WriteFile(filepath.Join(testDir, name), []byte(content), 0644)
+		if err != nil {
+			t.Fatalf("failed to write test file %s: %v", name, err)
+		}
+	}
+
+	testCases := []struct {
+		platform            string
+		expectedFilename    string
+		expectedContentType string
+		expectedBody        string
+	}{
+		{
+			platform:            "windows",
+			expectedFilename:    "encertia-agent-windows.exe",
+			expectedContentType: "application/octet-stream",
+			expectedBody:        "dummy-windows-binary-content",
+		},
+		{
+			platform:            "darwin",
+			expectedFilename:    "encertia-agent-darwin",
+			expectedContentType: "application/octet-stream",
+			expectedBody:        "dummy-darwin-binary-content",
+		},
+		{
+			platform:            "macos",
+			expectedFilename:    "encertia-agent-darwin",
+			expectedContentType: "application/octet-stream",
+			expectedBody:        "dummy-darwin-binary-content",
+		},
+		{
+			platform:            "linux",
+			expectedFilename:    "encertia-agent-linux",
+			expectedContentType: "application/octet-stream",
+			expectedBody:        "dummy-linux-binary-content",
+		},
+		{
+			platform:            "cert",
+			expectedFilename:    "encertia-codesign.cer",
+			expectedContentType: "application/x-x509-ca-cert",
+			expectedBody:        "dummy-cert-content",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run("download_"+tc.platform, func(t *testing.T) {
+			req, _ := http.NewRequest(http.MethodGet, "/admin/devices/download/"+tc.platform, nil)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusOK {
+				t.Fatalf("expected status 200, got %d: %s", w.Code, w.Body.String())
+			}
+
+			expectedDisp := fmt.Sprintf(`attachment; filename="%s"`, tc.expectedFilename)
+			if disp := w.Header().Get("Content-Disposition"); disp != expectedDisp {
+				t.Errorf("expected Content-Disposition %q, got %q", expectedDisp, disp)
+			}
+
+			if ctype := w.Header().Get("Content-Type"); !strings.HasPrefix(ctype, tc.expectedContentType) {
+				t.Errorf("expected Content-Type prefix %q, got %q", tc.expectedContentType, ctype)
+			}
+
+			if w.Body.String() != tc.expectedBody {
+				t.Errorf("expected body %q, got %q", tc.expectedBody, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestHTTP_DownloadAgent_NotFound(t *testing.T) {
+	adminID := uuid.New()
+	router, _, _, _ := setupTestRouter("admin", adminID)
+
+	emptyDir := t.TempDir()
+	t.Setenv("AGENT_DOWNLOADS_DIR", emptyDir)
+
+	// Canviem temporalment el directori de treball a emptyDir per assegurar que els camins relatius locals no trobin fitxers
+	origWd, _ := os.Getwd()
+	_ = os.Chdir(emptyDir)
+	defer func() { _ = os.Chdir(origWd) }()
+
+	req, _ := http.NewRequest(http.MethodGet, "/admin/devices/download/windows", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404 Not Found, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var errResp shared.ErrorResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &errResp); err != nil {
+		t.Fatalf("failed to decode error response: %v", err)
+	}
+	if errResp.Error.Code != "AGENT_FILE_NOT_FOUND" {
+		t.Errorf("expected error code AGENT_FILE_NOT_FOUND, got %s", errResp.Error.Code)
+	}
+}
+
+func TestHTTP_DownloadAgent_ForbiddenForNonAdmin(t *testing.T) {
+	teacherID := uuid.New()
+	router, _, _, _ := setupTestRouter("teacher", teacherID)
+
+	req, _ := http.NewRequest(http.MethodGet, "/admin/devices/download/windows", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusForbidden {
+		t.Fatalf("expected status 403 Forbidden for teacher, got %d: %s", w.Code, w.Body.String())
+	}
+}
+

@@ -222,6 +222,18 @@ func GetHardwareUUID() (string, error) {
 - **Fase 2 (Bloqueig estricte activable)**:
   - Mitjançant configuració / variable d'entorn (`ENFORCE_TEACHER_DEVICE_AUTH=true`), s'activarà el bloqueig estricte (`403 DEVICE_AUTHORIZATION_REQUIRED`) si no es presenta un `deviceToken` vàlid per a comptes `teacher`.
 
+### 5.6 `GET /admin/devices/download/{platform}` (Requereix Rol `admin`)
+- **Objectiu**: Permetre a l'administrador descarregar directament els executables compilats de l'agent Encertia o el certificat de signatura públic.
+- **Paràmetre de ruta (`platform`)**:
+  - `windows`: Retorna `encertia-agent-windows.exe` (`application/octet-stream`).
+  - `darwin` o `macos`: Retorna `encertia-agent-darwin` (`application/octet-stream`).
+  - `linux`: Retorna `encertia-agent-linux` (`application/octet-stream`).
+  - `cert`: Retorna `encertia-codesign.cer` (`application/x-x509-ca-cert`).
+- **Capçaleres de resposta**:
+  - `Content-Disposition: attachment; filename="<fitxer>"`
+  - `Content-Type: application/octet-stream` (o `application/x-x509-ca-cert`)
+- **Seguretat**: Restringit estrictament a administradors (`BearerAuth`, rol `admin`).
+
 ---
 
 ## 6. Matriu de Seguretat i Criteris d'Acceptació (Fase 1)
@@ -234,4 +246,38 @@ func GetHardwareUUID() (string, error) {
 | Professor via Agent Go | `teacher` | Ordinador d'aula registrat | ✅ Sí | ✅ **Accés permès** (Dispositiu verificat) |
 | Professor sense Agent Go | `teacher` | Qualsevol ordinador | ❌ No | ✅ **Accés permès** (Mode suau Fase 1) |
 | Professor amb token d'altre docent | `teacher` | Ordinador assignat a un altre | ⚠️ Token invàlid | ❌ **403 Bloquejat** (Token no correspon a l'usuari) |
+
+---
+
+## 7. Panell d'Administració de Dispositius i Descàrrega d'Agents (`/admin/devices`)
+
+### 7.1 Accés i Navegació
+- **Punt de menú a la barra superior (`AppNavbar.vue`)**:
+  - Visible **exclusivament per al rol `admin`** (`authStore.isAdmin`).
+  - Icona: `pi pi-desktop`, text: `$t('nav.devices')` ("Dispositius").
+  - Ruta protegida: `/admin/devices` (guard RBAC que redirigeix si no és `admin`).
+
+### 7.2 Contingut de la Vista (`DevicesManagementView.vue`)
+1. **Targetes de Descàrrega d'Agents**:
+   - **Windows** (`encertia-agent-windows.exe`):
+     - Icona de Windows / ordinador.
+     - Botó "Descarregar per a Windows (.exe)".
+     - Instruccions ràpides: Doble clic per al docent, o `.\encertia-agent-windows.exe --register` des de consola d'administrador.
+   - **macOS** (`encertia-agent-darwin`):
+     - Icona d'Apple.
+     - Botó "Descarregar per a macOS (Universal)".
+     - Suport per a Apple Silicon (M1/M2/M3) i Intel (x86_64).
+     - Comanda: `chmod +x encertia-agent-darwin`.
+   - **Linux** (`encertia-agent-linux`):
+     - Icona de Linux / servidor.
+     - Botó "Descarregar per a Linux (amd64)".
+     - Comanda: `chmod +x encertia-agent-linux`.
+   - **Certificat Públic de Signatura** (`encertia-codesign.cer`):
+     - Botó "Descarregar Certificat (.cer)".
+     - Guia per instal·lar-lo com a editor de confiança (Trusted Publisher / Root) a Windows: `certutil -addstore -f "ROOT" encertia-codesign.cer`.
+2. **Taula de Dispositius Autoritzats**:
+   - Llistat consumint `GET /api/v1/admin/devices`.
+   - Columnes: Nom de l'equip, Professor assignat, Estat (Actiu / Revocat amb Tag PrimeVue), Darrera utilització (`lastUsedAt`), Data de registre.
+   - Accions: Botó per revocar o eliminar el dispositiu (`DELETE /api/v1/admin/devices/:id`) amb diàleg de confirmació.
+
 

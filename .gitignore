@@ -29,6 +29,7 @@ pnpm-debug.log*
 # Go / Backend & Agent
 backend/bin/
 backend/dist/
+backend/agent/
 agent/bin/
 *.exe
 *.exe~

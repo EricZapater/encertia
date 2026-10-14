@@ -85,6 +85,17 @@
           <i class="pi pi-chart-line"></i>
           <span>{{ $t('nav.metrics') }}</span>
         </router-link>
+
+        <router-link
+          v-if="authStore.isAdmin"
+          to="/admin/devices"
+          class="nav-link"
+          :class="{ active: isRouteActive('/admin/devices') }"
+          data-testid="nav-link-devices"
+        >
+          <i class="pi pi-desktop"></i>
+          <span>{{ $t('nav.devices') }}</span>
+        </router-link>
       </nav>
 
       <!-- Right User Controls -->

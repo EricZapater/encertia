@@ -45,6 +45,7 @@ describe('AppNavbar.vue', () => {
     expect(wrapper.text()).toContain('Materials')
     expect(wrapper.text()).toContain('Joan Docent')
     expect(wrapper.find('[data-testid="nav-link-metrics"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="nav-link-devices"]').exists()).toBe(false)
   })
 
   it('shows metrics link for admin role', () => {
@@ -70,7 +71,9 @@ describe('AppNavbar.vue', () => {
     })
 
     expect(wrapper.find('[data-testid="nav-link-metrics"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="nav-link-devices"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Mètriques & Auditoria')
+    expect(wrapper.text()).toContain('Dispositius')
     expect(wrapper.text()).toContain('Usuaris')
     expect(wrapper.text()).toContain('Cursos')
     expect(wrapper.text()).toContain('Materials')
@@ -104,5 +107,6 @@ describe('AppNavbar.vue', () => {
     expect(wrapper.text()).not.toContain('Avaluacions')
     expect(wrapper.text()).not.toContain('Usuaris')
     expect(wrapper.find('[data-testid="nav-link-metrics"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="nav-link-devices"]').exists()).toBe(false)
   })
 })

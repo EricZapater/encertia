@@ -8,6 +8,7 @@
     "materials": "Materials",
     "manual": "Manual",
     "metrics": "Mètriques & Auditoria",
+    "devices": "Dispositius",
     "profile": "El meu perfil",
     "logout": "Tancar Sessió",
     "roles": {
@@ -479,5 +480,70 @@
       "emptyError": "Introdueix almenys un UUID d'alumne.",
       "fetchError": "Error en carregar els alumnes del grup."
     }
+  },
+  "devices": {
+    "title": "Gestió de Dispositius & Agents",
+    "subtitle": "Autorització d'equips físics d'aula per a docents i descàrrega d'agents d'escriptori.",
+    "refresh": "Actualitzar",
+    "downloads": {
+      "title": "Descàrrega d'Agents i Certificats",
+      "subtitle": "Descarrega els binaris d'arrencada per als ordinadors d'aula o el certificat públic de signatura."
+    },
+    "cards": {
+      "windows": {
+        "title": "Windows",
+        "desc": "Executable autònom per a Windows 10/11. Doble clic per al docent, o registre amb l'assistent d'administrador:",
+        "instruction": "Assistent de registre per consola:",
+        "button": "Descarregar per a Windows (.exe)"
+      },
+      "darwin": {
+        "title": "macOS",
+        "desc": "Binari natiu universal amb suport per a Apple Silicon (M1/M2/M3) i Intel (x86_64).",
+        "instruction": "Permisos d'execució necessaris:",
+        "button": "Descarregar per a macOS"
+      },
+      "linux": {
+        "title": "Linux",
+        "desc": "Binari estàtic compilat per a distribucions Linux de 64 bits (amd64).",
+        "instruction": "Permisos d'execució necessaris:",
+        "button": "Descarregar per a Linux"
+      },
+      "cert": {
+        "title": "Certificat Públic",
+        "desc": "Certificat públic de signatura (.cer) per instal·lar als equips d'aula com a entitat de confiança.",
+        "instruction": "Instal·lació com a Root Publisher (PowerShell admin):",
+        "button": "Descarregar Certificat (.cer)"
+      }
+    },
+    "table": {
+      "title": "Dispositius Autoritzats",
+      "subtitle": "Llistat d'ordinadors d'aula registrats vinculats a un professor.",
+      "name": "Nom de l'ordinador",
+      "teacher": "Professor assignat",
+      "status": "Estat",
+      "lastActivity": "Darrera activitat",
+      "registeredAt": "Data de registre",
+      "actions": "Accions"
+    },
+    "status": {
+      "active": "Actiu",
+      "revoked": "Revocat"
+    },
+    "never": "Mai",
+    "noDevices": "No hi ha cap dispositiu registrat.",
+    "revokeTooltip": "Revocar dispositiu",
+    "copiedTitle": "Comanda copiada",
+    "downloadSuccessTitle": "Descàrrega iniciada",
+    "downloadErrorTitle": "Error de descàrrega",
+    "downloadError": "No s'ha pogut descarregar el fitxer.",
+    "revokeModal": {
+      "title": "Confirmar Revocació de Dispositiu",
+      "confirmText": "Estàs segur que vols revocar l'autorització del dispositiu",
+      "hint": "Aquest equip deixarà de permetre l'accés del docent immediatament. L'equip es podrà tornar a registrar més endavant.",
+      "cancel": "Cancel·lar",
+      "confirm": "Revocar Dispositiu"
+    },
+    "revokeSuccess": "Dispositiu revocat satisfactòriament.",
+    "revokeError": "Error en revocar el dispositiu."
   }
 }

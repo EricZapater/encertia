@@ -5,6 +5,22 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-10-14
+### Added
+- **Gestió de Dispositius i Descàrrega d'Agents per a Administradors (`device_downloads`)**:
+  - **Backend (`internal/device/`)**:
+    - Afegit l'endpoint `GET /api/v1/admin/devices/download/:platform` (`windows`, `darwin`, `linux`, `cert`) amb control d'accés exclusiu per al rol `admin`.
+    - Resolució segura de binaris i certificat públic amb capçaleres `Content-Disposition: attachment; filename="..."` i MIME types adequats.
+    - Suport de directori de producció `/app/downloads/` i fallback per a desenvolupament local.
+  - **Packaging (`backend/Dockerfile`)**:
+    - Compilació creuada en el builder multi-stage dels 3 binaris de l'agent (`encertia-agent-linux`, `encertia-agent-darwin`, `encertia-agent-windows.exe`) i inclusió del certificat públic `encertia-codesign.cer` a `/app/downloads/`.
+  - **Frontend (`src/modules/devices/`)**:
+    - Creat el mòdul de dispositius amb `types.ts`, `api.ts`, `store.ts` i la vista `DevicesManagementView.vue`.
+    - 4 targetes de descàrrega interactives per a Windows (.exe), macOS Universal (arm64/Intel), Linux (amd64) i Certificat Públic X.509 (.cer), amb instruccions de consola i botó de còpia ràpida.
+    - Taula PrimeVue `DataTable` per a la gestió d'equips autoritzats amb visualització d'estat i flux de revocació (`DELETE /admin/devices/:id`) amb modal de confirmació.
+    - Nova ruta protegida `/admin/devices` i enllaç de navegació "Dispositius" a `AppNavbar.vue` visible exclusivament per a `admin`.
+    - Traducció i paritat idiomàtica completa en Català (`ca`), Castellà (`es`) i Anglès (`en`).
+
 ## [1.8.0] - 2026-10-14
 ### Added
 - **Mòdul Agent en Go (`agent/`)**:

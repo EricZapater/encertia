@@ -112,6 +112,53 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /admin/devices/download/{platform}:
+    get:
+      operationId: downloadDeviceAgent
+      summary: Descarregar executable de l'agent Encertia o certificat públic (només admin)
+      description: >
+        Permet a un administrador descarregar els binaris compilats de l'agent per a
+        Windows, macOS i Linux, així com el certificat públic de signatura (.cer).
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: platform
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [windows, darwin, linux, cert]
+          description: Plataforma o recurs a descarregar (windows, darwin, linux, cert)
+      responses:
+        '200':
+          description: Fitxer binari o certificat adjunt per a descàrrega directa
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              example: attachment; filename="encertia-agent-windows.exe"
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/x-x509-ca-cert:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Plataforma desconeguda o no suportada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   securitySchemes:
     BearerAuth:

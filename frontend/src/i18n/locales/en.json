@@ -8,6 +8,7 @@
     "materials": "Materials",
     "manual": "Manual",
     "metrics": "Metrics & Audit",
+    "devices": "Devices",
     "profile": "My profile",
     "logout": "Log Out",
     "roles": {
@@ -479,5 +480,70 @@
       "emptyError": "Enter at least one student UUID.",
       "fetchError": "Error loading group students."
     }
+  },
+  "devices": {
+    "title": "Device & Agent Management",
+    "subtitle": "Classroom physical computer authorization for teachers and desktop agent downloads.",
+    "refresh": "Refresh",
+    "downloads": {
+      "title": "Agent & Certificate Downloads",
+      "subtitle": "Download startup binaries for classroom computers or public signing certificate."
+    },
+    "cards": {
+      "windows": {
+        "title": "Windows",
+        "desc": "Standalone executable for Windows 10/11. Double click for teachers, or register with admin wizard:",
+        "instruction": "Registration wizard via console:",
+        "button": "Download for Windows (.exe)"
+      },
+      "darwin": {
+        "title": "macOS",
+        "desc": "Universal native binary supporting Apple Silicon (M1/M2/M3) and Intel (x86_64).",
+        "instruction": "Required execute permissions:",
+        "button": "Download for macOS"
+      },
+      "linux": {
+        "title": "Linux",
+        "desc": "Static binary compiled for 64-bit Linux distributions (amd64).",
+        "instruction": "Required execute permissions:",
+        "button": "Download for Linux"
+      },
+      "cert": {
+        "title": "Public Certificate",
+        "desc": "Public signing certificate (.cer) to install on classroom machines as trusted authority.",
+        "instruction": "Installation as Root Publisher (PowerShell admin):",
+        "button": "Download Certificate (.cer)"
+      }
+    },
+    "table": {
+      "title": "Authorized Devices",
+      "subtitle": "List of classroom computers registered and linked to a teacher.",
+      "name": "Computer name",
+      "teacher": "Assigned teacher",
+      "status": "Status",
+      "lastActivity": "Last activity",
+      "registeredAt": "Registration date",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "never": "Never",
+    "noDevices": "No devices registered.",
+    "revokeTooltip": "Revoke device",
+    "copiedTitle": "Command copied",
+    "downloadSuccessTitle": "Download started",
+    "downloadErrorTitle": "Download error",
+    "downloadError": "Could not download file.",
+    "revokeModal": {
+      "title": "Confirm Device Revocation",
+      "confirmText": "Are you sure you want to revoke authorization for device",
+      "hint": "This computer will immediately prevent teacher login. It can be registered again later.",
+      "cancel": "Cancel",
+      "confirm": "Revoke Device"
+    },
+    "revokeSuccess": "Device revoked successfully.",
+    "revokeError": "Error revoking device."
   }
 }

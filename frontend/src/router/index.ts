@@ -146,6 +146,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
+    path: '/admin/devices',
+    name: 'admin-devices',
+    component: () => import('@/modules/devices/views/DevicesManagementView.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }

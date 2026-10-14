@@ -1,7 +1,10 @@
 package device
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/encertia/backend/internal/shared"
@@ -29,6 +32,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware gin.Handler
 		adminDevices.GET("", h.ListDevices)
 		adminDevices.POST("", h.RegisterDevice)
 		adminDevices.DELETE("/:id", h.RevokeDevice)
+		adminDevices.GET("/download/:platform", h.DownloadAgent)
 	}
 }
 
@@ -151,4 +155,92 @@ func getActorFromContext(c *gin.Context) (uuid.UUID, string, *shared.AppError) {
 	}
 
 	return actorID, actorRole, nil
+}
+
+// DownloadAgent handles GET /admin/devices/download/:platform
+func (h *Handler) DownloadAgent(c *gin.Context) {
+	platform := strings.ToLower(strings.TrimSpace(c.Param("platform")))
+
+	var fileName string
+	var contentType string
+
+	switch platform {
+	case "windows":
+		fileName = "encertia-agent-windows.exe"
+		contentType = "application/octet-stream"
+	case "darwin", "macos":
+		fileName = "encertia-agent-darwin"
+		contentType = "application/octet-stream"
+	case "linux":
+		fileName = "encertia-agent-linux"
+		contentType = "application/octet-stream"
+	case "cert":
+		fileName = "encertia-codesign.cer"
+		contentType = "application/x-x509-ca-cert"
+	default:
+		shared.RespondWithError(c, shared.ErrBadRequest(
+			shared.ErrCodeValidation,
+			"Plataforma no suportada. Valors vàlids: windows, darwin, macos, linux, cert.",
+			map[string]interface{}{"platform": platform},
+		))
+		return
+	}
+
+	filePath := resolveAgentFilePath(fileName)
+	if filePath == "" {
+		shared.RespondWithError(c, shared.ErrNotFound(
+			"AGENT_FILE_NOT_FOUND",
+			fmt.Sprintf("El fitxer sol·licitat de l'agent (%s) no s'ha trobat al servidor.", fileName),
+		))
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
+	c.Header("Content-Type", contentType)
+	c.File(filePath)
+}
+
+func resolveAgentFilePath(fileName string) string {
+	// 1. Variable d'entorn AGENT_DOWNLOADS_DIR (per defecte /app/downloads)
+	downloadsDir := os.Getenv("AGENT_DOWNLOADS_DIR")
+	if strings.TrimSpace(downloadsDir) == "" {
+		downloadsDir = "/app/downloads"
+	}
+	candidate := filepath.Join(downloadsDir, fileName)
+	if isExistingFile(candidate) {
+		return candidate
+	}
+
+	// 2. Rutes locals de desenvolupament
+	localCandidateDirs := []string{
+		"../../agent/bin",
+		"../agent/bin",
+		"./agent/bin",
+		"../../agent/certs",
+		"../agent/certs",
+		"./agent/certs",
+		"agent/bin",
+		"agent/certs",
+		"../../backend/downloads",
+		"../backend/downloads",
+		"./downloads",
+		"downloads",
+	}
+
+	for _, dir := range localCandidateDirs {
+		candidate = filepath.Join(dir, fileName)
+		if isExistingFile(candidate) {
+			return candidate
+		}
+	}
+
+	return ""
+}
+
+func isExistingFile(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return !info.IsDir()
 }
