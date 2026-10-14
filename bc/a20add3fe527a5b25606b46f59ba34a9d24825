@@ -1,0 +1,42 @@
+CHANGELOG.md
+  h_42175f19913982 8-28
+VERSION
+  h_42175f19913982 1
+agent/cmd/main.go
+  h_42175f19913982 9-10,12,62-66,70,79-80,90,94,96,135-148,151-153,156-162,166-168,172,178,183-184,187,189-195,197,199-209,212
+agent/internal/api/client.go
+  h_42175f19913982 138-142,193-197
+backend/internal/db/db.go
+  h_42175f19913982 73-83,104-109,119-122
+backend/internal/db/migrations/000013_add_group_id_to_matches.up.sql
+  h_42175f19913982 2
+backend/internal/device/handler.go
+  h_42175f19913982 5,44,53,56,61,84,87,94,103-105,108,113-114
+backend/internal/device/repository.go
+  h_42175f19913982 106,129,196
+backend/internal/device/service.go
+  h_42175f19913982 8,46,50,59,64,77,86,90-92,104,116,120-122,149-150,152,160-161,163,172,180,189,197,205,209,212,216,220-224,227,233,253-255,258-259,263-265
+backend/internal/device/service_test.go
+  h_42175f19913982 72-112,250-304
+frontend/src/components/AppNavbar.vue
+  h_42175f19913982 108-137,203,206,210,284-325,328,334,336-337,342-343,349,352-353,355,369-370,373,378-380
+frontend/src/components/__tests__/AppNavbar.spec.ts
+  h_42175f19913982 40,75,104
+frontend/src/i18n/locales/ca.json
+  h_42175f19913982 3,10
+frontend/src/i18n/locales/en.json
+  h_42175f19913982 3,10
+frontend/src/i18n/locales/es.json
+  h_42175f19913982 3,10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bca20add3fe527a5b25606b46f59ba34a9d24825",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
