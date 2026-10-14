@@ -103,7 +103,7 @@ func (r *postgresRepository) GetDeviceByID(ctx context.Context, id uuid.UUID) (*
 
 func (r *postgresRepository) GetTeacherByEmail(ctx context.Context, email string) (*TeacherInfo, error) {
 	query := `
-		SELECT id, email, TRIM(first_name || ' ' || last_name) AS name, role, is_active
+		SELECT id, email, TRIM(CONCAT(first_name, ' ', last_name)) AS name, role, is_active
 		FROM users
 		WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL
 	`
@@ -126,7 +126,7 @@ func (r *postgresRepository) GetTeacherByEmail(ctx context.Context, email string
 
 func (r *postgresRepository) GetTeacherByID(ctx context.Context, id uuid.UUID) (*TeacherInfo, error) {
 	query := `
-		SELECT id, email, TRIM(first_name || ' ' || last_name) AS name, role, is_active
+		SELECT id, email, TRIM(CONCAT(first_name, ' ', last_name)) AS name, role, is_active
 		FROM users
 		WHERE id = $1 AND deleted_at IS NULL
 	`
@@ -193,7 +193,7 @@ func (r *postgresRepository) UpsertDevice(ctx context.Context, dev *AuthorizedDe
 
 func (r *postgresRepository) ListDevices(ctx context.Context) ([]DeviceSummary, error) {
 	query := `
-		SELECT d.id, d.name, d.teacher_id, TRIM(u.first_name || ' ' || u.last_name) AS teacher_name, u.email AS teacher_email,
+		SELECT d.id, d.name, d.teacher_id, TRIM(CONCAT(u.first_name, ' ', u.last_name)) AS teacher_name, u.email AS teacher_email,
 		       d.is_active, d.last_used_at, d.created_at
 		FROM authorized_devices d
 		JOIN users u ON d.teacher_id = u.id

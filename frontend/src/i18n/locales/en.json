@@ -1,13 +1,13 @@
 {
   "nav": {
-    "quizzes": "Games & Quizzes",
+    "quizzes": "Quizzes",
     "groups": "Groups",
     "evaluations": "Evaluations",
     "users": "Users",
     "courses": "Courses",
     "materials": "Materials",
     "manual": "Manual",
-    "metrics": "Metrics & Audit",
+    "metrics": "Audit",
     "devices": "Devices",
     "profile": "My profile",
     "logout": "Log Out",

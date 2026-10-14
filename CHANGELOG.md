@@ -5,6 +5,27 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-10-14
+### Added
+- **Logging per Consola del Procés de Registre i Verificació (`agent/`, `backend/internal/device/`)**:
+  - Traçabilitat detallada pas a pas amb marques de temps (`[HH:MM:SS] [STEP]`) a l'assistent interactiu `encertia-agent --register` (identificador de maquinari SHA-256, petició d'autenticació admin, dades enviades al servidor i confirmació).
+  - Millora del format d'errors HTTP des del client per mostrar codi d'estat, missatge i detall complet de la resposta.
+  - Logging estructurat per consola al backend (`[DEVICE REGISTER]`, `[DEVICE VERIFY]`, `[HTTP POST]`) indicant actors, docents validats, operacions a la base de dades i estats de finalització.
+  - Verificació d'autorització permesa tant per al rol `teacher` com `admin` a `VerifyDevice`.
+- **Optimització de la Barra de Navegació i Literals de Menú (`AppNavbar.vue`, i18n)**:
+  - Reubicació vertical dels controls d'usuari a la capçalera: el selector d'idiomes, l'etiqueta de rol i el botó de tancar sessió se situen directament sota el nom d'usuari (`user-subrow`), reduint l'espai horitzontal ocupat i evitant que els menús es col·lapsin.
+  - Actualització dels literals de navegació a tots els idiomes (CA, ES, EN): "Jocs & Quizzes" canviat a "Quizzes", i "Mètriques & Auditoria" canviat a "Auditoria".
+
+### Fixed
+- **Ocultació de Contrasenya a l'Agent CLI (`agent/cmd/main.go`)**:
+  - Implementat mecanisme natiu i multiplataforma per desactivar l'eco del terminal en introduir la contrasenya d'administrador (`stty -echo` a macOS/Linux i `Read-Host -AsSecureString` a Windows).
+- **Correcció de Migració de Base de Dades i Registre d'Equips (`backend/internal/db/`, `internal/device/`)**:
+  - Afegit `IF NOT EXISTS` a la migració `000013_add_group_id_to_matches.up.sql` per garantir la idempotència de l'execució en arrencada.
+  - Afegit control de versions mitjançant la taula `schema_migrations` a `RunMigrations` per registrar les migracions aplicades i evitar re-execucions innecessàries.
+  - Ús de `TRIM(CONCAT(first_name, ' ', last_name))` a `backend/internal/device/repository.go` per evitar errors de valor `NULL` en usuaris.
+  - Permès el registre d'equips tant per al rol `teacher` com per a `admin` a `backend/internal/device/service.go`.
+  - Recompilats els 3 binaris de l'agent a `agent/bin/`.
+
 ## [1.8.1] - 2026-10-14
 ### Added
 - **Gestió de Dispositius i Descàrrega d'Agents per a Administradors (`device_downloads`)**:

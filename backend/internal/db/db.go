@@ -70,6 +70,17 @@ func Connect(cfg Config) (*sql.DB, error) {
 
 // RunMigrations applies embedded .up.sql migration scripts in order.
 func RunMigrations(db *sql.DB) error {
+	// 1. Ensure schema_migrations table exists
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS schema_migrations (
+			version VARCHAR(255) PRIMARY KEY,
+			applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("error creant taula schema_migrations: %w", err)
+	}
+
 	migrationFiles := []string{
 		"migrations/000001_create_auth_tables.up.sql",
 		"migrations/000002_add_admin_role_and_user_features.up.sql",
@@ -90,6 +101,12 @@ func RunMigrations(db *sql.DB) error {
 	}
 
 	for _, file := range migrationFiles {
+		var applied int
+		_ = db.QueryRow("SELECT 1 FROM schema_migrations WHERE version = $1", file).Scan(&applied)
+		if applied == 1 {
+			continue
+		}
+
 		content, err := MigrationsFS.ReadFile(file)
 		if err != nil {
 			return fmt.Errorf("error llegint fitxer de migració %s: %w", file, err)
@@ -98,6 +115,10 @@ func RunMigrations(db *sql.DB) error {
 		log.Printf("[DB] Executant migració: %s", file)
 		if _, err := db.Exec(string(content)); err != nil {
 			return fmt.Errorf("error executant migració %s: %w", file, err)
+		}
+
+		if _, err := db.Exec("INSERT INTO schema_migrations (version) VALUES ($1) ON CONFLICT (version) DO NOTHING", file); err != nil {
+			return fmt.Errorf("error registrant migració %s a schema_migrations: %w", file, err)
 		}
 	}
 

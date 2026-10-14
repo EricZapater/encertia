@@ -135,7 +135,11 @@ func (c *Client) LoginAdmin(email, password string) (string, error) {
 	if resp.StatusCode != http.StatusOK {
 		var apiErr APIErrorResponse
 		if json.Unmarshal(respBytes, &apiErr) == nil && apiErr.Error.Message != "" {
-			return "", errors.New(apiErr.Error.Message)
+			return "", fmt.Errorf("error del servidor (HTTP %d, %s): %s", resp.StatusCode, apiErr.Error.Code, apiErr.Error.Message)
+		}
+		rawBody := strings.TrimSpace(string(respBytes))
+		if rawBody != "" {
+			return "", fmt.Errorf("error del servidor (HTTP %d): %s", resp.StatusCode, rawBody)
 		}
 		return "", fmt.Errorf("credencials incorrectes (HTTP %d)", resp.StatusCode)
 	}
@@ -186,7 +190,11 @@ func (c *Client) RegisterDevice(adminToken, hardwareHash, deviceName, teacherEma
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		var apiErr APIErrorResponse
 		if json.Unmarshal(respBytes, &apiErr) == nil && apiErr.Error.Message != "" {
-			return nil, fmt.Errorf("%s (codi: %s)", apiErr.Error.Message, apiErr.Error.Code)
+			return nil, fmt.Errorf("error del servidor (HTTP %d, %s): %s", resp.StatusCode, apiErr.Error.Code, apiErr.Error.Message)
+		}
+		rawBody := strings.TrimSpace(string(respBytes))
+		if rawBody != "" {
+			return nil, fmt.Errorf("error donant d'alta l'equip (HTTP %d): %s", resp.StatusCode, rawBody)
 		}
 		return nil, fmt.Errorf("error donant d'alta l'equip (HTTP %d)", resp.StatusCode)
 	}

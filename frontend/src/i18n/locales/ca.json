@@ -1,13 +1,13 @@
 {
   "nav": {
-    "quizzes": "Jocs & Quizzes",
+    "quizzes": "Quizzes",
     "groups": "Grups",
     "evaluations": "Avaluacions",
     "users": "Usuaris",
     "courses": "Cursos",
     "materials": "Materials",
     "manual": "Manual",
-    "metrics": "Mètriques & Auditoria",
+    "metrics": "Auditoria",
     "devices": "Dispositius",
     "profile": "El meu perfil",
     "logout": "Tancar Sessió",

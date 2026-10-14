@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"log"
 	"net/http"
 	"net/mail"
 	"strings"
@@ -42,9 +43,11 @@ func (s *service) VerifyDevice(ctx context.Context, req VerifyDeviceRequest) (*V
 		)
 	}
 
+	log.Printf("[DEVICE VERIFY] Sol·licitud de verificació rebuda per a hash %s", req.HardwareUUIDHash)
 	dev, err := s.repo.GetDeviceByHardwareHash(ctx, req.HardwareUUIDHash)
 	if err != nil {
 		if errors.Is(err, ErrDeviceNotFound) {
+			log.Printf("[DEVICE VERIFY WARNING] Hash no trobat a la base de dades: %s", req.HardwareUUIDHash)
 			return nil, shared.NewAppError(
 				http.StatusForbidden,
 				shared.ErrCodeDeviceNotAuthorized,
@@ -53,10 +56,12 @@ func (s *service) VerifyDevice(ctx context.Context, req VerifyDeviceRequest) (*V
 				nil,
 			)
 		}
+		log.Printf("[DEVICE VERIFY ERROR] Error consultant hash %s: %v", req.HardwareUUIDHash, err)
 		return nil, shared.ErrInternal(err)
 	}
 
 	if !dev.IsActive {
+		log.Printf("[DEVICE VERIFY WARNING] Dispositiu %s (%q) marcat com a inactiu/revocat", dev.ID, dev.Name)
 		return nil, shared.NewAppError(
 			http.StatusForbidden,
 			shared.ErrCodeDeviceNotAuthorized,
@@ -69,6 +74,7 @@ func (s *service) VerifyDevice(ctx context.Context, req VerifyDeviceRequest) (*V
 	teacher, err := s.repo.GetTeacherByID(ctx, dev.TeacherID)
 	if err != nil {
 		if errors.Is(err, ErrTeacherNotFound) {
+			log.Printf("[DEVICE VERIFY WARNING] Docent ID %s no trobat per al dispositiu %s", dev.TeacherID, dev.ID)
 			return nil, shared.NewAppError(
 				http.StatusForbidden,
 				shared.ErrCodeDeviceNotAuthorized,
@@ -77,10 +83,13 @@ func (s *service) VerifyDevice(ctx context.Context, req VerifyDeviceRequest) (*V
 				nil,
 			)
 		}
+		log.Printf("[DEVICE VERIFY ERROR] Error consultant docent ID %s: %v", dev.TeacherID, err)
 		return nil, shared.ErrInternal(err)
 	}
 
-	if !teacher.IsActive || teacher.Role != "teacher" {
+	if !teacher.IsActive || (teacher.Role != "teacher" && teacher.Role != "admin") {
+		log.Printf("[DEVICE VERIFY WARNING] Docent %s (%s) no té rol docent/admin o està desactivat (rol: %s, actiu: %t)",
+			teacher.Name, teacher.Email, teacher.Role, teacher.IsActive)
 		return nil, shared.NewAppError(
 			http.StatusForbidden,
 			shared.ErrCodeDeviceNotAuthorized,
@@ -92,6 +101,7 @@ func (s *service) VerifyDevice(ctx context.Context, req VerifyDeviceRequest) (*V
 
 	tokenStr, err := generateBootstrapToken()
 	if err != nil {
+		log.Printf("[DEVICE VERIFY ERROR] Error generant bootstrap token: %v", err)
 		return nil, shared.ErrInternal(err)
 	}
 
@@ -103,8 +113,12 @@ func (s *service) VerifyDevice(ctx context.Context, req VerifyDeviceRequest) (*V
 	}
 
 	if err := s.repo.CreateBootstrapToken(ctx, token); err != nil {
+		log.Printf("[DEVICE VERIFY ERROR] Error registrant bootstrap token a BD: %v", err)
 		return nil, shared.ErrInternal(err)
 	}
+
+	log.Printf("[DEVICE VERIFY SUCCESS] Dispositiu verificat: %s (%q), Docent: %s (%s). Bootstrap token generat (TTL: 60s).",
+		dev.ID, dev.Name, teacher.Name, teacher.Email)
 
 	return &VerifyDeviceResponse{
 		BootstrapToken:   tokenStr,
@@ -132,7 +146,10 @@ func (s *service) ListDevices(ctx context.Context, actorRole string) ([]DeviceSu
 }
 
 func (s *service) RegisterDevice(ctx context.Context, actorID uuid.UUID, actorRole string, req RegisterDeviceRequest) (*DeviceSummary, *shared.AppError) {
+	log.Printf("[DEVICE REGISTER] Iniciant procés de registre: AdminID=%s, Rol=%s", actorID, actorRole)
+
 	if actorRole != "admin" {
+		log.Printf("[DEVICE REGISTER WARNING] Intent denegat: usuari %s no té rol admin (rol: %s)", actorID, actorRole)
 		return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "Accés prohibit.")
 	}
 
@@ -140,7 +157,10 @@ func (s *service) RegisterDevice(ctx context.Context, actorID uuid.UUID, actorRo
 	req.Name = strings.TrimSpace(req.Name)
 	req.TeacherEmail = strings.TrimSpace(strings.ToLower(req.TeacherEmail))
 
+	log.Printf("[DEVICE REGISTER] Dades de la sol·licitud: Nom=%q, Docent=%q, Hash=%s", req.Name, req.TeacherEmail, req.HardwareUUIDHash)
+
 	if req.HardwareUUIDHash == "" || len(req.HardwareUUIDHash) != 64 || !isHexString(req.HardwareUUIDHash) {
+		log.Printf("[DEVICE REGISTER WARNING] Hash invàlid rebut: %q", req.HardwareUUIDHash)
 		return nil, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
 			"El hash del UUID de maquinari ha de ser un SHA-256 hexadecimal de 64 caràcters.",
@@ -149,6 +169,7 @@ func (s *service) RegisterDevice(ctx context.Context, actorID uuid.UUID, actorRo
 	}
 
 	if req.Name == "" {
+		log.Printf("[DEVICE REGISTER WARNING] Nom buit")
 		return nil, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
 			"El nom descriptiu de l'ordinador és obligatori.",
@@ -156,6 +177,7 @@ func (s *service) RegisterDevice(ctx context.Context, actorID uuid.UUID, actorRo
 		)
 	}
 	if len(req.Name) > 100 {
+		log.Printf("[DEVICE REGISTER WARNING] Nom massa llarg (%d caràcters)", len(req.Name))
 		return nil, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
 			"El nom descriptiu de l'ordinador no pot superar els 100 caràcters.",
@@ -164,6 +186,7 @@ func (s *service) RegisterDevice(ctx context.Context, actorID uuid.UUID, actorRo
 	}
 
 	if req.TeacherEmail == "" {
+		log.Printf("[DEVICE REGISTER WARNING] Email de professor buit")
 		return nil, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
 			"El correu electrònic del professor és obligatori.",
@@ -171,6 +194,7 @@ func (s *service) RegisterDevice(ctx context.Context, actorID uuid.UUID, actorRo
 		)
 	}
 	if _, err := mail.ParseAddress(req.TeacherEmail); err != nil {
+		log.Printf("[DEVICE REGISTER WARNING] Format d'email invàlid: %q", req.TeacherEmail)
 		return nil, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
 			"El format del correu electrònic del professor no és vàlid.",
@@ -178,27 +202,35 @@ func (s *service) RegisterDevice(ctx context.Context, actorID uuid.UUID, actorRo
 		)
 	}
 
+	log.Printf("[DEVICE REGISTER] Cercant docent a la base de dades amb email: %s", req.TeacherEmail)
 	teacher, err := s.repo.GetTeacherByEmail(ctx, req.TeacherEmail)
 	if err != nil {
 		if errors.Is(err, ErrTeacherNotFound) {
+			log.Printf("[DEVICE REGISTER WARNING] El professor %q no existeix a la base de dades", req.TeacherEmail)
 			return nil, shared.ErrBadRequest(
 				shared.ErrCodeValidation,
-				"El professor especificat no existeix o no té rol docent.",
+				"El professor especificat no existeix a la plataforma.",
 				map[string]interface{}{"field": "teacherEmail"},
 			)
 		}
+		log.Printf("[DEVICE REGISTER ERROR] Error cercant professor %s a la base de dades: %v", req.TeacherEmail, err)
 		return nil, shared.ErrInternal(err)
 	}
 
-	if teacher.Role != "teacher" {
+	log.Printf("[DEVICE REGISTER] Docent trobat: ID=%s, Nom=%q, Rol=%s, Actiu=%t",
+		teacher.ID, teacher.Name, teacher.Role, teacher.IsActive)
+
+	if teacher.Role != "teacher" && teacher.Role != "admin" {
+		log.Printf("[DEVICE REGISTER WARNING] L'usuari %s té rol %q (es requereix 'teacher' o 'admin')", teacher.Email, teacher.Role)
 		return nil, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
-			"L'usuari especificat no té el rol docent requerit.",
+			"L'usuari especificat no té el rol docent o administrador requerit.",
 			map[string]interface{}{"field": "teacherEmail"},
 		)
 	}
 
 	if !teacher.IsActive {
+		log.Printf("[DEVICE REGISTER WARNING] El compte de %s està desactivat", teacher.Email)
 		return nil, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
 			"El compte del professor especificat està desactivat.",
@@ -218,10 +250,18 @@ func (s *service) RegisterDevice(ctx context.Context, actorID uuid.UUID, actorRo
 		UpdatedAt:        now,
 	}
 
+	log.Printf("[DEVICE REGISTER] Guardant/actualitzant dispositiu a la base de dades (Hash=%s, Nom=%q, TeacherID=%s)...",
+		dev.HardwareUUIDHash, dev.Name, dev.TeacherID)
+
 	saved, err := s.repo.UpsertDevice(ctx, dev)
 	if err != nil {
+		log.Printf("[DEVICE REGISTER ERROR] UpsertDevice ha fallat (hash %s, teacherID %s): %v",
+			dev.HardwareUUIDHash, dev.TeacherID, err)
 		return nil, shared.ErrInternal(err)
 	}
+
+	log.Printf("[DEVICE REGISTER SUCCESS] Dispositiu desat correctament: ID=%s, Nom=%q, Docent=%s (%s)",
+		saved.ID, saved.Name, teacher.Name, teacher.Email)
 
 	return &DeviceSummary{
 		ID:           saved.ID,

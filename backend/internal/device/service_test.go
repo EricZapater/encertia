@@ -69,6 +69,47 @@ func TestVerifyDevice_Success(t *testing.T) {
 	}
 }
 
+func TestVerifyDevice_AdminRoleAllowed(t *testing.T) {
+	svc, repo, _ := setupTestService()
+	ctx := context.Background()
+
+	adminID := uuid.New()
+	admin := &device.TeacherInfo{
+		ID:       adminID,
+		Email:    "admin@encertia.cat",
+		Name:     "Admin Encertia",
+		Role:     "admin",
+		IsActive: true,
+	}
+	repo.teachersByID[adminID] = admin
+	repo.teachersByEmail[admin.Email] = admin
+
+	hash := strings.Repeat("e", 64)
+	devID := uuid.New()
+	dev := &device.AuthorizedDevice{
+		ID:               devID,
+		HardwareUUIDHash: hash,
+		Name:             "Ordinador de Direcció",
+		TeacherID:        admin.ID,
+		IsActive:         true,
+		CreatedAt:        time.Now().UTC(),
+		UpdatedAt:        time.Now().UTC(),
+	}
+	repo.devices[hash] = dev
+	repo.devicesByID[devID] = dev
+
+	res, appErr := svc.VerifyDevice(ctx, device.VerifyDeviceRequest{
+		HardwareUUIDHash: hash,
+	})
+	if appErr != nil {
+		t.Fatalf("unexpected error for admin device verification: %v", appErr)
+	}
+
+	if res.TeacherEmail != admin.Email {
+		t.Errorf("expected email %s, got %s", admin.Email, res.TeacherEmail)
+	}
+}
+
 func TestVerifyDevice_NotFound(t *testing.T) {
 	svc, _, _ := setupTestService()
 	ctx := context.Background()
@@ -200,6 +241,61 @@ func TestRegisterDevice_TeacherNotFound(t *testing.T) {
 	})
 	if appErr == nil {
 		t.Fatal("expected error for non-existent teacher, got nil")
+	}
+	if appErr.StatusCode != http.StatusBadRequest {
+		t.Errorf("expected status 400, got %d", appErr.StatusCode)
+	}
+}
+
+func TestRegisterDevice_AdminRoleAllowed(t *testing.T) {
+	svc, repo, _ := setupTestService()
+	ctx := context.Background()
+	adminID := uuid.New()
+	adminUser := &device.TeacherInfo{
+		ID:       adminID,
+		Email:    "admin@encertia.cat",
+		Name:     "Admin Encertia",
+		Role:     "admin",
+		IsActive: true,
+	}
+	repo.teachersByID[adminID] = adminUser
+	repo.teachersByEmail[adminUser.Email] = adminUser
+
+	res, appErr := svc.RegisterDevice(ctx, adminID, "admin", device.RegisterDeviceRequest{
+		HardwareUUIDHash: strings.Repeat("a", 64),
+		Name:             "Ordinador de l'Admin",
+		TeacherEmail:     adminUser.Email,
+	})
+	if appErr != nil {
+		t.Fatalf("expected success for admin assignment, got error: %v", appErr)
+	}
+	if res.TeacherEmail != adminUser.Email {
+		t.Errorf("expected email %s, got %s", adminUser.Email, res.TeacherEmail)
+	}
+}
+
+func TestRegisterDevice_StudentRoleRejected(t *testing.T) {
+	svc, repo, _ := setupTestService()
+	ctx := context.Background()
+	adminID := uuid.New()
+	studentID := uuid.New()
+	studentUser := &device.TeacherInfo{
+		ID:       studentID,
+		Email:    "student@encertia.cat",
+		Name:     "Alumne Prova",
+		Role:     "student",
+		IsActive: true,
+	}
+	repo.teachersByID[studentID] = studentUser
+	repo.teachersByEmail[studentUser.Email] = studentUser
+
+	_, appErr := svc.RegisterDevice(ctx, adminID, "admin", device.RegisterDeviceRequest{
+		HardwareUUIDHash: strings.Repeat("b", 64),
+		Name:             "Ordinador Alumne",
+		TeacherEmail:     studentUser.Email,
+	})
+	if appErr == nil {
+		t.Fatal("expected error when assigning device to student, got nil")
 	}
 	if appErr.StatusCode != http.StatusBadRequest {
 		t.Errorf("expected status 400, got %d", appErr.StatusCode)

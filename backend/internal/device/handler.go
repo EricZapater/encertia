@@ -2,6 +2,7 @@ package device
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -40,6 +41,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware gin.Handler
 func (h *Handler) VerifyDevice(c *gin.Context) {
 	var req VerifyDeviceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("[DEVICE VERIFY HTTP] Error deserialitzant JSON des de %s: %v", c.ClientIP(), err)
 		shared.RespondWithError(c, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
 			"El cos de la petició no té un format JSON vàlid.",
@@ -48,12 +50,15 @@ func (h *Handler) VerifyDevice(c *gin.Context) {
 		return
 	}
 
+	log.Printf("[DEVICE VERIFY HTTP] Sol·licitud rebuda des de %s per a hash: %s", c.ClientIP(), req.HardwareUUIDHash)
 	res, svcErr := h.service.VerifyDevice(c.Request.Context(), req)
 	if svcErr != nil {
+		log.Printf("[DEVICE VERIFY HTTP ERROR] Error verificant dispositiu (%s): %v", c.ClientIP(), svcErr)
 		shared.RespondWithError(c, svcErr)
 		return
 	}
 
+	log.Printf("[DEVICE VERIFY HTTP SUCCESS] Dispositiu autoritzat: %s (%s). Responent HTTP 200", res.DeviceName, res.TeacherEmail)
 	shared.RespondOK(c, res)
 }
 
@@ -76,14 +81,17 @@ func (h *Handler) ListDevices(c *gin.Context) {
 
 // RegisterDevice handles POST /admin/devices
 func (h *Handler) RegisterDevice(c *gin.Context) {
+	log.Printf("[DEVICE REGISTER HTTP] Petició de registre d'equip rebuda des de %s (POST /admin/devices)", c.ClientIP())
 	actorID, actorRole, appErr := getActorFromContext(c)
 	if appErr != nil {
+		log.Printf("[DEVICE REGISTER HTTP WARNING] Autenticació requerida o invàlida: %v", appErr)
 		shared.RespondWithError(c, appErr)
 		return
 	}
 
 	var req RegisterDeviceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("[DEVICE REGISTER HTTP WARNING] Format JSON invàlid: %v", err)
 		shared.RespondWithError(c, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
 			"El cos de la petició no té un format JSON vàlid.",
@@ -92,12 +100,18 @@ func (h *Handler) RegisterDevice(c *gin.Context) {
 		return
 	}
 
+	log.Printf("[DEVICE REGISTER HTTP] Processant registre per a equip %q (Docent: %s, Hash: %s, AdminID: %s)",
+		req.Name, req.TeacherEmail, req.HardwareUUIDHash, actorID)
+
 	res, svcErr := h.service.RegisterDevice(c.Request.Context(), actorID, actorRole, req)
 	if svcErr != nil {
+		log.Printf("[DEVICE REGISTER HTTP ERROR] Error donant d'alta l'equip: %v", svcErr)
 		shared.RespondWithError(c, svcErr)
 		return
 	}
 
+	log.Printf("[DEVICE REGISTER HTTP SUCCESS] Equip %s (%q) registrat correctament per a %s. Responent HTTP 201 Created",
+		res.ID, res.Name, res.TeacherEmail)
 	shared.RespondCreated(c, res)
 }
 

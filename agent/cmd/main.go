@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
-	"syscall"
+	"time"
 
 	"encertia-agent/internal/api"
 	"encertia-agent/internal/browser"
@@ -57,11 +59,15 @@ func main() {
 }
 
 func runNormalLaunch(client *api.Client, hwHash, webURL string, debug bool) {
-	fmt.Println("🔐 Verificant autorització d'aquest equip amb Encertia...")
+	fmt.Println("==================================================")
+	fmt.Println("        ENCERTIA — AGENT D'ACCÉS DOCENT           ")
+	fmt.Println("==================================================")
+	fmt.Printf("[%s] [1/2] Petjada digital de maquinari: %s...\n", time.Now().Format("15:04:05"), hwHash[:16])
+	fmt.Printf("[%s] [2/2] Verificant autorització amb el servidor (%s)...\n", time.Now().Format("15:04:05"), client.BaseURL)
 
 	resp, err := client.VerifyDevice(hwHash)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "\n❌ ACCÉS DENEGAT: %v\n", err)
+		fmt.Fprintf(os.Stderr, "\n[%s] ❌ ACCÉS DENEGAT: %v\n", time.Now().Format("15:04:05"), err)
 		fmt.Fprintln(os.Stderr, "\nAquest ordinador no està autoritzat o ha estat donat de baixa.")
 		fmt.Fprintln(os.Stderr, "Si ets docent, sol·licita al teu administrador que registri aquest equip:")
 		fmt.Fprintln(os.Stderr, "   encertia-agent --register")
@@ -70,8 +76,8 @@ func runNormalLaunch(client *api.Client, hwHash, webURL string, debug bool) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("✅ Equip autoritzat: %s\n", resp.DeviceName)
-	fmt.Printf("👤 Docent assignat:  %s\n", resp.TeacherEmail)
+	fmt.Printf("[%s] ✅ Equip autoritzat: %s\n", time.Now().Format("15:04:05"), resp.DeviceName)
+	fmt.Printf("[%s] 👤 Docent assignat:  %s\n", time.Now().Format("15:04:05"), resp.TeacherEmail)
 
 	targetURL := fmt.Sprintf(
 		"%s/login?deviceToken=%s&email=%s",
@@ -81,13 +87,13 @@ func runNormalLaunch(client *api.Client, hwHash, webURL string, debug bool) {
 	)
 
 	if debug {
-		fmt.Printf("🔗 URL generada: %s\n", targetURL)
+		fmt.Printf("[%s] 🔗 URL generada (debug): %s\n", time.Now().Format("15:04:05"), targetURL)
 		return
 	}
 
-	fmt.Println("🚀 Obrint Encertia al teu navegador...")
+	fmt.Printf("[%s] 🚀 Obrint Encertia al navegador web...\n", time.Now().Format("15:04:05"))
 	if err := browser.OpenURL(targetURL); err != nil {
-		fmt.Printf("⚠️ No s'ha pogut obrir el navegador automàticament: %v\n", err)
+		fmt.Printf("[%s] ⚠️ No s'ha pogut obrir el navegador automàticament: %v\n", time.Now().Format("15:04:05"), err)
 		fmt.Printf("Obre aquest enllaç manualment:\n%s\n", targetURL)
 	}
 }
@@ -126,66 +132,85 @@ func runRegisterWizard(client *api.Client, hwHash string) {
 		deviceName = defaultName
 	}
 
-	fmt.Println("\n⏳ Autenticant administrador...")
+	fmt.Println()
+	fmt.Println("--------------------------------------------------")
+	fmt.Println("📋 EXECUCIÓ DEL REGISTRE — LOGGING PER CONSOLA")
+	fmt.Println("--------------------------------------------------")
+
+	logStep := func(step string, format string, a ...interface{}) {
+		msg := fmt.Sprintf(format, a...)
+		fmt.Printf("[%s] [%s] %s\n", time.Now().Format("15:04:05"), step, msg)
+	}
+
+	logStep("INFO", "Identificador de maquinari (Hardware UUID Hash): %s", hwHash)
+	logStep("INFO", "Punt d'accés API configurat: %s", client.BaseURL)
+	logStep("AUTH", "Autenticant administrador (%s) a %s/auth/login...", adminEmail, client.BaseURL)
+
 	adminToken, err := client.LoginAdmin(adminEmail, adminPassword)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Error d'autenticació com a administrador: %v\n", err)
+		logStep("ERROR", "❌ Error d'autenticació com a administrador: %v", err)
+		fmt.Println("\nPrem Enter per sortir...")
+		_, _ = reader.ReadString('\n')
 		os.Exit(1)
 	}
+	logStep("AUTH", "✔️ Administrador autenticat amb èxit. Token de sessió obtingut.")
 
-	fmt.Println("⏳ Registrant equip a la plataforma...")
+	logStep("REGISTER", "Enviant petició de registre a POST %s/admin/devices...", client.BaseURL)
+	logStep("REGISTER", "Dades del registre:")
+	logStep("REGISTER", "  - Nom descriptiu:  %s", deviceName)
+	logStep("REGISTER", "  - Docent assignat: %s", teacherEmail)
+	logStep("REGISTER", "  - Hardware Hash:   %s", hwHash)
+
 	dev, err := client.RegisterDevice(adminToken, hwHash, deviceName, teacherEmail)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Error donant d'alta l'equip: %v\n", err)
+		logStep("ERROR", "❌ Error donant d'alta l'equip: %v", err)
+		fmt.Println("\nPrem Enter per sortir...")
+		_, _ = reader.ReadString('\n')
 		os.Exit(1)
 	}
 
+	logStep("SUCCESS", "✔️ Resposta rebuda del servidor amb èxit (HTTP 201 Created).")
 	fmt.Println("\n==================================================")
 	fmt.Println("✅ EQUIP REGISTRAT AMB ÈXIT!")
 	fmt.Printf("   Nom de l'equip:  %s\n", dev.Name)
 	fmt.Printf("   Docent assignat: %s (%s)\n", dev.TeacherName, dev.TeacherEmail)
 	fmt.Printf("   Identificador:   %s\n", dev.ID)
+	fmt.Printf("   Estat:           Actiu (autoritzat per a la docència)\n")
 	fmt.Println("==================================================")
 	fmt.Println("A partir d'ara, el professor pot accedir fent doble clic")
 	fmt.Println("a l'executable encertia-agent.")
 	fmt.Println()
+	fmt.Println("Prem Enter per finalitzar...")
+	_, _ = reader.ReadString('\n')
 }
 
-// readPassword reads sensitive input from console without echoing on supported terminals
+// readPassword reads sensitive input from console without echoing
 func readPassword() string {
-	var passBytes []byte
-	var err error
-
-	// Intent de lectura oculta mitjançant syscall si està suportat
-	fd := int(syscall.Stdin)
-	if isTerminal(fd) {
-		passBytes, err = readPasswordStdin()
+	if runtime.GOOS == "windows" {
+		// A Windows, Read-Host amb -AsSecureString oculta la contrasenya nativament
+		cmd := exec.Command("powershell", "-NoProfile", "-Command",
+			`$p = Read-Host -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($p))`)
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		out, err := cmd.Output()
 		if err == nil {
-			return string(passBytes)
+			return strings.TrimSpace(string(out))
 		}
+	} else {
+		// A macOS i Linux, desactivem l'eco del terminal mitjançant stty
+		_ = exec.Command("stty", "-echo").Run()
+		defer func() {
+			_ = exec.Command("stty", "echo").Run()
+		}()
+
+		reader := bufio.NewReader(os.Stdin)
+		line, _ := reader.ReadString('\n')
+		_ = exec.Command("stty", "echo").Run()
+		return strings.TrimSpace(line)
 	}
 
-	// Fallback lector estàndard si no és TTY o falla
+	// Fallback estàndard si falla stty o powershell
 	reader := bufio.NewReader(os.Stdin)
 	line, _ := reader.ReadString('\n')
 	return strings.TrimSpace(line)
-}
-
-func isTerminal(fd int) bool {
-	// Comprovació bàsica de descriptor
-	fi, err := os.Stdin.Stat()
-	if err != nil {
-		return false
-	}
-	return (fi.Mode() & os.ModeCharDevice) != 0
-}
-
-func readPasswordStdin() ([]byte, error) {
-	// Fallback directe a lectura de caràcters
-	reader := bufio.NewReader(os.Stdin)
-	line, err := reader.ReadBytes('\n')
-	if err != nil {
-		return nil, err
-	}
-	return []byte(strings.TrimRight(string(line), "\r\n")), nil
 }

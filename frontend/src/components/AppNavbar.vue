@@ -100,39 +100,41 @@
 
       <!-- Right User Controls -->
       <div class="navbar-user">
-        <!-- Language Selector -->
-        <div class="lang-selector">
-          <span class="lang-globe" title="Idioma">🌐</span>
-          <button
-            v-for="lang in supportedLangs"
-            :key="lang.code"
-            type="button"
-            class="lang-btn"
-            :class="{ active: locale === lang.code }"
-            @click="changeLang(lang.code)"
-          >
-            {{ lang.label }}
-          </button>
-        </div>
-
-        <Tag :severity="roleSeverity" class="role-tag">
-          {{ roleLabel }}
-        </Tag>
-
         <div class="user-profile-link" @click="router.push('/profile')" :title="$t('nav.profile')">
           <i class="pi pi-user user-avatar-icon"></i>
           <span class="user-name">{{ authStore.fullName || authStore.currentUser?.email }}</span>
         </div>
 
-        <Button
-          icon="pi pi-sign-out"
-          severity="secondary"
-          text
-          rounded
-          class="logout-btn"
-          :title="$t('nav.logout')"
-          @click="handleLogout"
-        />
+        <div class="user-subrow">
+          <!-- Language Selector -->
+          <div class="lang-selector">
+            <span class="lang-globe" title="Idioma">🌐</span>
+            <button
+              v-for="lang in supportedLangs"
+              :key="lang.code"
+              type="button"
+              class="lang-btn"
+              :class="{ active: locale === lang.code }"
+              @click="changeLang(lang.code)"
+            >
+              {{ lang.label }}
+            </button>
+          </div>
+
+          <Tag :severity="roleSeverity" class="role-tag">
+            {{ roleLabel }}
+          </Tag>
+
+          <Button
+            icon="pi pi-sign-out"
+            severity="secondary"
+            text
+            rounded
+            class="logout-btn"
+            :title="$t('nav.logout')"
+            @click="handleLogout"
+          />
+        </div>
       </div>
     </div>
   </header>
@@ -198,14 +200,14 @@ async function handleLogout() {
 }
 
 .navbar-container {
-  max-width: 1280px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 0 1.25rem;
-  height: 4rem;
+  height: 4.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .navbar-brand {
@@ -280,34 +282,77 @@ async function handleLogout() {
 
 .navbar-user {
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.user-profile-link {
+  display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.35rem;
+  cursor: pointer;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.15s ease;
+}
+
+.user-profile-link:hover {
+  background-color: #f1f5f9;
+}
+
+.user-avatar-icon {
+  font-size: 0.85rem;
+  color: #64748b;
+  background-color: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 50%;
+}
+
+.user-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  max-width: 175px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.user-subrow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .lang-selector {
   display: flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.15rem;
   background-color: #f1f5f9;
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.5rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.375rem;
   border: 1px solid #e2e8f0;
 }
 
 .lang-globe {
-  font-size: 0.85rem;
-  margin-right: 0.15rem;
+  font-size: 0.75rem;
+  margin-right: 0.1rem;
 }
 
 .lang-btn {
   background: none;
   border: none;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #64748b;
-  padding: 0.15rem 0.35rem;
-  border-radius: 0.25rem;
+  padding: 0.1rem 0.25rem;
+  border-radius: 0.2rem;
   cursor: pointer;
+  line-height: 1;
   transition: all 0.15s ease;
 }
 
@@ -321,45 +366,18 @@ async function handleLogout() {
 }
 
 .role-tag {
-  font-size: 0.75rem !important;
+  font-size: 0.65rem !important;
+  padding: 0.05rem 0.35rem !important;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-}
-
-.user-profile-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: 0.4rem 0.65rem;
-  border-radius: 0.5rem;
-  transition: background-color 0.15s ease;
-}
-
-.user-profile-link:hover {
-  background-color: #f1f5f9;
-}
-
-.user-avatar-icon {
-  font-size: 1.1rem;
-  color: #64748b;
-  background-color: #f1f5f9;
-  padding: 0.4rem;
-  border-radius: 50%;
-}
-
-.user-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #1e293b;
-  max-width: 160px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1 !important;
 }
 
 .logout-btn {
   color: #64748b !important;
+  width: 1.6rem !important;
+  height: 1.6rem !important;
+  padding: 0 !important;
 }
 
 .logout-btn:hover {

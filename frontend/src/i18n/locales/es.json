@@ -1,13 +1,13 @@
 {
   "nav": {
-    "quizzes": "Juegos & Quizzes",
+    "quizzes": "Quizzes",
     "groups": "Grupos",
     "evaluations": "Evaluaciones",
     "users": "Usuarios",
     "courses": "Cursos",
     "materials": "Materiales",
     "manual": "Manual",
-    "metrics": "Métricas & Auditoría",
+    "metrics": "Auditoría",
     "devices": "Dispositivos",
     "profile": "Mi perfil",
     "logout": "Cerrar Sesión",

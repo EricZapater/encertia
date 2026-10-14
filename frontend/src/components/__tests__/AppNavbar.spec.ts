@@ -37,7 +37,7 @@ describe('AppNavbar.vue', () => {
     })
 
     expect(wrapper.text()).toContain('Encertia')
-    expect(wrapper.text()).toContain('Jocs & Quizzes')
+    expect(wrapper.text()).toContain('Quizzes')
     expect(wrapper.text()).toContain('Avaluacions')
     expect(wrapper.text()).toContain('Grups')
     expect(wrapper.text()).toContain('Usuaris')
@@ -72,7 +72,7 @@ describe('AppNavbar.vue', () => {
 
     expect(wrapper.find('[data-testid="nav-link-metrics"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="nav-link-devices"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Mètriques & Auditoria')
+    expect(wrapper.text()).toContain('Auditoria')
     expect(wrapper.text()).toContain('Dispositius')
     expect(wrapper.text()).toContain('Usuaris')
     expect(wrapper.text()).toContain('Cursos')
@@ -101,7 +101,7 @@ describe('AppNavbar.vue', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('Jocs & Quizzes')
+    expect(wrapper.text()).toContain('Quizzes')
     expect(wrapper.text()).toContain('Cursos')
     expect(wrapper.text()).toContain('Materials')
     expect(wrapper.text()).not.toContain('Avaluacions')
