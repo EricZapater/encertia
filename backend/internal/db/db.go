@@ -86,6 +86,7 @@ func RunMigrations(db *sql.DB) error {
 		"migrations/000013_add_group_id_to_matches.up.sql",
 		"migrations/000014_allow_anonymous_match_players.up.sql",
 		"migrations/000015_allow_anonymous_evaluations.up.sql",
+		"migrations/000016_create_authorized_devices.up.sql",
 	}
 
 	for _, file := range migrationFiles {

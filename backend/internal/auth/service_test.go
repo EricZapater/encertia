@@ -2,12 +2,15 @@ package auth_test
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/encertia/backend/internal/auth"
 	"github.com/encertia/backend/internal/shared"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func setupService() (auth.Service, *mockRepository) {
@@ -493,3 +496,139 @@ func TestRegister_LanguageValidation(t *testing.T) {
 		t.Errorf("expected status 400 for invalid language, got %d", appErrFr.StatusCode)
 	}
 }
+
+type mockDeviceValidator struct {
+	validTokens map[string]uuid.UUID
+}
+
+func (m *mockDeviceValidator) ValidateAndConsumeBootstrapToken(ctx context.Context, token string, teacherID uuid.UUID) error {
+	expectedTeacherID, exists := m.validTokens[token]
+	if !exists || expectedTeacherID != teacherID {
+		return errors.New("invalid bootstrap token")
+	}
+	delete(m.validTokens, token)
+	return nil
+}
+
+func TestLogin_TeacherDeviceAuthorization(t *testing.T) {
+	ctx := context.Background()
+	repo := newMockRepository()
+
+	teacherID := uuid.New()
+	hashedPwd, _ := bcrypt.GenerateFromPassword([]byte("TeacherPass123!"), bcrypt.DefaultCost)
+	teacher := &auth.UserDB{
+		ID:           teacherID,
+		Email:        "teacher.auth@encertia.cat",
+		PasswordHash: string(hashedPwd),
+		FirstName:    "Pere",
+		LastName:     "Docent",
+		Role:         auth.RoleTeacher,
+		Language:     "ca",
+		IsActive:     true,
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
+	}
+	_ = repo.CreateUser(ctx, teacher)
+
+	tokenVal := "dbt_validtoken123"
+	devValidator := &mockDeviceValidator{
+		validTokens: map[string]uuid.UUID{
+			tokenVal: teacherID,
+		},
+	}
+
+	// 1. Soft mode (EnforceTeacherDeviceAuth = false): teacher logs in without deviceToken -> succeeds!
+	svcSoft := auth.NewService(repo, auth.Config{
+		JWTSecret:                "test-secret-key-32-characters-long!",
+		EnforceTeacherDeviceAuth: false,
+	}, devValidator)
+
+	res, appErr := svcSoft.Login(ctx, auth.LoginRequest{
+		Email:    teacher.Email,
+		Password: "TeacherPass123!",
+	})
+	if appErr != nil {
+		t.Fatalf("expected successful login without token in soft mode, got: %v", appErr)
+	}
+	if res.User.Email != teacher.Email {
+		t.Errorf("expected email %s, got %s", teacher.Email, res.User.Email)
+	}
+
+	// 2. Teacher logs in with valid deviceToken -> succeeds!
+	resValid, appErrValid := svcSoft.Login(ctx, auth.LoginRequest{
+		Email:       teacher.Email,
+		Password:    "TeacherPass123!",
+		DeviceToken: tokenVal,
+	})
+	if appErrValid != nil {
+		t.Fatalf("expected successful login with valid deviceToken, got: %v", appErrValid)
+	}
+	if resValid.User.Email != teacher.Email {
+		t.Errorf("expected email %s, got %s", teacher.Email, resValid.User.Email)
+	}
+
+	// 3. Teacher logs in with consumed/invalid deviceToken -> 403 Forbidden DEVICE_AUTHORIZATION_REQUIRED!
+	_, appErrInvalid := svcSoft.Login(ctx, auth.LoginRequest{
+		Email:       teacher.Email,
+		Password:    "TeacherPass123!",
+		DeviceToken: tokenVal, // already consumed
+	})
+	if appErrInvalid == nil {
+		t.Fatal("expected error with consumed token, got nil")
+	}
+	if appErrInvalid.StatusCode != http.StatusForbidden {
+		t.Errorf("expected status 403, got %d", appErrInvalid.StatusCode)
+	}
+	if appErrInvalid.Code != shared.ErrCodeDeviceAuthRequired {
+		t.Errorf("expected code DEVICE_AUTHORIZATION_REQUIRED, got %s", appErrInvalid.Code)
+	}
+
+	// 4. Strict mode (EnforceTeacherDeviceAuth = true): teacher without deviceToken -> 403 Forbidden!
+	svcStrict := auth.NewService(repo, auth.Config{
+		JWTSecret:                "test-secret-key-32-characters-long!",
+		EnforceTeacherDeviceAuth: true,
+	}, devValidator)
+
+	_, appErrStrict := svcStrict.Login(ctx, auth.LoginRequest{
+		Email:    teacher.Email,
+		Password: "TeacherPass123!",
+	})
+	if appErrStrict == nil {
+		t.Fatal("expected error without token in strict mode, got nil")
+	}
+	if appErrStrict.StatusCode != http.StatusForbidden {
+		t.Errorf("expected status 403, got %d", appErrStrict.StatusCode)
+	}
+	if appErrStrict.Code != shared.ErrCodeDeviceAuthRequired {
+		t.Errorf("expected code DEVICE_AUTHORIZATION_REQUIRED, got %s", appErrStrict.Code)
+	}
+
+	// 5. Student login with or without deviceToken is unaffected
+	studentHashed, _ := bcrypt.GenerateFromPassword([]byte("StudentPass123!"), bcrypt.DefaultCost)
+	student := &auth.UserDB{
+		ID:           uuid.New(),
+		Email:        "student.auth@encertia.cat",
+		PasswordHash: string(studentHashed),
+		FirstName:    "Alumne",
+		LastName:     "Estudiant",
+		Role:         auth.RoleStudent,
+		Language:     "ca",
+		IsActive:     true,
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
+	}
+	_ = repo.CreateUser(ctx, student)
+
+	resStudent, appErrStudent := svcStrict.Login(ctx, auth.LoginRequest{
+		Email:       student.Email,
+		Password:    "StudentPass123!",
+		DeviceToken: "random-or-empty",
+	})
+	if appErrStudent != nil {
+		t.Fatalf("expected student login to succeed even in strict mode, got: %v", appErrStudent)
+	}
+	if resStudent.User.Email != student.Email {
+		t.Errorf("expected student email %s, got %s", student.Email, resStudent.User.Email)
+	}
+}
+

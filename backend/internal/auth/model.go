@@ -92,8 +92,9 @@ type RegisterRequest struct {
 
 // LoginRequest defines the input payload for POST /auth/login.
 type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	DeviceToken string `json:"deviceToken,omitempty"`
 }
 
 // RefreshTokenRequest defines the input payload for POST /auth/refresh.

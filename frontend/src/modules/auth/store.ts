@@ -49,6 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const accessToken = ref<string | null>(getStorageItem(ACCESS_TOKEN_KEY))
   const refreshToken = ref<string | null>(getStorageItem(REFRESH_TOKEN_KEY))
+  const deviceToken = ref<string | null>(null)
   const isLoading = ref(false)
   const isInitialized = ref(false)
   const error = ref<string | null>(null)
@@ -91,10 +92,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function setDeviceToken(token: string | null) {
+    deviceToken.value = token
+  }
+
   function clearAuth() {
     user.value = null
     accessToken.value = null
     refreshToken.value = null
+    deviceToken.value = null
     error.value = null
     removeStorageItem(ACCESS_TOKEN_KEY)
     removeStorageItem(REFRESH_TOKEN_KEY)
@@ -104,7 +110,13 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     error.value = null
     try {
-      const response = await authApi.login(credentials)
+      const tokenToSend = credentials.deviceToken || deviceToken.value || undefined
+      const payload: LoginRequest = {
+        email: credentials.email,
+        password: credentials.password,
+        ...(tokenToSend ? { deviceToken: tokenToSend } : {})
+      }
+      const response = await authApi.login(payload)
       setTokens(response.tokens)
       setUser(response.user)
       return response
@@ -189,6 +201,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     accessToken,
     refreshToken,
+    deviceToken,
     isLoading,
     isInitialized,
     error,
@@ -202,6 +215,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Actions
     setTokens,
     setUser,
+    setDeviceToken,
     clearAuth,
     login,
     register,

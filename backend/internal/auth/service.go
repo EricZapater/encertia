@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/mail"
 	"strings"
 	"time"
@@ -23,6 +24,11 @@ const (
 	AccessTokenTokenType        = "Bearer"
 )
 
+// DeviceValidator defines the interface for validating and consuming device bootstrap tokens.
+type DeviceValidator interface {
+	ValidateAndConsumeBootstrapToken(ctx context.Context, token string, teacherID uuid.UUID) error
+}
+
 // Service defines the business logic operations for the Auth domain.
 type Service interface {
 	Register(ctx context.Context, req RegisterRequest) (*AuthResponse, *shared.AppError)
@@ -34,19 +40,21 @@ type Service interface {
 }
 
 type Config struct {
-	JWTSecret            string
-	AccessTokenDuration  time.Duration
-	RefreshTokenDuration time.Duration
-	Issuer               string
+	JWTSecret                string
+	AccessTokenDuration      time.Duration
+	RefreshTokenDuration     time.Duration
+	Issuer                   string
+	EnforceTeacherDeviceAuth bool
 }
 
 type authService struct {
-	repo Repository
-	cfg  Config
+	repo            Repository
+	cfg             Config
+	deviceValidator DeviceValidator
 }
 
 // NewService creates a new instance of AuthService.
-func NewService(repo Repository, cfg Config) Service {
+func NewService(repo Repository, cfg Config, deviceValidators ...DeviceValidator) Service {
 	if cfg.AccessTokenDuration == 0 {
 		cfg.AccessTokenDuration = DefaultAccessTokenDuration
 	}
@@ -56,9 +64,14 @@ func NewService(repo Repository, cfg Config) Service {
 	if cfg.Issuer == "" {
 		cfg.Issuer = "encertia-auth"
 	}
+	var validator DeviceValidator
+	if len(deviceValidators) > 0 {
+		validator = deviceValidators[0]
+	}
 	return &authService{
-		repo: repo,
-		cfg:  cfg,
+		repo:            repo,
+		cfg:             cfg,
+		deviceValidator: validator,
 	}
 }
 
@@ -158,6 +171,32 @@ func (s *authService) Login(ctx context.Context, req LoginRequest) (*AuthRespons
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userDB.PasswordHash), []byte(req.Password)); err != nil {
 		return nil, shared.ErrUnauthorized(shared.ErrCodeInvalidCredentials, "El correu o la contrasenya són incorrectes.")
+	}
+
+	// Device verification for teacher role
+	if userDB.Role == RoleTeacher {
+		deviceToken := strings.TrimSpace(req.DeviceToken)
+		if deviceToken != "" {
+			if s.deviceValidator != nil {
+				if err := s.deviceValidator.ValidateAndConsumeBootstrapToken(ctx, deviceToken, userDB.ID); err != nil {
+					return nil, shared.NewAppError(
+						http.StatusForbidden,
+						shared.ErrCodeDeviceAuthRequired,
+						"Dispositiu no autoritzat o token d'arrencada invàlid.",
+						nil,
+						err,
+					)
+				}
+			}
+		} else if s.cfg.EnforceTeacherDeviceAuth {
+			return nil, shared.NewAppError(
+				http.StatusForbidden,
+				shared.ErrCodeDeviceAuthRequired,
+				"Es requereix autorització de dispositiu per iniciar sessió com a docent.",
+				nil,
+				nil,
+			)
+		}
 	}
 
 	tokenPair, appErr := s.generateAndStoreTokens(ctx, userDB)

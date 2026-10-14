@@ -20,11 +20,18 @@ export async function register(payload: RegisterRequest): Promise<AuthResponse> 
 }
 
 /**
- * Inicia sessió amb correu i contrasenya.
+ * Inicia sessió amb correu i contrasenya (i opcionalment deviceToken).
  * POST /auth/login
  */
 export async function login(payload: LoginRequest): Promise<AuthResponse> {
-  const response = await apiClient.post<AuthResponse>('/auth/login', payload)
+  const body: LoginRequest = {
+    email: payload.email,
+    password: payload.password
+  }
+  if (payload.deviceToken) {
+    body.deviceToken = payload.deviceToken
+  }
+  const response = await apiClient.post<AuthResponse>('/auth/login', body)
   return response.data
 }
 

@@ -244,6 +244,13 @@ components:
         password:
           type: string
           minLength: 8
+        deviceToken:
+          type: string
+          description: >
+            Token d'arrencada de dispositiu emès per /api/v1/devices/verify.
+            Obligatori exclusivament si l'usuari que fa login té rol 'teacher'.
+            Opcional/ignorat per a 'student' i 'admin'.
+          example: "dbt_a8f9c2d1e0b34765"
       required: [email, password]
 
     RefreshTokenRequest:

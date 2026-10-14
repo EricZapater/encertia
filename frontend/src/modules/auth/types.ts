@@ -35,7 +35,10 @@ export interface RegisterRequest {
 export interface LoginRequest {
   email: string
   password: string
+  deviceToken?: string
 }
+
+export type LoginPayload = LoginRequest
 
 /** Petició de renovació de tokens */
 export interface RefreshTokenRequest {

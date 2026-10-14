@@ -26,7 +26,8 @@
       "submit": "Sign In",
       "noAccount": "Don't have an account?",
       "registerLink": "Register now",
-      "error": "Login error"
+      "error": "Login error",
+      "deviceVerified": "Authorized and verified device"
     },
     "register": {
       "title": "Create an account",

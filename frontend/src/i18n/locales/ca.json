@@ -26,7 +26,8 @@
       "submit": "Iniciar Sessió",
       "noAccount": "No tens compte?",
       "registerLink": "Registra't ara",
-      "error": "Error en iniciar sessió"
+      "error": "Error en iniciar sessió",
+      "deviceVerified": "Dispositiu autoritzat i verificat"
     },
     "register": {
       "title": "Crear un compte",

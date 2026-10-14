@@ -1,0 +1,253 @@
+openapi: 3.0.3
+info:
+  title: Encertia — Device Authorization API
+  version: 1.0.0
+  description: >
+    Contracte d'API REST per a l'autorització d'ordinadors físics mitjançant
+    identificador de maquinari immutable (UUID de la placa base) per al rol de professor (teacher).
+    Permet la verificació automàtica des de l'agent natiu en Go i la gestió per part d'administradors.
+
+servers:
+  - url: /api/v1
+
+paths:
+  /devices/verify:
+    post:
+      operationId: verifyDevice
+      summary: Valida un dispositiu físic des de l'agent i emet un bootstrap token
+      description: >
+        L'agent d'escriptori en Go envia el hash del UUID de la placa base.
+        Si l'ordinador està actiu i registrat, el servidor emet un token d'arrencada
+        (bootstrap token) d'un sol ús vàlid durant 60 segons vinculat al professor assignat.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyDeviceRequest'
+      responses:
+        '200':
+          description: Dispositiu autoritzat, token d'arrencada emès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyDeviceResponse'
+        '403':
+          description: Dispositiu no autoritzat o revocat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/devices:
+    get:
+      operationId: listDevices
+      summary: Llistar tots els dispositius autoritzats (només admin)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Llistat de dispositius registrats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      operationId: registerDevice
+      summary: Registrar o reactivar un dispositiu físic per a un docent (només admin)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDeviceRequest'
+      responses:
+        '201':
+          description: Dispositiu registrat amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceSummary'
+        '400':
+          description: Dades invàlides o professor no trobat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/devices/{id}:
+    delete:
+      operationId: revokeDevice
+      summary: Revocar o desactivar un dispositiu autoritzat (només admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Identificador UUID del dispositiu a revocar
+      responses:
+        '204':
+          description: Dispositiu revocat satisfactòriament
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    VerifyDeviceRequest:
+      type: object
+      required:
+        - hardwareUuidHash
+      properties:
+        hardwareUuidHash:
+          type: string
+          description: Hash SHA-256 en hexadecimal del UUID de la placa base
+          example: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+    VerifyDeviceResponse:
+      type: object
+      required:
+        - bootstrapToken
+        - teacherEmail
+        - deviceName
+        - expiresInSeconds
+      properties:
+        bootstrapToken:
+          type: string
+          description: Token d'arrencada d'un sol ús
+          example: "dbt_a8f9c2d1e0b34765"
+        teacherEmail:
+          type: string
+          format: email
+          example: "joan.docent@encertia.cat"
+        deviceName:
+          type: string
+          example: "Portàtil Aula 3B"
+        expiresInSeconds:
+          type: integer
+          example: 60
+
+    RegisterDeviceRequest:
+      type: object
+      required:
+        - hardwareUuidHash
+        - name
+        - teacherEmail
+      properties:
+        hardwareUuidHash:
+          type: string
+          description: Hash SHA-256 en hexadecimal del UUID de la placa base
+          example: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        name:
+          type: string
+          description: Nom descriptiu de l'ordinador
+          example: "Portàtil Aula 3B"
+        teacherEmail:
+          type: string
+          format: email
+          description: Email del docent que farà servir l'equip
+          example: "joan.docent@encertia.cat"
+
+    DeviceSummary:
+      type: object
+      required:
+        - id
+        - name
+        - teacherId
+        - teacherName
+        - teacherEmail
+        - isActive
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Portàtil Aula 3B"
+        teacherId:
+          type: string
+          format: uuid
+        teacherName:
+          type: string
+          example: "Joan Docent"
+        teacherEmail:
+          type: string
+          format: email
+          example: "joan.docent@encertia.cat"
+        isActive:
+          type: boolean
+          example: true
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: "DEVICE_NOT_AUTHORIZED"
+            message:
+              type: string
+              example: "Aquest equip no està autoritzat per a la docència."
+            details:
+              type: object
+
+  responses:
+    Unauthorized:
+      description: No autenticat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Accés prohibit
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurs no trobat
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

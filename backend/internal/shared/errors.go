@@ -46,6 +46,8 @@ const (
 	ErrCodeForbidden          = "FORBIDDEN"
 	ErrCodeUserNotFound       = "USER_NOT_FOUND"
 	ErrCodeInternal           = "INTERNAL_SERVER_ERROR"
+	ErrCodeDeviceNotAuthorized = "DEVICE_NOT_AUTHORIZED"
+	ErrCodeDeviceAuthRequired = "DEVICE_AUTHORIZATION_REQUIRED"
 )
 
 // NewAppError creates a new AppError.

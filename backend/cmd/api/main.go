@@ -9,6 +9,7 @@ import (
 	"github.com/encertia/backend/internal/auth"
 	"github.com/encertia/backend/internal/course"
 	"github.com/encertia/backend/internal/db"
+	"github.com/encertia/backend/internal/device"
 	"github.com/encertia/backend/internal/evaluation"
 	"github.com/encertia/backend/internal/group"
 	"github.com/encertia/backend/internal/match"
@@ -78,14 +79,20 @@ func main() {
 	// 4. Initialize Domain Modules & Services
 	storageSvc := shared.NewStorageService(storageCfg)
 
+	// Device Domain
+	deviceRepo := device.NewRepository(dbConn)
+	deviceSvc := device.NewService(deviceRepo)
+	deviceHandler := device.NewHandler(deviceSvc)
+
 	// Auth Domain
 	authRepo := auth.NewRepository(dbConn)
 	authSvc := auth.NewService(authRepo, auth.Config{
-		JWTSecret:            jwtSecret,
-		AccessTokenDuration:  15 * time.Minute,
-		RefreshTokenDuration: 7 * 24 * time.Hour,
-		Issuer:               "encertia",
-	})
+		JWTSecret:                jwtSecret,
+		AccessTokenDuration:      15 * time.Minute,
+		RefreshTokenDuration:     7 * 24 * time.Hour,
+		Issuer:                   "encertia",
+		EnforceTeacherDeviceAuth: getEnv("ENFORCE_TEACHER_DEVICE_AUTH", "false") == "true",
+	}, deviceSvc)
 	authHandler := auth.NewHandler(authSvc)
 
 	// User Domain
@@ -169,6 +176,7 @@ func main() {
 	materialHandler.RegisterRoutes(rootGroup, authMiddleware)
 	groupHandler.RegisterRoutes(rootGroup, authMiddleware)
 	metricsHandler.RegisterRoutes(rootGroup, authMiddleware)
+	deviceHandler.RegisterRoutes(rootGroup, authMiddleware)
 
 	// Also support /api prefix for proxy convenience
 	apiGroup := router.Group("/api")
@@ -181,6 +189,20 @@ func main() {
 	materialHandler.RegisterRoutes(apiGroup, authMiddleware)
 	groupHandler.RegisterRoutes(apiGroup, authMiddleware)
 	metricsHandler.RegisterRoutes(apiGroup, authMiddleware)
+	deviceHandler.RegisterRoutes(apiGroup, authMiddleware)
+
+	// Also support /api/v1 prefix for OpenAPI specification compliance
+	apiV1Group := router.Group("/api/v1")
+	authHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	userHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	quizHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	matchHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	evalHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	courseHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	materialHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	groupHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	metricsHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	deviceHandler.RegisterRoutes(apiV1Group, authMiddleware)
 
 	// 6. Start HTTP Server
 	addr := ":" + serverPort

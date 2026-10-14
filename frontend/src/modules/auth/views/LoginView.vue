@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../store'
@@ -9,6 +9,7 @@ import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
+import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
@@ -17,10 +18,28 @@ const authStore = useAuthStore()
 const toast = useToast()
 const { t, locale } = useI18n()
 
+const deviceToken = ref<string | null>(null)
+
 const credentials = reactive<LoginRequest>({
   email: '',
   password: ''
 })
+
+watch(
+  () => route.query,
+  (query) => {
+    if (typeof query.deviceToken === 'string' && query.deviceToken.trim()) {
+      const token = query.deviceToken.trim()
+      deviceToken.value = token
+      credentials.deviceToken = token
+      authStore.setDeviceToken(token)
+    }
+    if (typeof query.email === 'string' && query.email.trim()) {
+      credentials.email = query.email.trim()
+    }
+  },
+  { immediate: true }
+)
 
 const errorMessage = ref<string | null>(null)
 const isSubmitting = ref(false)
@@ -46,6 +65,9 @@ async function handleLogin() {
 
   isSubmitting.value = true
   try {
+    if (deviceToken.value) {
+      credentials.deviceToken = deviceToken.value
+    }
     await authStore.login(credentials)
     const redirectPath = (route.query.redirect as string) || '/profile'
     router.push(redirectPath)
@@ -91,6 +113,15 @@ async function handleLogin() {
         </template>
 
         <template #content>
+          <div v-if="deviceToken" class="device-badge-container" data-testid="device-verified-badge">
+            <Tag
+              severity="success"
+              icon="pi pi-shield"
+              :value="$t('auth.login.deviceVerified')"
+              class="device-verified-tag"
+            />
+          </div>
+
           <form @submit.prevent="handleLogin" class="auth-form">
             <div class="form-field">
               <label for="email">{{ $t('auth.login.email') }}</label>
@@ -229,6 +260,22 @@ async function handleLogin() {
   font-size: 1.35rem;
   font-weight: 700;
   color: #0f172a;
+}
+
+.device-badge-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.device-verified-tag {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .auth-form {

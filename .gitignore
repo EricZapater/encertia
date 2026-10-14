@@ -26,9 +26,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Go / Backend
+# Go / Backend & Agent
 backend/bin/
 backend/dist/
+agent/bin/
 *.exe
 *.exe~
 *.dll

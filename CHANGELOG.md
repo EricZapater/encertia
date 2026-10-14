@@ -5,6 +5,23 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-14
+### Added
+- **Mòdul Agent en Go (`agent/`)**:
+  - Creat client autònom per a escriptori amb suport multiplataforma per a Linux (`encertia-agent-linux`), macOS (`encertia-agent-darwin`) i Windows (`encertia-agent-windows.exe`).
+  - Extracció d'identificador immutable mitjançant el UUID de la placa base (SMBIOS) i generació del hash SHA-256.
+  - Mode interactiu de registre per consola (`encertia-agent --register`) per a administradors, amb captura de credencials i assignació al professor.
+  - Obertura automàtica del navegador per defecte amb la sessió de l'equip verificada.
+  - Certificats de signatura de codi auto-signats (`agent/certs/`) i scripts d'instal·lació sense privilegis d'administració per a Windows.
+- **Backend (`internal/device/`, `internal/auth/`)**:
+  - Migració `000016_create_authorized_devices` per a les taules `authorized_devices` i `device_bootstrap_tokens`.
+  - Endpoints `POST /api/v1/devices/verify`, `GET /api/v1/admin/devices`, `POST /api/v1/admin/devices` i `DELETE /api/v1/admin/devices/:id`.
+  - Suport de `deviceToken` a `POST /api/v1/auth/login` per validar i registrar l'ús de l'equip físic en el login de professors. Mode suau permès en Fase 1.
+- **Frontend (`src/modules/auth/`)**:
+  - Captura del paràmetre de consulta `?deviceToken=...` i `?email=...` a `LoginView.vue`.
+  - Distintiu visual de confiança (`Tag` d'èxit amb icona `pi pi-shield`) en detectar un dispositiu autoritzat i pre-ompliment d'email.
+  - Cobertura completa d'i18n per al missatge de verificació del dispositiu a `ca.json`, `es.json` i `en.json`.
+
 ## [1.7.6] - 2026-10-09
 ### Fixed
 - **CI/CD (`.github/workflows/deploy.yml`)**:

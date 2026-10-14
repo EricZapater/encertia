@@ -26,7 +26,8 @@
       "submit": "Iniciar Sesión",
       "noAccount": "¿No tienes cuenta?",
       "registerLink": "Regístrate ahora",
-      "error": "Error al iniciar sesión"
+      "error": "Error al iniciar sesión",
+      "deviceVerified": "Dispositivo autorizado y verificado"
     },
     "register": {
       "title": "Crear una cuenta",
