@@ -1,0 +1,52 @@
+CHANGELOG.md
+  h_42175f19913982 8-24
+VERSION
+  h_42175f19913982 1
+agent/build.sh
+  h_42175f19913982 43-70
+backend/Dockerfile
+  h_42175f19913982 5,40-46
+backend/internal/db/db.go
+  h_42175f19913982 101
+backend/internal/db/migrations/000017_add_created_by_to_users.down.sql
+  h_42175f19913982 1-2
+backend/internal/db/migrations/000017_add_created_by_to_users.up.sql
+  h_42175f19913982 1-12
+backend/internal/device/handler.go
+  h_42175f19913982 4,6,184-187,202,209-219,233-293
+backend/internal/device/handler_test.go
+  h_42175f19913982 208-212,262
+backend/internal/user/handler.go
+  h_42175f19913982 27,70,82,93,105
+backend/internal/user/handler_test.go
+  h_42175f19913982 42,133,172,204,232
+backend/internal/user/mock_repository_test.go
+  h_42175f19913982 45-51
+backend/internal/user/model.go
+  h_42175f19913982 32,47,67,156
+backend/internal/user/repository.go
+  h_42175f19913982 53-63,119,137,147,154-156,172-173,194,202,207,217,228-230,236,241,251,262-264
+backend/internal/user/service.go
+  h_42175f19913982 19-20,38,43,85,143-147,157,172,308-312,322,360-363,389-391,395,495-498
+backend/internal/user/service_test.go
+  h_42175f19913982 25,32,39,67-71,78-79,86-93,95,104,106-107,111,115-133,135-136,138-139,154,209,235,250,265,284,292,328,345,369,395,413,420,427,434-440,448,451-457,490,520,547,594,601,623,630,637,699,706,713,765,780,796
+frontend/src/i18n/locales/ca.json
+  h_42175f19913982 495,497,539-542
+frontend/src/i18n/locales/en.json
+  h_42175f19913982 495,497,539-542
+frontend/src/i18n/locales/es.json
+  h_42175f19913982 495,497,539-542
+frontend/src/modules/devices/views/DevicesManagementView.vue
+  h_42175f19913982 85-93,261,268,796-848
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bb769b85706bdd6ca1b0b10d1f6da790c67e1776",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
