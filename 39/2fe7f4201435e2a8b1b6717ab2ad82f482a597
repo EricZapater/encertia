@@ -1,0 +1,58 @@
+.github/workflows/deploy.yml
+  h_42175f19913982 65-69
+.gitignore
+  h_42175f19913982 32
+CHANGELOG.md
+  h_42175f19913982 8-23
+VERSION
+  h_42175f19913982 1
+backend/Dockerfile
+  h_42175f19913982 1,21-44,58-60,66-67
+backend/internal/device/handler.go
+  h_42175f19913982 4,6-7,35,159-246
+backend/internal/device/handler_test.go
+  h_42175f19913982 6,9-10,160-305
+contracts/device_auth.openapi.yaml
+  h_42175f19913982 115-161
+contracts/device_auth.spec.md
+  h_42175f19913982 225-236,250-283
+frontend/src/components/AppNavbar.vue
+  h_42175f19913982 88-98
+frontend/src/components/__tests__/AppNavbar.spec.ts
+  h_42175f19913982 48,74,76,110
+frontend/src/i18n/locales/ca.json
+  h_42175f19913982 11,483-547
+frontend/src/i18n/locales/en.json
+  h_42175f19913982 11,483-547
+frontend/src/i18n/locales/es.json
+  h_42175f19913982 11,483-547
+frontend/src/modules/devices/__tests__/DevicesManagementView.spec.ts
+  h_42175f19913982 1-155
+frontend/src/modules/devices/__tests__/api.spec.ts
+  h_42175f19913982 1-54
+frontend/src/modules/devices/api.ts
+  h_42175f19913982 1-31
+frontend/src/modules/devices/store.ts
+  h_42175f19913982 1-76
+frontend/src/modules/devices/types.ts
+  h_42175f19913982 1-29
+frontend/src/modules/devices/views/DevicesManagementView.vue
+  h_42175f19913982 1-787
+frontend/src/router/index.ts
+  h_42175f19913982 148-153
+qa-reports/device_downloads.md
+  h_42175f19913982 1-84
+ux-reports/device_downloads.md
+  h_42175f19913982 1-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "392fe7f4201435e2a8b1b6717ab2ad82f482a597",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
