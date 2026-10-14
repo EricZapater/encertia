@@ -1,0 +1,26 @@
+CHANGELOG.md
+  h_42175f19913982 8-19
+VERSION
+  h_42175f19913982 1
+agent/assets/icon.svg
+  h_42175f19913982 1-5
+agent/build.sh
+  h_42175f19913982 9-15,17,20-21,30-39,41
+backend/Dockerfile
+  h_42175f19913982 32-34
+frontend/index.html
+  h_42175f19913982 6
+frontend/public/favicon.svg
+  h_42175f19913982 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "28e8056456849746ccadf35b6a81df1b03ed83af",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
