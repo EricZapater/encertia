@@ -109,4 +109,43 @@ describe('AppNavbar.vue', () => {
     expect(wrapper.find('[data-testid="nav-link-metrics"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="nav-link-devices"]').exists()).toBe(false)
   })
+
+  it('toggles user dropdown menu on click', async () => {
+    const authStore = useAuthStore()
+    authStore.setUser({
+      id: 'u-1',
+      email: 'teacher@encertia.cat',
+      firstName: 'Joan',
+      lastName: 'Docent',
+      role: 'teacher',
+      createdAt: '2026-01-01',
+      updatedAt: '2026-01-01'
+    })
+
+    const wrapper = mount(AppNavbar, {
+      global: {
+        stubs: {
+          'router-link': RouterLinkStub,
+          Tag: true,
+          Button: true
+        }
+      }
+    })
+
+    // Initially dropdown is closed
+    expect(wrapper.find('.user-dropdown-menu').exists()).toBe(false)
+
+    // Click trigger opens dropdown
+    const trigger = wrapper.find('[data-testid="user-menu-trigger"]')
+    expect(trigger.exists()).toBe(true)
+    await trigger.trigger('click')
+
+    expect(wrapper.find('.user-dropdown-menu').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="dropdown-profile-btn"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="dropdown-logout-btn"]').exists()).toBe(true)
+
+    // Click trigger again closes dropdown
+    await trigger.trigger('click')
+    expect(wrapper.find('.user-dropdown-menu').exists()).toBe(false)
+  })
 })

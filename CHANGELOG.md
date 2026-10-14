@@ -5,6 +5,17 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.3] - 2026-10-14
+### Added
+- **Menú Desplegable d'Usuari a la Capçalera (`AppNavbar.vue`)**:
+  - Reemplaçats els controls directes de la capçalera per un menú desplegable (dropdown) que s'activa en fer clic al perfil / nom d'usuari (`user-menu-trigger`).
+  - El desplegable agrupa de forma ordenada i accessible:
+    - Informació de l'usuari (nom complet, correu electrònic i insígnia de rol PrimeVue `Tag`).
+    - Enllaç directe a "El meu perfil" amb icona d'usuari.
+    - Selector d'idiomes interactiu amb botons de selecció (CA, ES, EN).
+    - Botó de tancar sessió amb estil destacat de perill.
+  - Tancament automàtic en fer clic a qualsevol punt exterior de la pantalla (`click-outside`) i suport d'accessibilitat mitjançant la tecla `Escape`.
+
 ## [1.8.2] - 2026-10-14
 ### Added
 - **Logging per Consola del Procés de Registre i Verificació (`agent/`, `backend/internal/device/`)**:
