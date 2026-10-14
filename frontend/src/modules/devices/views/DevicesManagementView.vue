@@ -82,6 +82,15 @@
           </div>
         </div>
       </div>
+
+      <!-- Avís preventiu de descàrrega i Safe Browsing -->
+      <div class="download-notice-banner">
+        <i class="pi pi-shield notice-icon"></i>
+        <div class="notice-text">
+          <h4 class="notice-title">{{ $t('devices.notice.title') }}</h4>
+          <p class="notice-desc">{{ $t('devices.notice.body') }}</p>
+        </div>
+      </div>
     </section>
 
     <!-- Bloc 2: Taula de Dispositius Autoritzats -->
@@ -249,14 +258,14 @@ const isRevoking = ref(false)
 const downloadCards: PlatformDownloadInfo[] = [
   {
     platform: 'windows',
-    filename: 'encertia-agent-windows.exe',
+    filename: 'encertia-agent-windows.zip',
     icon: 'pi pi-microsoft',
     titleKey: 'devices.cards.windows.title',
     descKey: 'devices.cards.windows.desc',
     instructionKey: 'devices.cards.windows.instruction',
     command: '.\\encertia-agent-windows.exe --register',
     buttonKey: 'devices.cards.windows.button',
-    badge: 'Windows (x86_64)'
+    badge: 'Windows (ZIP / x86_64)'
   },
   {
     platform: 'darwin',
@@ -783,5 +792,58 @@ onMounted(() => {
   .cards-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.download-notice-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #6366f1;
+  border-radius: 0.75rem;
+}
+
+.notice-icon {
+  font-size: 1.35rem;
+  color: #6366f1;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+.notice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.notice-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.notice-desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+:global(.dark-mode) .download-notice-banner {
+  background-color: #1e293b;
+  border-color: #334155;
+  border-left-color: #818cf8;
+}
+
+:global(.dark-mode) .notice-title {
+  color: #f1f5f9;
+}
+
+:global(.dark-mode) .notice-desc {
+  color: #94a3b8;
 }
 </style>

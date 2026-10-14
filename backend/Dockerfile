@@ -2,7 +2,7 @@
 FROM golang:alpine AS builder
 
 # Install build dependencies (certificates, git if needed)
-RUN apk add --no-cache ca-certificates tzdata git
+RUN apk add --no-cache ca-certificates tzdata git zip
 
 WORKDIR /app
 
@@ -37,6 +37,13 @@ RUN mkdir -p /app/downloads && \
         elif [ -f "$AGENT_SRC/certs/encertia-codesign.crt" ]; then \
             grep -v -- '-----' "$AGENT_SRC/certs/encertia-codesign.crt" | tr -d '\r\n' | base64 -d > /app/downloads/encertia-codesign.cer; \
         fi && \
+        echo "Packaging encertia-agent-windows.zip..." && \
+        mkdir -p /tmp/winpkg && \
+        cp /app/downloads/encertia-agent-windows.exe /tmp/winpkg/ && \
+        if [ -f /app/downloads/encertia-codesign.cer ]; then cp /app/downloads/encertia-codesign.cer /tmp/winpkg/; fi && \
+        printf "ENCERTIA AGENT PER A WINDOWS\n============================\n\n1. Descomprimeix aquest fitxer ZIP a una carpeta.\n2. Executa: .\\\\encertia-agent-windows.exe --register\n" > /tmp/winpkg/INSTRUCCIONS.txt && \
+        (cd /tmp/winpkg && zip -q /app/downloads/encertia-agent-windows.zip *) && \
+        rm -rf /tmp/winpkg && \
         cd /app; \
     fi && \
     echo "Files in /app/downloads:" && \

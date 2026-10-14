@@ -205,6 +205,11 @@ func TestHTTP_DownloadAgent(t *testing.T) {
 	}{
 		{
 			platform:            "windows",
+			expectedFilename:    "encertia-agent-windows.zip",
+			expectedContentType: "application/zip",
+		},
+		{
+			platform:            "windows-exe",
 			expectedFilename:    "encertia-agent-windows.exe",
 			expectedContentType: "application/octet-stream",
 			expectedBody:        "dummy-windows-binary-content",
@@ -254,7 +259,7 @@ func TestHTTP_DownloadAgent(t *testing.T) {
 				t.Errorf("expected Content-Type prefix %q, got %q", tc.expectedContentType, ctype)
 			}
 
-			if w.Body.String() != tc.expectedBody {
+			if tc.expectedBody != "" && w.Body.String() != tc.expectedBody {
 				t.Errorf("expected body %q, got %q", tc.expectedBody, w.Body.String())
 			}
 		})

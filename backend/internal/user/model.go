@@ -29,6 +29,7 @@ type User struct {
 	Role      UserRole   `json:"role"`
 	Language  string     `json:"language"`
 	IsActive  bool       `json:"isActive"`
+	CreatedBy *uuid.UUID `json:"createdBy,omitempty"`
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 }
@@ -43,6 +44,7 @@ type UserDB struct {
 	Role         UserRole   `json:"role"`
 	Language     string     `json:"language"`
 	IsActive     bool       `json:"isActive"`
+	CreatedBy    *uuid.UUID `json:"createdBy"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
 	DeletedAt    *time.Time `json:"-"`
@@ -62,6 +64,7 @@ func (u *UserDB) ToUser() User {
 		Role:      u.Role,
 		Language:  u.Language,
 		IsActive:  u.IsActive,
+		CreatedBy: u.CreatedBy,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: updatedAt,
 	}
@@ -150,4 +153,5 @@ type ListUsersFilter struct {
 	Role      string
 	Status    string
 	ActorRole string
+	ActorID   uuid.UUID
 }

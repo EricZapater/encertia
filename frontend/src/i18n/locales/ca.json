@@ -492,9 +492,9 @@
     "cards": {
       "windows": {
         "title": "Windows",
-        "desc": "Executable autònom per a Windows 10/11. Doble clic per al docent, o registre amb l'assistent d'administrador:",
+        "desc": "Paquet ZIP per a Windows 10/11 (inclou executable, certificat i instruccions). Descomprimeix i executa amb doble clic o registra amb l'assistent:",
         "instruction": "Assistent de registre per consola:",
-        "button": "Descarregar per a Windows (.exe)"
+        "button": "Descarregar per a Windows (.zip)"
       },
       "darwin": {
         "title": "macOS",
@@ -536,6 +536,10 @@
     "downloadSuccessTitle": "Descàrrega iniciada",
     "downloadErrorTitle": "Error de descàrrega",
     "downloadError": "No s'ha pogut descarregar el fitxer.",
+    "notice": {
+      "title": "Avís de descàrrega i seguretat de l'agent",
+      "body": "L'agent de Windows es distribueix en un paquet .zip que inclou l'executable, el certificat públic i la guia d'ús. Si el navegador (com Google Chrome) o Windows SmartScreen mostra un avís per ser un fitxer poc habitual, seleccioneu «Mantenir» o «Més informació > Executa de totes maneres»."
+    },
     "revokeModal": {
       "title": "Confirmar Revocació de Dispositiu",
       "confirmText": "Estàs segur que vols revocar l'autorització del dispositiu",

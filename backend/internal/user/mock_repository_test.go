@@ -42,6 +42,13 @@ func (m *mockRepository) ListUsers(ctx context.Context, filter user.ListUsersFil
 			if u.Role != user.RoleStudent {
 				continue
 			}
+			if filter.ActorID != uuid.Nil && (u.CreatedBy == nil || *u.CreatedBy != filter.ActorID) {
+				continue
+			}
+		} else if filter.ActorRole == string(user.RoleStudent) {
+			if filter.ActorID != uuid.Nil && u.ID != filter.ActorID {
+				continue
+			}
 		} else if filter.Role != "" {
 			if string(u.Role) != filter.Role {
 				continue

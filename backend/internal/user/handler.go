@@ -24,7 +24,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware gin.Handler
 	usersGroup := rg.Group("/users")
 	usersGroup.Use(authMiddleware)
 	{
-		usersGroup.GET("", shared.RequireRole(string(RoleAdmin), string(RoleTeacher)), h.ListUsers)
+		usersGroup.GET("", shared.RequireRole(string(RoleAdmin), string(RoleTeacher), string(RoleStudent)), h.ListUsers)
 		usersGroup.POST("", shared.RequireRole(string(RoleAdmin), string(RoleTeacher)), h.CreateUser)
 		usersGroup.POST("/batch", shared.RequireRole(string(RoleAdmin), string(RoleTeacher)), h.BatchCreateUsers)
 		usersGroup.GET("/:id", h.GetUserByID)
@@ -67,7 +67,7 @@ func (h *Handler) ListUsers(c *gin.Context) {
 
 // CreateUser handles POST /users
 func (h *Handler) CreateUser(c *gin.Context) {
-	_, actorRole, appErr := getActorFromContext(c)
+	actorID, actorRole, appErr := getActorFromContext(c)
 	if appErr != nil {
 		shared.RespondWithError(c, appErr)
 		return
@@ -79,7 +79,7 @@ func (h *Handler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	res, svcErr := h.service.CreateUser(c.Request.Context(), actorRole, req)
+	res, svcErr := h.service.CreateUser(c.Request.Context(), actorID, actorRole, req)
 	if svcErr != nil {
 		shared.RespondWithError(c, svcErr)
 		return
@@ -90,7 +90,7 @@ func (h *Handler) CreateUser(c *gin.Context) {
 
 // BatchCreateUsers handles POST /users/batch
 func (h *Handler) BatchCreateUsers(c *gin.Context) {
-	_, actorRole, appErr := getActorFromContext(c)
+	actorID, actorRole, appErr := getActorFromContext(c)
 	if appErr != nil {
 		shared.RespondWithError(c, appErr)
 		return
@@ -102,7 +102,7 @@ func (h *Handler) BatchCreateUsers(c *gin.Context) {
 		return
 	}
 
-	res, svcErr := h.service.BatchCreateUsers(c.Request.Context(), actorRole, req)
+	res, svcErr := h.service.BatchCreateUsers(c.Request.Context(), actorID, actorRole, req)
 	if svcErr != nil {
 		shared.RespondWithError(c, svcErr)
 		return

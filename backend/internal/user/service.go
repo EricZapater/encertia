@@ -16,8 +16,8 @@ import (
 // Service defines business logic for the User domain.
 type Service interface {
 	ListUsers(ctx context.Context, actorID uuid.UUID, actorRole string, filter ListUsersFilter) (*UserListResponse, *shared.AppError)
-	CreateUser(ctx context.Context, actorRole string, input CreateUserInput) (*UserResponse, *shared.AppError)
-	BatchCreateUsers(ctx context.Context, actorRole string, req BatchCreateUsersRequest) (*BatchCreateUsersResponse, *shared.AppError)
+	CreateUser(ctx context.Context, actorID uuid.UUID, actorRole string, input CreateUserInput) (*UserResponse, *shared.AppError)
+	BatchCreateUsers(ctx context.Context, actorID uuid.UUID, actorRole string, req BatchCreateUsersRequest) (*BatchCreateUsersResponse, *shared.AppError)
 	GetUserByID(ctx context.Context, actorID uuid.UUID, actorRole string, targetID uuid.UUID) (*UserResponse, *shared.AppError)
 	UpdateUser(ctx context.Context, actorID uuid.UUID, actorRole string, targetID uuid.UUID, input UpdateUserInput) (*UserResponse, *shared.AppError)
 	ResetPassword(ctx context.Context, actorID uuid.UUID, actorRole string, targetID uuid.UUID, input ResetPasswordInput) (*shared.MessageResponse, *shared.AppError)
@@ -35,14 +35,12 @@ func NewService(repo Repository) Service {
 
 func (s *userService) ListUsers(ctx context.Context, actorID uuid.UUID, actorRole string, filter ListUsersFilter) (*UserListResponse, *shared.AppError) {
 	// RBAC validation
-	if actorRole == string(RoleStudent) {
-		return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "No tens permisos suficients per llistar usuaris.")
-	}
-	if actorRole != string(RoleAdmin) && actorRole != string(RoleTeacher) {
+	if actorRole != string(RoleAdmin) && actorRole != string(RoleTeacher) && actorRole != string(RoleStudent) {
 		return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "Rol no autoritzat.")
 	}
 
 	filter.ActorRole = actorRole
+	filter.ActorID = actorID
 
 	// Pagination defaults
 	if filter.Page < 1 {
@@ -84,7 +82,7 @@ func (s *userService) ListUsers(ctx context.Context, actorID uuid.UUID, actorRol
 	}, nil
 }
 
-func (s *userService) CreateUser(ctx context.Context, actorRole string, input CreateUserInput) (*UserResponse, *shared.AppError) {
+func (s *userService) CreateUser(ctx context.Context, actorID uuid.UUID, actorRole string, input CreateUserInput) (*UserResponse, *shared.AppError) {
 	// 1. Sanitize & Validate inputs
 	input.Email = strings.TrimSpace(strings.ToLower(input.Email))
 	input.FirstName = strings.TrimSpace(input.FirstName)
@@ -142,6 +140,11 @@ func (s *userService) CreateUser(ctx context.Context, actorRole string, input Cr
 	}
 
 	// 5. Insert user
+	var createdBy *uuid.UUID
+	if actorID != uuid.Nil {
+		createdBy = &actorID
+	}
+
 	userDB := &UserDB{
 		ID:           uuid.New(),
 		Email:        input.Email,
@@ -151,6 +154,7 @@ func (s *userService) CreateUser(ctx context.Context, actorRole string, input Cr
 		Role:         input.Role,
 		Language:     input.Language,
 		IsActive:     true,
+		CreatedBy:    createdBy,
 	}
 
 	if err := s.repo.CreateUser(ctx, userDB); err != nil {
@@ -165,7 +169,7 @@ func (s *userService) CreateUser(ctx context.Context, actorRole string, input Cr
 	}, nil
 }
 
-func (s *userService) BatchCreateUsers(ctx context.Context, actorRole string, req BatchCreateUsersRequest) (*BatchCreateUsersResponse, *shared.AppError) {
+func (s *userService) BatchCreateUsers(ctx context.Context, actorID uuid.UUID, actorRole string, req BatchCreateUsersRequest) (*BatchCreateUsersResponse, *shared.AppError) {
 	// RBAC check
 	if actorRole != string(RoleAdmin) && actorRole != string(RoleTeacher) {
 		return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "No tens permisos suficients per realitzar importació massiva.")
@@ -301,6 +305,11 @@ func (s *userService) BatchCreateUsers(ctx context.Context, actorRole string, re
 			continue
 		}
 
+		var createdBy *uuid.UUID
+		if actorID != uuid.Nil {
+			createdBy = &actorID
+		}
+
 		userDB := &UserDB{
 			ID:           uuid.New(),
 			Email:        email,
@@ -310,6 +319,7 @@ func (s *userService) BatchCreateUsers(ctx context.Context, actorRole string, re
 			Role:         role,
 			Language:     lang,
 			IsActive:     true,
+			CreatedBy:    createdBy,
 		}
 
 		if err := s.repo.CreateUser(ctx, userDB); err != nil {
@@ -347,8 +357,10 @@ func (s *userService) GetUserByID(ctx context.Context, actorID uuid.UUID, actorR
 	if actorRole == string(RoleAdmin) {
 		// Admin can view any user
 	} else if actorRole == string(RoleTeacher) {
-		// Teacher can view students or their own profile
-		if userDB.Role != RoleStudent && actorID != targetID {
+		// Teacher can view their own profile, or students they created
+		isOwnProfile := actorID == targetID
+		isCreatedStudent := userDB.Role == RoleStudent && userDB.CreatedBy != nil && *userDB.CreatedBy == actorID
+		if !isOwnProfile && !isCreatedStudent {
 			return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "No tens permisos per consultar aquest usuari.")
 		}
 	} else {
@@ -374,12 +386,13 @@ func (s *userService) UpdateUser(ctx context.Context, actorID uuid.UUID, actorRo
 
 	// RBAC & Account status checks
 	if actorRole != string(RoleAdmin) {
-		// Non-admin can only update their own profile
-		if actorID != targetID {
+		isOwnProfile := actorID == targetID
+		isTeacherManagingOwnStudent := actorRole == string(RoleTeacher) && userDB.Role == RoleStudent && userDB.CreatedBy != nil && *userDB.CreatedBy == actorID
+		if !isOwnProfile && !isTeacherManagingOwnStudent {
 			return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "No tens permisos per modificar aquest usuari.")
 		}
 		// Inactive user cannot edit own profile
-		if !userDB.IsActive {
+		if isOwnProfile && !userDB.IsActive {
 			return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "El compte està inactiu i no pot modificar les seves dades.")
 		}
 		// Non-admin cannot modify role or isActive
@@ -479,9 +492,10 @@ func (s *userService) ResetPassword(ctx context.Context, actorID uuid.UUID, acto
 	if actorRole == string(RoleAdmin) {
 		// Admin can reset anyone's password
 	} else if actorRole == string(RoleTeacher) {
-		// Teacher can only reset students' passwords
-		if userDB.Role != RoleStudent {
-			return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "Els professors només poden restablir la contrasenya d'alumnes.")
+		// Teacher can only reset passwords for students they created
+		isCreatedStudent := userDB.Role == RoleStudent && userDB.CreatedBy != nil && *userDB.CreatedBy == actorID
+		if !isCreatedStudent {
+			return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "Els professors només poden restablir la contrasenya dels alumnes que han creat.")
 		}
 	} else {
 		return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "No tens permisos suficients per restablir contrasenyes.")

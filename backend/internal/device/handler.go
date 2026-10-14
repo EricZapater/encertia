@@ -1,7 +1,9 @@
 package device
 
 import (
+	"archive/zip"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -179,7 +181,10 @@ func (h *Handler) DownloadAgent(c *gin.Context) {
 	var contentType string
 
 	switch platform {
-	case "windows":
+	case "windows", "windows-zip":
+		fileName = "encertia-agent-windows.zip"
+		contentType = "application/zip"
+	case "windows-exe":
 		fileName = "encertia-agent-windows.exe"
 		contentType = "application/octet-stream"
 	case "darwin", "macos":
@@ -194,13 +199,24 @@ func (h *Handler) DownloadAgent(c *gin.Context) {
 	default:
 		shared.RespondWithError(c, shared.ErrBadRequest(
 			shared.ErrCodeValidation,
-			"Plataforma no suportada. Valors vàlids: windows, darwin, macos, linux, cert.",
+			"Plataforma no suportada. Valors vàlids: windows, windows-zip, windows-exe, darwin, macos, linux, cert.",
 			map[string]interface{}{"platform": platform},
 		))
 		return
 	}
 
 	filePath := resolveAgentFilePath(fileName)
+	if filePath == "" && (fileName == "encertia-agent-windows.zip") {
+		// If zip does not exist yet on disk, build it automatically from exe if present
+		exePath := resolveAgentFilePath("encertia-agent-windows.exe")
+		if exePath != "" {
+			targetZip := filepath.Join(filepath.Dir(exePath), "encertia-agent-windows.zip")
+			if err := ensureWindowsZip(exePath, targetZip); err == nil {
+				filePath = targetZip
+			}
+		}
+	}
+
 	if filePath == "" {
 		shared.RespondWithError(c, shared.ErrNotFound(
 			"AGENT_FILE_NOT_FOUND",
@@ -212,6 +228,67 @@ func (h *Handler) DownloadAgent(c *gin.Context) {
 	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
 	c.Header("Content-Type", contentType)
 	c.File(filePath)
+}
+
+func ensureWindowsZip(exePath string, zipPath string) error {
+	zipFile, err := os.Create(zipPath)
+	if err != nil {
+		return err
+	}
+	defer zipFile.Close()
+
+	w := zip.NewWriter(zipFile)
+	defer w.Close()
+
+	// 1. Add exe
+	exeFile, err := os.Open(exePath)
+	if err != nil {
+		return err
+	}
+	defer exeFile.Close()
+
+	exeWriter, err := w.Create("encertia-agent-windows.exe")
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(exeWriter, exeFile); err != nil {
+		return err
+	}
+
+	// 2. Add cert if found
+	certPath := resolveAgentFilePath("encertia-codesign.cer")
+	if certPath != "" && isExistingFile(certPath) {
+		if cFile, err := os.Open(certPath); err == nil {
+			defer cFile.Close()
+			if cWriter, err := w.Create("encertia-codesign.cer"); err == nil {
+				_, _ = io.Copy(cWriter, cFile)
+			}
+		}
+	}
+
+	// 3. Add INSTRUCCIONS.txt
+	instructions := `ENCERTIA AGENT PER A WINDOWS
+============================
+
+Instruccions d'ús:
+
+1. Descomprimeix aquest fitxer ZIP a una carpeta de la teva elecció.
+
+2. Obre una consola de comandes (PowerShell o CMD) a la carpeta i executa:
+   .\encertia-agent-windows.exe --register
+
+   Seguiu les instruccions en pantalla per vincular aquest ordinador amb el compte de docent.
+
+3. (Opcional) Si Windows Defender SmartScreen mostra un avís en executar-lo:
+   - Fes clic a "Més informació" i seguidament a "Executa de totes maneres".
+   - Per afegir el certificat de signatura de codi com a editor de confiança a l'equip i evitar avisos futurs, executa:
+     certutil -user -addstore "TrustedPublisher" encertia-codesign.cer
+`
+	if instWriter, err := w.Create("INSTRUCCIONS.txt"); err == nil {
+		_, _ = instWriter.Write([]byte(instructions))
+	}
+
+	return nil
 }
 
 func resolveAgentFilePath(fileName string) string {

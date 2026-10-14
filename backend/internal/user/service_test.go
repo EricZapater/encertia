@@ -22,21 +22,21 @@ func TestListUsers_AdminCanListAll(t *testing.T) {
 	ctx := context.Background()
 
 	// Seed users
-	_, _ = svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	_, _ = svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "admin@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Admin",
 		LastName:  "System",
 		Role:      user.RoleAdmin,
 	})
-	_, _ = svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	_, _ = svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "teacher@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Teacher",
 		LastName:  "One",
 		Role:      user.RoleTeacher,
 	})
-	_, _ = svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	_, _ = svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "student@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Student",
@@ -64,22 +64,35 @@ func TestListUsers_TeacherCanOnlyListStudents(t *testing.T) {
 	svc, _ := setupUserService()
 	ctx := context.Background()
 
-	_, _ = svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	adminID := uuid.New()
+	teacherID := uuid.New()
+
+	// Admin creates an admin user
+	_, _ = svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
 		Email:     "admin@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Admin",
 		LastName:  "System",
 		Role:      user.RoleAdmin,
 	})
-	_, _ = svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	// Teacher creates student 1
+	_, _ = svc.CreateUser(ctx, teacherID, "teacher", user.CreateUserInput{
 		Email:     "student1@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Student",
 		LastName:  "One",
 		Role:      user.RoleStudent,
 	})
+	// Admin creates student 2
+	_, _ = svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
+		Email:     "student2@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Student",
+		LastName:  "Two",
+		Role:      user.RoleStudent,
+	})
 
-	res, appErr := svc.ListUsers(ctx, uuid.New(), "teacher", user.ListUsersFilter{
+	res, appErr := svc.ListUsers(ctx, teacherID, "teacher", user.ListUsersFilter{
 		Page:     1,
 		PageSize: 20,
 	})
@@ -88,26 +101,42 @@ func TestListUsers_TeacherCanOnlyListStudents(t *testing.T) {
 	}
 
 	if res.Pagination.TotalCount != 1 {
-		t.Errorf("expected 1 student user, got %d", res.Pagination.TotalCount)
+		t.Errorf("expected 1 student user created by teacher, got %d", res.Pagination.TotalCount)
 	}
-	if res.Items[0].Role != user.RoleStudent {
-		t.Errorf("expected role student, got %s", res.Items[0].Role)
+	if len(res.Items) != 1 || res.Items[0].Role != user.RoleStudent {
+		t.Errorf("expected role student, got %+v", res.Items)
 	}
 }
 
-func TestListUsers_StudentForbidden(t *testing.T) {
+func TestListUsers_StudentCanOnlySeeSelf(t *testing.T) {
 	svc, _ := setupUserService()
 	ctx := context.Background()
 
-	_, appErr := svc.ListUsers(ctx, uuid.New(), "student", user.ListUsersFilter{})
-	if appErr == nil {
-		t.Fatal("expected forbidden error for student, got nil")
+	adminID := uuid.New()
+	student1, _ := svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
+		Email:     "student1@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Student",
+		LastName:  "One",
+		Role:      user.RoleStudent,
+	})
+	_, _ = svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
+		Email:     "student2@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Student",
+		LastName:  "Two",
+		Role:      user.RoleStudent,
+	})
+
+	res, appErr := svc.ListUsers(ctx, student1.User.ID, "student", user.ListUsersFilter{})
+	if appErr != nil {
+		t.Fatalf("unexpected error: %v", appErr)
 	}
-	if appErr.Code != shared.ErrCodeForbidden {
-		t.Errorf("expected FORBIDDEN code, got %s", appErr.Code)
+	if res.Pagination.TotalCount != 1 {
+		t.Errorf("expected student to only see 1 user (themselves), got %d", res.Pagination.TotalCount)
 	}
-	if appErr.StatusCode != 403 {
-		t.Errorf("expected 403 status, got %d", appErr.StatusCode)
+	if len(res.Items) != 1 || res.Items[0].ID != student1.User.ID {
+		t.Errorf("expected student to see themselves, got %+v", res.Items)
 	}
 }
 
@@ -122,7 +151,7 @@ func TestListUsers_FiltersAndPagination(t *testing.T) {
 		if i == 5 {
 			name = "SpecialMarc"
 		}
-		_, _ = svc.CreateUser(ctx, "admin", user.CreateUserInput{
+		_, _ = svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 			Email:     email,
 			Password:  "Password123!",
 			FirstName: name,
@@ -177,7 +206,7 @@ func TestCreateUser_Success_Admin(t *testing.T) {
 	ctx := context.Background()
 
 	// Admin creating teacher
-	res, appErr := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	res, appErr := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "prof.nou@encertia.cat",
 		Password:  "TeacherSecret123!",
 		FirstName: "Jordi",
@@ -203,7 +232,7 @@ func TestCreateUser_TeacherRestrictions(t *testing.T) {
 	ctx := context.Background()
 
 	// Teacher creating student -> Allowed
-	res, appErr := svc.CreateUser(ctx, "teacher", user.CreateUserInput{
+	res, appErr := svc.CreateUser(ctx, uuid.New(), "teacher", user.CreateUserInput{
 		Email:     "alumne.nou@encertia.cat",
 		Password:  "StudentSecret123!",
 		FirstName: "Carla",
@@ -218,7 +247,7 @@ func TestCreateUser_TeacherRestrictions(t *testing.T) {
 	}
 
 	// Teacher creating teacher -> Forbidden
-	_, appErr2 := svc.CreateUser(ctx, "teacher", user.CreateUserInput{
+	_, appErr2 := svc.CreateUser(ctx, uuid.New(), "teacher", user.CreateUserInput{
 		Email:     "altre.prof@encertia.cat",
 		Password:  "TeacherSecret123!",
 		FirstName: "Pere",
@@ -233,7 +262,7 @@ func TestCreateUser_TeacherRestrictions(t *testing.T) {
 	}
 
 	// Teacher creating admin -> Forbidden
-	_, appErr3 := svc.CreateUser(ctx, "teacher", user.CreateUserInput{
+	_, appErr3 := svc.CreateUser(ctx, uuid.New(), "teacher", user.CreateUserInput{
 		Email:     "admin.nou@encertia.cat",
 		Password:  "AdminSecret123!",
 		FirstName: "Super",
@@ -252,7 +281,7 @@ func TestCreateUser_DuplicateEmail(t *testing.T) {
 	svc, _ := setupUserService()
 	ctx := context.Background()
 
-	_, _ = svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	_, _ = svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "duplicat@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Marc",
@@ -260,7 +289,7 @@ func TestCreateUser_DuplicateEmail(t *testing.T) {
 		Role:      user.RoleStudent,
 	})
 
-	_, appErr := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	_, appErr := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "duplicat@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Marc",
@@ -296,7 +325,7 @@ func TestCreateUser_ValidationErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, appErr := svc.CreateUser(ctx, "admin", tt.input)
+			_, appErr := svc.CreateUser(ctx, uuid.New(), "admin", tt.input)
 			if appErr == nil {
 				t.Fatalf("expected validation error for %s, got nil", tt.name)
 			}
@@ -313,7 +342,7 @@ func TestBatchCreateUsers_MixedBatch(t *testing.T) {
 	ctx := context.Background()
 
 	// Pre-seed an existing user
-	_, _ = svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	_, _ = svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "existent@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Existent",
@@ -337,7 +366,7 @@ func TestBatchCreateUsers_MixedBatch(t *testing.T) {
 	}
 
 	// Process batch as teacher
-	res, appErr := svc.BatchCreateUsers(ctx, "teacher", req)
+	res, appErr := svc.BatchCreateUsers(ctx, uuid.New(), "teacher", req)
 	if appErr != nil {
 		t.Fatalf("unexpected error processing batch: %v", appErr)
 	}
@@ -363,7 +392,7 @@ func TestBatchCreateUsers_StudentForbidden(t *testing.T) {
 	svc, _ := setupUserService()
 	ctx := context.Background()
 
-	_, appErr := svc.BatchCreateUsers(ctx, "student", user.BatchCreateUsersRequest{
+	_, appErr := svc.BatchCreateUsers(ctx, uuid.New(), "student", user.BatchCreateUsersRequest{
 		Users: []user.BatchUserItem{
 			{Email: "student@encertia.cat", FirstName: "A", LastName: "B", Role: user.RoleStudent},
 		},
@@ -381,25 +410,32 @@ func TestGetUserByID_Permissions(t *testing.T) {
 	svc, _ := setupUserService()
 	ctx := context.Background()
 
-	adminUser, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	adminUser, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "admin@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Admin",
 		LastName:  "User",
 		Role:      user.RoleAdmin,
 	})
-	teacherUser, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	teacherUser, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "teacher@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Teacher",
 		LastName:  "User",
 		Role:      user.RoleTeacher,
 	})
-	studentUser, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	studentUser, _ := svc.CreateUser(ctx, teacherUser.User.ID, "teacher", user.CreateUserInput{
 		Email:     "student@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Student",
 		LastName:  "User",
+		Role:      user.RoleStudent,
+	})
+	otherStudent, _ := svc.CreateUser(ctx, adminUser.User.ID, "admin", user.CreateUserInput{
+		Email:     "otherstudent@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Other",
+		LastName:  "Student",
 		Role:      user.RoleStudent,
 	})
 
@@ -409,10 +445,16 @@ func TestGetUserByID_Permissions(t *testing.T) {
 		t.Errorf("admin should be able to view student: %v", errAdmin)
 	}
 
-	// 2. Teacher can view student
+	// 2. Teacher can view student created by them
 	_, errTeacherViewStudent := svc.GetUserByID(ctx, teacherUser.User.ID, "teacher", studentUser.User.ID)
 	if errTeacherViewStudent != nil {
-		t.Errorf("teacher should be able to view student: %v", errTeacherViewStudent)
+		t.Errorf("teacher should be able to view student created by them: %v", errTeacherViewStudent)
+	}
+
+	// 2b. Teacher cannot view student created by someone else
+	_, errTeacherViewOtherStudent := svc.GetUserByID(ctx, teacherUser.User.ID, "teacher", otherStudent.User.ID)
+	if errTeacherViewOtherStudent == nil {
+		t.Error("teacher should not be able to view student created by someone else")
 	}
 
 	// 3. Teacher cannot view admin
@@ -445,7 +487,7 @@ func TestUpdateUser_SelfEditActiveUser(t *testing.T) {
 	svc, _ := setupUserService()
 	ctx := context.Background()
 
-	created, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	created, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "student@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Original",
@@ -475,7 +517,7 @@ func TestUpdateUser_RoleAndActiveRestrictions(t *testing.T) {
 	svc, repo := setupUserService()
 	ctx := context.Background()
 
-	student, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	student, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "student@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Student",
@@ -502,7 +544,7 @@ func TestUpdateUser_RoleAndActiveRestrictions(t *testing.T) {
 	}
 
 	// 3. Non-admin attempting to edit another user -> 403
-	otherUser, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	otherUser, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "other@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Other",
@@ -549,14 +591,14 @@ func TestUpdateUser_EmailConflict(t *testing.T) {
 	svc, _ := setupUserService()
 	ctx := context.Background()
 
-	u1, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	u1, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "user1@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "User",
 		LastName:  "One",
 		Role:      user.RoleStudent,
 	})
-	u2, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	u2, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "user2@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "User",
@@ -578,21 +620,21 @@ func TestResetPassword_PermissionsAndValidation(t *testing.T) {
 	svc, repo := setupUserService()
 	ctx := context.Background()
 
-	admin, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	admin, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "admin@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Admin",
 		LastName:  "User",
 		Role:      user.RoleAdmin,
 	})
-	teacher, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	teacher, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "teacher@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Teacher",
 		LastName:  "User",
 		Role:      user.RoleTeacher,
 	})
-	student, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	student, _ := svc.CreateUser(ctx, teacher.User.ID, "teacher", user.CreateUserInput{
 		Email:     "student@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Student",
@@ -654,21 +696,21 @@ func TestDeleteUser_SoftDeleteAndPermissions(t *testing.T) {
 	svc, repo := setupUserService()
 	ctx := context.Background()
 
-	admin, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	admin, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "admin@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Admin",
 		LastName:  "User",
 		Role:      user.RoleAdmin,
 	})
-	teacher, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	teacher, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "teacher@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Teacher",
 		LastName:  "User",
 		Role:      user.RoleTeacher,
 	})
-	student, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	student, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "student@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Student",
@@ -720,7 +762,7 @@ func TestUser_LanguageOptionsAndUpdates(t *testing.T) {
 	ctx := context.Background()
 
 	// 1. CreateUser with default language
-	u1, appErr := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	u1, appErr := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "lang1@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "User",
@@ -735,7 +777,7 @@ func TestUser_LanguageOptionsAndUpdates(t *testing.T) {
 	}
 
 	// 2. CreateUser with custom valid language 'es'
-	u2, appErrEs := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	u2, appErrEs := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "lang2@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "User",
@@ -751,7 +793,7 @@ func TestUser_LanguageOptionsAndUpdates(t *testing.T) {
 	}
 
 	// 3. CreateUser with invalid language 'fr'
-	_, appErrFr := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	_, appErrFr := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "lang3@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "User",

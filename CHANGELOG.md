@@ -5,6 +5,23 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.5] - 2026-10-14
+### Added
+- **Distribució de l'Agent per a Windows en fitxer ZIP (`encertia-agent-windows.zip`)**:
+  - Empaquetament automàtic en fitxer `.zip` que conté l'executable signat (`encertia-agent-windows.exe`), el certificat públic (`encertia-codesign.cer`) i la guia pas a pas (`INSTRUCCIONS.txt`).
+  - Resolució del bloqueig preventiu de Google Chrome Safe Browsing per a binaris executables sense reputació prèvia.
+  - Generació dinàmica del paquet ZIP al backend (`/admin/devices/download/windows`) mitjançant `ensureWindowsZip`.
+  - Integració de la compilació i empaquetament del ZIP tant a l'script local `agent/build.sh` com a la imatge Docker de producció `backend/Dockerfile`.
+  - Banner informatiu i targeta actualitzada a la vista d'administració de dispositius (`DevicesManagementView.vue`) amb traduccions (CA, ES, EN).
+
+- **Control d'Accés Basat en Rols (RBAC) i Visibilitat d'Usuaris (`created_by`)**:
+  - Nova migració SQL `000017_add_created_by_to_users` que afegeix la columna `created_by UUID REFERENCES users(id)` i retro-omple tots els usuaris existents amb l'ID del primer usuari administrador.
+  - Els professors (`teacher`) només tenen permís per crear alumnes (`student`), mai altres professors ni administradors.
+  - Els professors només poden veure, modificar i reiniciar contrasenyes dels alumnes que ells mateixos han creat (`created_by = teacher.ID`).
+  - Els alumnes (`student`) només poden consultar les seves pròpies dades (`id = student.ID`).
+  - L'administrador (`admin`) manté accés global complet per visualitzar i gestionar tots els usuaris del sistema.
+
+
 ## [1.8.4] - 2026-10-14
 ### Added
 - **Favicon Oficial de la Plataforma Web (`frontend/public/favicon.svg`, `frontend/public/favicon.ico`)**:

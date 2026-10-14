@@ -39,7 +39,7 @@ func TestHTTP_ListUsers(t *testing.T) {
 	router := setupTestRouter(svc, adminID, "admin", "admin@encertia.cat")
 
 	ctx := t.Context()
-	_, _ = svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	_, _ = svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
 		Email:     "u1@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Marc",
@@ -130,7 +130,7 @@ func TestHTTP_GetUserByID(t *testing.T) {
 	router := setupTestRouter(svc, adminID, "admin", "admin@encertia.cat")
 
 	ctx := t.Context()
-	created, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	created, _ := svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
 		Email:     "target@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Target",
@@ -169,7 +169,7 @@ func TestHTTP_GetUserByID(t *testing.T) {
 func TestHTTP_UpdateUser(t *testing.T) {
 	svc, _ := setupUserService()
 	ctx := t.Context()
-	created, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	created, _ := svc.CreateUser(ctx, uuid.New(), "admin", user.CreateUserInput{
 		Email:     "self@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Self",
@@ -201,7 +201,7 @@ func TestHTTP_ResetPassword(t *testing.T) {
 	router := setupTestRouter(svc, adminID, "admin", "admin@encertia.cat")
 
 	ctx := t.Context()
-	created, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	created, _ := svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
 		Email:     "resetme@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Reset",
@@ -229,7 +229,7 @@ func TestHTTP_DeleteUser(t *testing.T) {
 	router := setupTestRouter(svc, adminID, "admin", "admin@encertia.cat")
 
 	ctx := t.Context()
-	created, _ := svc.CreateUser(ctx, "admin", user.CreateUserInput{
+	created, _ := svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
 		Email:     "deleteme@encertia.cat",
 		Password:  "Password123!",
 		FirstName: "Delete",

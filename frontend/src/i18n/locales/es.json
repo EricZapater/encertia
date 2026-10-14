@@ -492,9 +492,9 @@
     "cards": {
       "windows": {
         "title": "Windows",
-        "desc": "Ejecutable autónomo para Windows 10/11. Doble clic para el docente, o registro con el asistente de administrador:",
+        "desc": "Paquete ZIP para Windows 10/11 (incluye ejecutable, certificado e instrucciones). Descomprime y ejecuta con doble clic o registra con el asistente:",
         "instruction": "Asistente de registro por consola:",
-        "button": "Descargar para Windows (.exe)"
+        "button": "Descargar para Windows (.zip)"
       },
       "darwin": {
         "title": "macOS",
@@ -536,6 +536,10 @@
     "downloadSuccessTitle": "Descarga iniciada",
     "downloadErrorTitle": "Error de descarga",
     "downloadError": "No se ha podido descargar el archivo.",
+    "notice": {
+      "title": "Aviso de descarga y seguridad del agente",
+      "body": "El agente de Windows se distribuye en un paquete .zip que incluye el ejecutable, el certificado público y la guía de uso. Si el navegador (como Google Chrome) o Windows SmartScreen muestra un aviso por tratarse de un archivo poco habitual, seleccione «Conservar» o «Más información > Ejecutar de todos modos»."
+    },
     "revokeModal": {
       "title": "Confirmar Revocación de Dispositivo",
       "confirmText": "¿Estás seguro de que deseas revocar la autorización del dispositivo",

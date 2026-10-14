@@ -40,5 +40,33 @@ fi
 echo "🔨 Compilant encertia-agent per a Windows (amd64)..."
 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o "$DIR/bin/encertia-agent-windows.exe" ./cmd
 
+echo "📦 Empaquetant encertia-agent-windows.zip..."
+TMP_ZIP_DIR="/tmp/encertia_win_pkg_$$"
+mkdir -p "$TMP_ZIP_DIR"
+cp "$DIR/bin/encertia-agent-windows.exe" "$TMP_ZIP_DIR/"
+if [ -f "$DIR/certs/encertia-codesign.cer" ]; then
+    cp "$DIR/certs/encertia-codesign.cer" "$TMP_ZIP_DIR/"
+fi
+cat << 'EOF' > "$TMP_ZIP_DIR/INSTRUCCIONS.txt"
+ENCERTIA AGENT PER A WINDOWS
+============================
+
+Instruccions d'ús:
+
+1. Descomprimeix aquest fitxer ZIP a una carpeta de la teva elecció.
+
+2. Obre una consola de comandes (PowerShell o CMD) a la carpeta i executa:
+   .\encertia-agent-windows.exe --register
+
+   Seguiu les instruccions en pantalla per vincular aquest ordinador amb el compte de docent.
+
+3. (Opcional) Si Windows Defender SmartScreen mostra un avís en executar-lo:
+   - Fes clic a "Més informació" i seguidament a "Executa de totes maneres".
+   - Per afegir el certificat de signatura de codi com a editor de confiança a l'equip i evitar avisos futurs, executa:
+     certutil -user -addstore "TrustedPublisher" encertia-codesign.cer
+EOF
+(cd "$TMP_ZIP_DIR" && zip -q "$DIR/bin/encertia-agent-windows.zip" *)
+rm -rf "$TMP_ZIP_DIR"
+
 echo "✅ Tots els binaris s'han generat correctament a $DIR/bin/:"
 ls -lh "$DIR/bin"

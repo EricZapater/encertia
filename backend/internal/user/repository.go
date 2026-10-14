@@ -50,6 +50,17 @@ func (r *sqlRepository) ListUsers(ctx context.Context, filter ListUsersFilter) (
 		whereClauses = append(whereClauses, fmt.Sprintf("role = $%d", argIdx))
 		args = append(args, string(RoleStudent))
 		argIdx++
+		if filter.ActorID != uuid.Nil {
+			whereClauses = append(whereClauses, fmt.Sprintf("created_by = $%d", argIdx))
+			args = append(args, filter.ActorID)
+			argIdx++
+		}
+	} else if filter.ActorRole == string(RoleStudent) {
+		if filter.ActorID != uuid.Nil {
+			whereClauses = append(whereClauses, fmt.Sprintf("id = $%d", argIdx))
+			args = append(args, filter.ActorID)
+			argIdx++
+		}
 	} else if filter.Role != "" {
 		whereClauses = append(whereClauses, fmt.Sprintf("role = $%d", argIdx))
 		args = append(args, filter.Role)
@@ -105,7 +116,7 @@ func (r *sqlRepository) ListUsers(ctx context.Context, filter ListUsersFilter) (
 	offset := (page - 1) * limit
 
 	selectSQL := fmt.Sprintf(`
-		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_at, updated_at, deleted_at
+		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_by, created_at, updated_at, deleted_at
 		FROM users
 		%s
 		ORDER BY created_at DESC
@@ -123,6 +134,7 @@ func (r *sqlRepository) ListUsers(ctx context.Context, filter ListUsersFilter) (
 	users := make([]UserDB, 0, limit)
 	for rows.Next() {
 		var u UserDB
+		var createdBy uuid.NullUUID
 		if err := rows.Scan(
 			&u.ID,
 			&u.Email,
@@ -132,11 +144,15 @@ func (r *sqlRepository) ListUsers(ctx context.Context, filter ListUsersFilter) (
 			&u.Role,
 			&u.Language,
 			&u.IsActive,
+			&createdBy,
 			&u.CreatedAt,
 			&u.UpdatedAt,
 			&u.DeletedAt,
 		); err != nil {
 			return nil, 0, err
+		}
+		if createdBy.Valid {
+			u.CreatedBy = &createdBy.UUID
 		}
 		users = append(users, u)
 	}
@@ -153,8 +169,8 @@ func (r *sqlRepository) CreateUser(ctx context.Context, user *UserDB) error {
 		user.Language = "ca"
 	}
 	query := `
-		INSERT INTO users (id, email, password_hash, first_name, last_name, role, language, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		INSERT INTO users (id, email, password_hash, first_name, last_name, role, language, is_active, created_by, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING id, is_active, created_at, updated_at
 	`
 	if user.ID == uuid.Nil {
@@ -175,6 +191,7 @@ func (r *sqlRepository) CreateUser(ctx context.Context, user *UserDB) error {
 		user.Role,
 		user.Language,
 		user.IsActive,
+		user.CreatedBy,
 		user.CreatedAt,
 		user.UpdatedAt,
 	).Scan(&user.ID, &user.IsActive, &user.CreatedAt, &user.UpdatedAt)
@@ -182,11 +199,12 @@ func (r *sqlRepository) CreateUser(ctx context.Context, user *UserDB) error {
 
 func (r *sqlRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*UserDB, error) {
 	query := `
-		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_at, updated_at, deleted_at
+		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_by, created_at, updated_at, deleted_at
 		FROM users
 		WHERE id = $1 AND deleted_at IS NULL
 	`
 	var u UserDB
+	var createdBy uuid.NullUUID
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&u.ID,
 		&u.Email,
@@ -196,6 +214,7 @@ func (r *sqlRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*UserDB,
 		&u.Role,
 		&u.Language,
 		&u.IsActive,
+		&createdBy,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 		&u.DeletedAt,
@@ -206,16 +225,20 @@ func (r *sqlRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*UserDB,
 	if err != nil {
 		return nil, err
 	}
+	if createdBy.Valid {
+		u.CreatedBy = &createdBy.UUID
+	}
 	return &u, nil
 }
 
 func (r *sqlRepository) GetUserByEmail(ctx context.Context, email string) (*UserDB, error) {
 	query := `
-		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_at, updated_at, deleted_at
+		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_by, created_at, updated_at, deleted_at
 		FROM users
 		WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL
 	`
 	var u UserDB
+	var createdBy uuid.NullUUID
 	err := r.db.QueryRowContext(ctx, query, email).Scan(
 		&u.ID,
 		&u.Email,
@@ -225,6 +248,7 @@ func (r *sqlRepository) GetUserByEmail(ctx context.Context, email string) (*User
 		&u.Role,
 		&u.Language,
 		&u.IsActive,
+		&createdBy,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 		&u.DeletedAt,
@@ -234,6 +258,9 @@ func (r *sqlRepository) GetUserByEmail(ctx context.Context, email string) (*User
 	}
 	if err != nil {
 		return nil, err
+	}
+	if createdBy.Valid {
+		u.CreatedBy = &createdBy.UUID
 	}
 	return &u, nil
 }

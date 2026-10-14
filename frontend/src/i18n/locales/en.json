@@ -492,9 +492,9 @@
     "cards": {
       "windows": {
         "title": "Windows",
-        "desc": "Standalone executable for Windows 10/11. Double click for teachers, or register with admin wizard:",
+        "desc": "ZIP package for Windows 10/11 (includes executable, certificate, and instructions). Unzip and run with double click or register using the assistant:",
         "instruction": "Registration wizard via console:",
-        "button": "Download for Windows (.exe)"
+        "button": "Download for Windows (.zip)"
       },
       "darwin": {
         "title": "macOS",
@@ -536,6 +536,10 @@
     "downloadSuccessTitle": "Download started",
     "downloadErrorTitle": "Download error",
     "downloadError": "Could not download file.",
+    "notice": {
+      "title": "Agent download and security notice",
+      "body": "The Windows agent is distributed as a .zip package including the executable, public certificate, and setup guide. If your browser (such as Google Chrome) or Windows SmartScreen shows a warning because the file is uncommon, choose 'Keep' or 'More info > Run anyway'."
+    },
     "revokeModal": {
       "title": "Confirm Device Revocation",
       "confirmText": "Are you sure you want to revoke authorization for device",
