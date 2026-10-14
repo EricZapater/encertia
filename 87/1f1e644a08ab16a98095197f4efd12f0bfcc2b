@@ -1,0 +1,102 @@
+.gitignore
+  h_42175f19913982 29,32
+CHANGELOG.md
+  h_42175f19913982 8-24
+VERSION
+  h_42175f19913982 1
+agent/build.sh
+  h_42175f19913982 1-27
+agent/certs/README.md
+  h_42175f19913982 1-56
+agent/certs/encertia-codesign.crt
+  h_42175f19913982 1-22
+agent/certs/encertia-codesign.key
+  h_42175f19913982 1-28
+agent/certs/generate-cert.ps1
+  h_42175f19913982 1-24
+agent/certs/generate-cert.sh
+  h_42175f19913982 1-49
+agent/cmd/main.go
+  h_42175f19913982 1-191
+agent/go.mod
+  h_42175f19913982 1-3
+agent/internal/api/client.go
+  h_42175f19913982 1-200
+agent/internal/browser/browser.go
+  h_42175f19913982 1-26
+agent/internal/fingerprint/fingerprint.go
+  h_42175f19913982 1-113
+agent/internal/fingerprint/fingerprint_test.go
+  h_42175f19913982 1-29
+backend/cmd/api/main.go
+  h_42175f19913982 12,82-86,90-95,179,192-205
+backend/internal/auth/model.go
+  h_42175f19913982 95-97
+backend/internal/auth/service.go
+  h_42175f19913982 10,27-31,43-47,51-53,57,67-70,72-74,176-201
+backend/internal/auth/service_test.go
+  h_42175f19913982 5-6,13,499-634
+backend/internal/db/db.go
+  h_42175f19913982 89
+backend/internal/db/migrations/000016_create_authorized_devices.down.sql
+  h_42175f19913982 1-4
+backend/internal/db/migrations/000016_create_authorized_devices.up.sql
+  h_42175f19913982 1-26
+backend/internal/device/handler.go
+  h_42175f19913982 1-154
+backend/internal/device/handler_test.go
+  h_42175f19913982 1-156
+backend/internal/device/mock_repository_test.go
+  h_42175f19913982 1-188
+backend/internal/device/model.go
+  h_42175f19913982 1-70
+backend/internal/device/repository.go
+  h_42175f19913982 1-310
+backend/internal/device/service.go
+  h_42175f19913982 1-277
+backend/internal/device/service_test.go
+  h_42175f19913982 1-342
+backend/internal/shared/errors.go
+  h_42175f19913982 49-50
+contracts/auth.openapi.yaml
+  h_42175f19913982 247-253
+contracts/device_auth.openapi.yaml
+  h_42175f19913982 1-253
+contracts/device_auth.spec.md
+  h_42175f19913982 1-237
+frontend/src/i18n/locales/ca.json
+  h_42175f19913982 29-30
+frontend/src/i18n/locales/en.json
+  h_42175f19913982 29-30
+frontend/src/i18n/locales/es.json
+  h_42175f19913982 29-30
+frontend/src/modules/auth/__tests__/LoginView.spec.ts
+  h_42175f19913982 1-184
+frontend/src/modules/auth/__tests__/api.spec.ts
+  h_42175f19913982 1-182
+frontend/src/modules/auth/__tests__/store.spec.ts
+  h_42175f19913982 1-163
+frontend/src/modules/auth/api.ts
+  h_42175f19913982 23,27-34
+frontend/src/modules/auth/store.ts
+  h_42175f19913982 52,95-98,103,113-119,204,218
+frontend/src/modules/auth/types.ts
+  h_42175f19913982 38,41-42
+frontend/src/modules/auth/views/LoginView.vue
+  h_42175f19913982 2,12,21-22,28-43,68-70,116-124,265-280
+qa-reports/device_auth.md
+  h_42175f19913982 1-92
+ux-reports/device_auth.md
+  h_42175f19913982 1-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "871f1e644a08ab16a98095197f4efd12f0bfcc2b",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
