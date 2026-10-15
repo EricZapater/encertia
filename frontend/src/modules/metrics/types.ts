@@ -46,6 +46,8 @@ export interface AuditLogItem {
   method: string
   statusCode: number
   durationMs: number
+  payload?: string
+  responseBody?: string
   ipAddress?: string
   createdAt: string
 }
@@ -64,4 +66,6 @@ export interface AuditLogQueryParams {
   search?: string
   module?: string
   userId?: string
+  startDate?: string
+  endDate?: string
 }

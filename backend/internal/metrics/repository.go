@@ -32,8 +32,8 @@ func (r *sqlRepository) InsertAuditLog(ctx context.Context, entry shared.AuditLo
 
 	query := `
 		INSERT INTO audit_logs (
-			user_id, user_email, user_role, action, module, endpoint, method, status_code, duration_ms, ip_address, user_agent
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+			user_id, user_email, user_role, action, module, endpoint, method, status_code, duration_ms, payload, response_body, ip_address, user_agent
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 	`
 	_, err := r.db.ExecContext(
 		ctx,
@@ -47,6 +47,8 @@ func (r *sqlRepository) InsertAuditLog(ctx context.Context, entry shared.AuditLo
 		entry.Method,
 		entry.StatusCode,
 		entry.DurationMs,
+		entry.Payload,
+		entry.ResponseBody,
 		entry.IPAddress,
 		entry.UserAgent,
 	)
@@ -158,7 +160,7 @@ func (r *sqlRepository) GetAuditLogs(ctx context.Context, filter AuditLogFilter)
 
 	if filter.Search != "" {
 		pattern := "%" + filter.Search + "%"
-		conditions = append(conditions, fmt.Sprintf("(user_email ILIKE $%d OR endpoint ILIKE $%d OR action ILIKE $%d OR ip_address ILIKE $%d)", argIdx, argIdx, argIdx, argIdx))
+		conditions = append(conditions, fmt.Sprintf("(user_email ILIKE $%d OR endpoint ILIKE $%d OR action ILIKE $%d OR ip_address ILIKE $%d OR payload ILIKE $%d OR response_body ILIKE $%d)", argIdx, argIdx, argIdx, argIdx, argIdx, argIdx))
 		args = append(args, pattern)
 		argIdx++
 	}
@@ -172,6 +174,18 @@ func (r *sqlRepository) GetAuditLogs(ctx context.Context, filter AuditLogFilter)
 	if filter.UserID != "" {
 		conditions = append(conditions, fmt.Sprintf("user_id = $%d", argIdx))
 		args = append(args, filter.UserID)
+		argIdx++
+	}
+
+	if filter.StartDate != nil {
+		conditions = append(conditions, fmt.Sprintf("created_at >= $%d", argIdx))
+		args = append(args, *filter.StartDate)
+		argIdx++
+	}
+
+	if filter.EndDate != nil {
+		conditions = append(conditions, fmt.Sprintf("created_at <= $%d", argIdx))
+		args = append(args, *filter.EndDate)
 		argIdx++
 	}
 
@@ -199,7 +213,7 @@ func (r *sqlRepository) GetAuditLogs(ctx context.Context, filter AuditLogFilter)
 	offset := (page - 1) * pageSize
 
 	itemsQuery := fmt.Sprintf(`
-		SELECT id, user_id, user_email, user_role, action, module, endpoint, method, status_code, duration_ms, ip_address, user_agent, created_at
+		SELECT id, user_id, user_email, user_role, action, module, endpoint, method, status_code, duration_ms, payload, response_body, ip_address, user_agent, created_at
 		FROM audit_logs
 		%s
 		ORDER BY created_at DESC
@@ -217,7 +231,7 @@ func (r *sqlRepository) GetAuditLogs(ctx context.Context, filter AuditLogFilter)
 	var logs []AuditLog
 	for rows.Next() {
 		var logItem AuditLog
-		var userID, userEmail, userRole, ipAddress, userAgent sql.NullString
+		var userID, userEmail, userRole, payload, responseBody, ipAddress, userAgent sql.NullString
 
 		if err := rows.Scan(
 			&logItem.ID,
@@ -230,6 +244,8 @@ func (r *sqlRepository) GetAuditLogs(ctx context.Context, filter AuditLogFilter)
 			&logItem.Method,
 			&logItem.StatusCode,
 			&logItem.DurationMs,
+			&payload,
+			&responseBody,
 			&ipAddress,
 			&userAgent,
 			&logItem.CreatedAt,
@@ -245,6 +261,12 @@ func (r *sqlRepository) GetAuditLogs(ctx context.Context, filter AuditLogFilter)
 		}
 		if userRole.Valid {
 			logItem.UserRole = &userRole.String
+		}
+		if payload.Valid {
+			logItem.Payload = &payload.String
+		}
+		if responseBody.Valid {
+			logItem.ResponseBody = &responseBody.String
 		}
 		if ipAddress.Valid {
 			logItem.IPAddress = &ipAddress.String
@@ -269,7 +291,7 @@ func (r *sqlRepository) GetAllAuditLogsForExport(ctx context.Context) ([]AuditLo
 	}
 
 	query := `
-		SELECT id, user_id, user_email, user_role, action, module, endpoint, method, status_code, duration_ms, ip_address, user_agent, created_at
+		SELECT id, user_id, user_email, user_role, action, module, endpoint, method, status_code, duration_ms, payload, response_body, ip_address, user_agent, created_at
 		FROM audit_logs
 		ORDER BY created_at DESC
 		LIMIT 5000
@@ -284,7 +306,7 @@ func (r *sqlRepository) GetAllAuditLogsForExport(ctx context.Context) ([]AuditLo
 	var logs []AuditLog
 	for rows.Next() {
 		var logItem AuditLog
-		var userID, userEmail, userRole, ipAddress, userAgent sql.NullString
+		var userID, userEmail, userRole, payload, responseBody, ipAddress, userAgent sql.NullString
 
 		if err := rows.Scan(
 			&logItem.ID,
@@ -297,6 +319,8 @@ func (r *sqlRepository) GetAllAuditLogsForExport(ctx context.Context) ([]AuditLo
 			&logItem.Method,
 			&logItem.StatusCode,
 			&logItem.DurationMs,
+			&payload,
+			&responseBody,
 			&ipAddress,
 			&userAgent,
 			&logItem.CreatedAt,
@@ -312,6 +336,12 @@ func (r *sqlRepository) GetAllAuditLogsForExport(ctx context.Context) ([]AuditLo
 		}
 		if userRole.Valid {
 			logItem.UserRole = &userRole.String
+		}
+		if payload.Valid {
+			logItem.Payload = &payload.String
+		}
+		if responseBody.Valid {
+			logItem.ResponseBody = &responseBody.String
 		}
 		if ipAddress.Valid {
 			logItem.IPAddress = &ipAddress.String

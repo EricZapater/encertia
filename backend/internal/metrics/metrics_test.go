@@ -186,6 +186,44 @@ func TestMetricsEndpoints(t *testing.T) {
 		}
 	})
 
+	t.Run("GET /metrics/audit-logs with date range", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/metrics/audit-logs?startDate=2026-01-01&endDate=2026-12-31", nil)
+		req.Header.Set("X-Test-Role", "admin")
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		var resp AuditLogsPaginatedResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal JSON: %v", err)
+		}
+		if resp.Total != 1 {
+			t.Errorf("expected 1 result within date range, got %d", resp.Total)
+		}
+	})
+
+	t.Run("GET /metrics/audit-logs outside date range", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/metrics/audit-logs?startDate=2020-01-01&endDate=2020-01-02", nil)
+		req.Header.Set("X-Test-Role", "admin")
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		var resp AuditLogsPaginatedResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal JSON: %v", err)
+		}
+		if resp.Total != 0 {
+			t.Errorf("expected 0 results outside date range, got %d", resp.Total)
+		}
+	})
+
 	t.Run("GET /metrics/audit-logs/export", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/metrics/audit-logs/export", nil)

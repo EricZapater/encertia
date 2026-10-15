@@ -1,7 +1,10 @@
 package shared
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"regexp"
 	"strings"
 	"time"
 
@@ -10,17 +13,64 @@ import (
 
 // AuditLogInput conté les dades d'una petició HTTP per ser registrades a l'auditoria.
 type AuditLogInput struct {
-	UserID     *string
-	UserEmail  *string
-	UserRole   *string
-	Action     string
-	Module     string
-	Endpoint   string
-	Method     string
-	StatusCode int
-	DurationMs int
-	IPAddress  *string
-	UserAgent  *string
+	UserID       *string
+	UserEmail    *string
+	UserRole     *string
+	Action       string
+	Module       string
+	Endpoint     string
+	Method       string
+	StatusCode   int
+	DurationMs   int
+	Payload      *string
+	ResponseBody *string
+	IPAddress    *string
+	UserAgent    *string
+}
+
+// sensitivePattern detecta camps sensibles en formats JSON i form-data per emmascarar-los.
+var (
+	sensitiveJsonPattern = regexp.MustCompile(`(?i)"(password|currentPassword|newPassword|confirmPassword|token|accessToken|refreshToken|secret|deviceToken)"\s*:\s*"[^"]*"`)
+	sensitiveFormPattern = regexp.MustCompile(`(?i)(password|currentPassword|newPassword|token|secret|deviceToken)=[^&]*`)
+)
+
+func sanitizeBody(content string) string {
+	if content == "" {
+		return ""
+	}
+	sanitized := sensitiveJsonPattern.ReplaceAllString(content, `"$1":"[REDACTED]"`)
+	sanitized = sensitiveFormPattern.ReplaceAllString(sanitized, `$1=[REDACTED]`)
+	return sanitized
+}
+
+type bodyLogWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+	max  int
+}
+
+func (w *bodyLogWriter) Write(b []byte) (int, error) {
+	if w.body != nil && w.body.Len() < w.max {
+		remaining := w.max - w.body.Len()
+		if len(b) > remaining {
+			w.body.Write(b[:remaining])
+		} else {
+			w.body.Write(b)
+		}
+	}
+	return w.ResponseWriter.Write(b)
+}
+
+func (w *bodyLogWriter) WriteString(s string) (int, error) {
+	if w.body != nil && w.body.Len() < w.max {
+		remaining := w.max - w.body.Len()
+		if len(s) > remaining {
+			w.body.WriteString(s[:remaining])
+		} else {
+			w.body.WriteString(s)
+		}
+	}
+	return w.ResponseWriter.WriteString(s)
 }
 
 // MetricsRecorder defineix el contracte per enregistrar logs d'auditoria.
@@ -35,15 +85,67 @@ func (f MetricsRecorderFunc) RecordAuditLog(ctx context.Context, entry AuditLogI
 	return f(ctx, entry)
 }
 
-// MetricsMiddleware mesura el temps de resposta duration_ms de cada petició HTTP
-// i registra asíncronament l'audit log a PostgreSQL via el MetricsRecorder passat.
+// MetricsMiddleware mesura el temps de resposta duration_ms de cada petició HTTP,
+// captura el payload i response_body (sanititzant dades sensibles) i registra asíncronament l'audit log.
 func MetricsMiddleware(recorder MetricsRecorder) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
+		// 1. Captura del payload de la petició (abans de c.Next())
+		var payloadPtr *string
+		if c.Request.Body != nil {
+			contentType := c.ContentType()
+			if strings.HasPrefix(contentType, "multipart/form-data") {
+				msg := "[Multipart Form Data]"
+				payloadPtr = &msg
+			} else {
+				// Llegim fins a 32 KB per no saturar memòria
+				bodyBytes, err := io.ReadAll(io.LimitReader(c.Request.Body, 32768))
+				if err == nil {
+					// Restaurem el body perquè els handlers subsegüents el puguin consumir
+					c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+					if len(bodyBytes) > 0 {
+						sanitized := sanitizeBody(string(bodyBytes))
+						payloadPtr = &sanitized
+					}
+				}
+			}
+		}
+
+		if payloadPtr == nil && c.Request.URL.RawQuery != "" {
+			query := "?" + c.Request.URL.RawQuery
+			payloadPtr = &query
+		}
+
+		// 2. Intercepció del cos de resposta
+		blw := &bodyLogWriter{
+			ResponseWriter: c.Writer,
+			body:           bytes.NewBuffer(nil),
+			max:            32768,
+		}
+		c.Writer = blw
+
 		c.Next()
 
 		durationMs := int(time.Since(start).Milliseconds())
+
+		// 3. Captura del cos de resposta
+		var responseBodyPtr *string
+		respContentType := c.Writer.Header().Get("Content-Type")
+		isBinary := strings.HasPrefix(respContentType, "application/octet-stream") ||
+			strings.HasPrefix(respContentType, "application/zip") ||
+			strings.HasPrefix(respContentType, "image/") ||
+			strings.HasPrefix(respContentType, "audio/") ||
+			strings.HasPrefix(respContentType, "video/") ||
+			strings.HasPrefix(respContentType, "application/pdf")
+
+		if isBinary {
+			msg := "[Binary Content]"
+			responseBodyPtr = &msg
+		} else if blw.body != nil && blw.body.Len() > 0 {
+			sanitized := sanitizeBody(blw.body.String())
+			responseBodyPtr = &sanitized
+		}
 
 		// Fem una còpia del context de Gin per llegir dades de forma segura dins la goroutine
 		cCopy := c.Copy()
@@ -101,17 +203,19 @@ func MetricsMiddleware(recorder MetricsRecorder) gin.HandlerFunc {
 			}
 
 			entry := AuditLogInput{
-				UserID:     userIDPtr,
-				UserEmail:  userEmailPtr,
-				UserRole:   userRolePtr,
-				Action:     action,
-				Module:     module,
-				Endpoint:   path,
-				Method:     method,
-				StatusCode: cCopy.Writer.Status(),
-				DurationMs: durationMs,
-				IPAddress:  ipPtr,
-				UserAgent:  uaPtr,
+				UserID:       userIDPtr,
+				UserEmail:    userEmailPtr,
+				UserRole:     userRolePtr,
+				Action:       action,
+				Module:       module,
+				Endpoint:     path,
+				Method:       method,
+				StatusCode:   cCopy.Writer.Status(),
+				DurationMs:   durationMs,
+				Payload:      payloadPtr,
+				ResponseBody: responseBodyPtr,
+				IPAddress:    ipPtr,
+				UserAgent:    uaPtr,
 			}
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/encertia/backend/internal/shared"
 	"github.com/gin-gonic/gin"
@@ -63,12 +64,34 @@ func (h *Handler) GetAuditLogs(c *gin.Context) {
 	module := c.Query("module")
 	userID := c.Query("userId")
 
+	var startDatePtr, endDatePtr *time.Time
+
+	if s := c.Query("startDate"); s != "" {
+		if t, err := time.Parse("2006-01-02", s); err == nil {
+			st := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+			startDatePtr = &st
+		} else if t, err := time.Parse(time.RFC3339, s); err == nil {
+			startDatePtr = &t
+		}
+	}
+
+	if s := c.Query("endDate"); s != "" {
+		if t, err := time.Parse("2006-01-02", s); err == nil {
+			et := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999999, time.UTC)
+			endDatePtr = &et
+		} else if t, err := time.Parse(time.RFC3339, s); err == nil {
+			endDatePtr = &t
+		}
+	}
+
 	filter := AuditLogFilter{
-		Page:     page,
-		PageSize: pageSize,
-		Search:   search,
-		Module:   module,
-		UserID:   userID,
+		Page:      page,
+		PageSize:  pageSize,
+		Search:    search,
+		Module:    module,
+		UserID:    userID,
+		StartDate: startDatePtr,
+		EndDate:   endDatePtr,
 	}
 
 	result, err := h.service.GetAuditLogs(c.Request.Context(), filter)

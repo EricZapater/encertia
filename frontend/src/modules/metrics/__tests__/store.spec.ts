@@ -121,4 +121,26 @@ describe('useMetricsStore Pinia Store', () => {
     expect(metricsApi.exportAuditLogsCSV).toHaveBeenCalled()
     expect(window.URL.createObjectURL).toHaveBeenCalledWith(mockBlob)
   })
+
+  it('setAuditDateRange updates date filters and calls fetchAuditLogs', async () => {
+    vi.mocked(metricsApi.getAuditLogs).mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize: 20,
+      totalPages: 0
+    })
+
+    const store = useMetricsStore()
+    await store.setAuditDateRange('2026-10-01', '2026-10-15')
+
+    expect(store.auditFilters.startDate).toBe('2026-10-01')
+    expect(store.auditFilters.endDate).toBe('2026-10-15')
+    expect(metricsApi.getAuditLogs).toHaveBeenCalledWith(
+      expect.objectContaining({
+        startDate: '2026-10-01',
+        endDate: '2026-10-15'
+      })
+    )
+  })
 })

@@ -4,19 +4,21 @@ import "time"
 
 // AuditLog representa un registre d'auditoria del sistema.
 type AuditLog struct {
-	ID         string    `json:"id"`
-	UserID     *string   `json:"userId,omitempty"`
-	UserEmail  *string   `json:"userEmail,omitempty"`
-	UserRole   *string   `json:"userRole,omitempty"`
-	Action     string    `json:"action"`
-	Module     string    `json:"module"`
-	Endpoint   string    `json:"endpoint"`
-	Method     string    `json:"method"`
-	StatusCode int       `json:"statusCode"`
-	DurationMs int       `json:"durationMs"`
-	IPAddress  *string   `json:"ipAddress,omitempty"`
-	UserAgent  *string   `json:"userAgent,omitempty"`
-	CreatedAt  time.Time `json:"createdAt"`
+	ID           string    `json:"id"`
+	UserID       *string   `json:"userId,omitempty"`
+	UserEmail    *string   `json:"userEmail,omitempty"`
+	UserRole     *string   `json:"userRole,omitempty"`
+	Action       string    `json:"action"`
+	Module       string    `json:"module"`
+	Endpoint     string    `json:"endpoint"`
+	Method       string    `json:"method"`
+	StatusCode   int       `json:"statusCode"`
+	DurationMs   int       `json:"durationMs"`
+	Payload      *string   `json:"payload,omitempty"`
+	ResponseBody *string   `json:"responseBody,omitempty"`
+	IPAddress    *string   `json:"ipAddress,omitempty"`
+	UserAgent    *string   `json:"userAgent,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 // SystemHealth informació de salut i recursos del servidor.
@@ -66,9 +68,11 @@ type AuditLogsPaginatedResponse struct {
 
 // AuditLogFilter filtres de cerca per a consultes de registres d'auditoria.
 type AuditLogFilter struct {
-	Page     int
-	PageSize int
-	Search   string
-	Module   string
-	UserID   string
+	Page      int
+	PageSize  int
+	Search    string
+	Module    string
+	UserID    string
+	StartDate *time.Time
+	EndDate   *time.Time
 }

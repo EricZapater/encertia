@@ -77,6 +77,16 @@ paths:
           in: query
           schema:
             type: string
+        - name: startDate
+          in: query
+          description: Data d'inici del rang (format YYYY-MM-DD o RFC3339)
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          description: Data de fi del rang (format YYYY-MM-DD o RFC3339)
+          schema:
+            type: string
       responses:
         '200':
           description: Llista de registres d'auditoria obtinguda amb èxit
@@ -197,6 +207,12 @@ components:
           type: integer
         durationMs:
           type: integer
+        payload:
+          type: string
+          description: Cos de la petició HTTP o paràmetres de consulta (sanititzat)
+        responseBody:
+          type: string
+          description: Cos de la resposta HTTP retornada (sanititzat)
         ipAddress:
           type: string
         createdAt:

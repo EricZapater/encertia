@@ -390,6 +390,32 @@
       "p99Ms": "P99 (ms)",
       "errors": "Errors"
     },
+    "tabs": {
+      "latency": "Rànquing de Latència",
+      "requests": "Peticions Fetes"
+    },
+    "requests": {
+      "title": "Peticions Fetes a l'API",
+      "subtitle": "Traçabilitat individual de peticions, usuaris, càrregues útils (payload) i respostes",
+      "fromDate": "Des de",
+      "toDate": "Fins a",
+      "today": "Avui",
+      "searchPlaceholder": "Cercar per endpoint, usuari, payload o resposta...",
+      "payload": "Payload",
+      "response": "Resposta",
+      "hasPayload": "Payload",
+      "hasResponse": "Resposta",
+      "noPayload": "Sense payload",
+      "noResponse": "Sense resposta",
+      "viewDetail": "Veure Detall",
+      "detailModalTitle": "Detall de la Petició HTTP",
+      "payloadTitle": "Payload (Petició)",
+      "responseTitle": "Resposta (Servidor)",
+      "emptyPayload": "Aquesta petició no conté cos de dades ni paràmetres de consulta.",
+      "emptyResponse": "No s'ha registrat cap cos de resposta per a aquesta petició.",
+      "copied": "Copiat al porta-retalls",
+      "empty": "No s'ha trobat cap petició en l'interval de dates seleccionat."
+    },
     "audit": {
       "title": "Registre d'Auditoria d'Ús",
       "subtitle": "Historial d'accions realitzades pels usuaris a la plataforma",

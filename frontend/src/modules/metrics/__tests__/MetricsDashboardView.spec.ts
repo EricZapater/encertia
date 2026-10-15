@@ -72,7 +72,45 @@ describe('MetricsDashboardView.vue', () => {
 
     expect(wrapper.find('[data-testid="metrics-dashboard"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Mètriques i Auditoria del Sistema')
-    expect(wrapper.find('[data-testid="btn-export-csv"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="tab-latency"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="tab-requests"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="latency-data-table"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="audit-data-table"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="filter-start-date"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="filter-end-date"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="btn-filter-today"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="btn-export-csv"]').exists()).toBe(true)
+  })
+
+  it('allows switching between Latency and Requests tabs', async () => {
+    const store = useMetricsStore()
+
+    const wrapper = mount(MetricsDashboardView, {
+      global: {
+        plugins: [PrimeVue],
+        stubs: {
+          DataTable: true,
+          Column: true,
+          InputText: true,
+          Select: true,
+          Button: true,
+          Tag: true,
+          DatePicker: true,
+          Dialog: true
+        }
+      }
+    })
+
+    await store.fetchAll()
+
+    const tabRequests = wrapper.find('[data-testid="tab-requests"]')
+    expect(tabRequests.exists()).toBe(true)
+    await tabRequests.trigger('click')
+
+    expect(wrapper.find('[data-testid="tab-requests"]').classes()).toContain('active')
+
+    const tabLatency = wrapper.find('[data-testid="tab-latency"]')
+    await tabLatency.trigger('click')
+    expect(wrapper.find('[data-testid="tab-latency"]').classes()).toContain('active')
   })
 })

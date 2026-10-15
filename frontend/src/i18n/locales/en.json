@@ -390,6 +390,32 @@
       "p99Ms": "P99 (ms)",
       "errors": "Errors"
     },
+    "tabs": {
+      "latency": "Latency Ranking",
+      "requests": "Requests Made"
+    },
+    "requests": {
+      "title": "API Requests Made",
+      "subtitle": "Individual trace of requests, users, payloads, and responses",
+      "fromDate": "From",
+      "toDate": "To",
+      "today": "Today",
+      "searchPlaceholder": "Search by endpoint, user, payload or response...",
+      "payload": "Payload",
+      "response": "Response",
+      "hasPayload": "Payload",
+      "hasResponse": "Response",
+      "noPayload": "No payload",
+      "noResponse": "No response",
+      "viewDetail": "View Detail",
+      "detailModalTitle": "HTTP Request Detail",
+      "payloadTitle": "Payload (Request)",
+      "responseTitle": "Response (Server)",
+      "emptyPayload": "This request does not contain any body data or query parameters.",
+      "emptyResponse": "No response body recorded for this request.",
+      "copied": "Copied to clipboard",
+      "empty": "No requests found in the selected date range."
+    },
     "audit": {
       "title": "Usage Audit Logs",
       "subtitle": "History of actions performed by users on the platform",

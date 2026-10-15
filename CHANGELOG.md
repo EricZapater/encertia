@@ -5,6 +5,22 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.6] - 2026-10-15
+### Added
+- **Pestanya de Peticions Fetes a l'Auditoria amb Interval de Dates (`backend/`, `frontend/`)**:
+  - Incorporada una nova pestanya ("Peticions Fetes") al costat del Rànquing de Latència que permet consultar i inspeccionar cada petició HTTP de forma individual.
+  - **Captura de Payload i Resposta (amb sanitització de seguretat)**:
+    - Nova migració de base de dades `000018_add_payload_and_response_to_audit_logs` que afegeix les columnes `payload` i `response_body` a la taula `audit_logs`.
+    - Ampliació de `MetricsMiddleware` per interceptar asíncronament tant el cos de la petició/query string com el cos de resposta del servidor, amb emmascarament automàtic de credencials i dades sensibles (`[REDACTED]`).
+  - **Filtre per Interval de Dates (per defecte: avui)**:
+    - Selectors de calendari `DatePicker` ("Des de" i "Fins a") que per defecte filtren les peticions del dia actual, amb botó d'accés ràpid "Avui".
+    - Filtratge a nivell de backend mitjançant els paràmetres `startDate` i `endDate` a `GET /metrics/audit-logs`.
+  - **Modal d'Inspecció de Petició (`Dialog`)**:
+    - Vista detallada amb metadades de l'usuari, rol, data/hora, mètode, endpoint, estat HTTP i latència en mil·lisegons.
+    - Blocs amb format JSON indentat per al payload i la resposta retornada pel servidor, amb botó per copiar ràpidament al porta-retalls.
+  - **Internacionalització i Paritat**: Claus de traducció afegides en català (`ca`), castellà (`es`) i anglès (`en`).
+
+
 ## [1.8.5] - 2026-10-14
 ### Added
 - **Distribució de l'Agent per a Windows en fitxer ZIP (`encertia-agent-windows.zip`)**:

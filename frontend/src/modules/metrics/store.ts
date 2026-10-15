@@ -13,6 +13,14 @@ import type {
 } from './types'
 import * as metricsApi from './api'
 
+export function getTodayDateString(): string {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export const useMetricsStore = defineStore('metrics', () => {
   // State
   const summary = ref<MetricsSummaryResponse | null>(null)
@@ -29,7 +37,9 @@ export const useMetricsStore = defineStore('metrics', () => {
   const auditFilters = reactive<AuditLogQueryParams>({
     search: '',
     module: undefined,
-    userId: undefined
+    userId: undefined,
+    startDate: getTodayDateString(),
+    endDate: getTodayDateString()
   })
 
   const isLoadingSummary = ref(false)
@@ -96,6 +106,8 @@ export const useMetricsStore = defineStore('metrics', () => {
         ...(auditFilters.search?.trim() ? { search: auditFilters.search.trim() } : {}),
         ...(auditFilters.module ? { module: auditFilters.module } : {}),
         ...(auditFilters.userId ? { userId: auditFilters.userId } : {}),
+        ...(auditFilters.startDate ? { startDate: auditFilters.startDate } : {}),
+        ...(auditFilters.endDate ? { endDate: auditFilters.endDate } : {}),
         ...paramsOverride
       }
 
@@ -137,10 +149,19 @@ export const useMetricsStore = defineStore('metrics', () => {
     return fetchAuditLogs()
   }
 
+  function setAuditDateRange(startDate?: string, endDate?: string): Promise<void> {
+    auditFilters.startDate = startDate
+    auditFilters.endDate = endDate
+    auditPagination.page = 1
+    return fetchAuditLogs()
+  }
+
   function resetAuditFilters(): Promise<void> {
     auditFilters.search = ''
     auditFilters.module = undefined
     auditFilters.userId = undefined
+    auditFilters.startDate = getTodayDateString()
+    auditFilters.endDate = getTodayDateString()
     auditPagination.page = 1
     return fetchAuditLogs()
   }
@@ -198,6 +219,7 @@ export const useMetricsStore = defineStore('metrics', () => {
     setAuditPage,
     setAuditSearch,
     setAuditModuleFilter,
+    setAuditDateRange,
     resetAuditFilters,
     exportAuditLogs,
     clearError

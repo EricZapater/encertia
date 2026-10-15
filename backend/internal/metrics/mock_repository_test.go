@@ -26,19 +26,21 @@ func (m *mockRepository) InsertAuditLog(ctx context.Context, entry shared.AuditL
 	defer m.mu.Unlock()
 
 	logItem := AuditLog{
-		ID:         uuid.New().String(),
-		UserID:     entry.UserID,
-		UserEmail:  entry.UserEmail,
-		UserRole:   entry.UserRole,
-		Action:     entry.Action,
-		Module:     entry.Module,
-		Endpoint:   entry.Endpoint,
-		Method:     entry.Method,
-		StatusCode: entry.StatusCode,
-		DurationMs: entry.DurationMs,
-		IPAddress:  entry.IPAddress,
-		UserAgent:  entry.UserAgent,
-		CreatedAt:  time.Now(),
+		ID:           uuid.New().String(),
+		UserID:       entry.UserID,
+		UserEmail:    entry.UserEmail,
+		UserRole:     entry.UserRole,
+		Action:       entry.Action,
+		Module:       entry.Module,
+		Endpoint:     entry.Endpoint,
+		Method:       entry.Method,
+		StatusCode:   entry.StatusCode,
+		DurationMs:   entry.DurationMs,
+		Payload:      entry.Payload,
+		ResponseBody: entry.ResponseBody,
+		IPAddress:    entry.IPAddress,
+		UserAgent:    entry.UserAgent,
+		CreatedAt:    time.Now(),
 	}
 
 	m.auditLogs = append(m.auditLogs, logItem)
@@ -127,12 +129,24 @@ func (m *mockRepository) GetAuditLogs(ctx context.Context, filter AuditLogFilter
 		if filter.UserID != "" && (log.UserID == nil || *log.UserID != filter.UserID) {
 			continue
 		}
+		if filter.StartDate != nil && log.CreatedAt.Before(*filter.StartDate) {
+			continue
+		}
+		if filter.EndDate != nil && log.CreatedAt.After(*filter.EndDate) {
+			continue
+		}
 		if filter.Search != "" {
 			searchLower := strings.ToLower(filter.Search)
 			match := strings.Contains(strings.ToLower(log.Action), searchLower) ||
 				strings.Contains(strings.ToLower(log.Endpoint), searchLower)
 			if log.UserEmail != nil {
 				match = match || strings.Contains(strings.ToLower(*log.UserEmail), searchLower)
+			}
+			if log.Payload != nil {
+				match = match || strings.Contains(strings.ToLower(*log.Payload), searchLower)
+			}
+			if log.ResponseBody != nil {
+				match = match || strings.Contains(strings.ToLower(*log.ResponseBody), searchLower)
 			}
 			if !match {
 				continue

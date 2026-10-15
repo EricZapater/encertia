@@ -390,6 +390,32 @@
       "p99Ms": "P99 (ms)",
       "errors": "Errores"
     },
+    "tabs": {
+      "latency": "Ranking de Latencia",
+      "requests": "Peticiones Realizadas"
+    },
+    "requests": {
+      "title": "Peticiones Realizadas a la API",
+      "subtitle": "Trazabilidad individual de peticiones, usuarios, cargas útiles (payload) y respuestas",
+      "fromDate": "Desde",
+      "toDate": "Hasta",
+      "today": "Hoy",
+      "searchPlaceholder": "Buscar por endpoint, usuario, payload o respuesta...",
+      "payload": "Payload",
+      "response": "Respuesta",
+      "hasPayload": "Payload",
+      "hasResponse": "Respuesta",
+      "noPayload": "Sin payload",
+      "noResponse": "Sin respuesta",
+      "viewDetail": "Ver Detalle",
+      "detailModalTitle": "Detalle de la Petición HTTP",
+      "payloadTitle": "Payload (Petición)",
+      "responseTitle": "Respuesta (Servidor)",
+      "emptyPayload": "Esta petición no contiene cuerpo de datos ni parámetros de consulta.",
+      "emptyResponse": "No se ha registrado ningún cuerpo de respuesta para esta petición.",
+      "copied": "Copiado al portapapeles",
+      "empty": "No se ha encontrado ninguna petición en el rango de fechas seleccionado."
+    },
     "audit": {
       "title": "Registro de Auditoría de Uso",
       "subtitle": "Historial de acciones realizadas por los usuarios en la plataforma",
