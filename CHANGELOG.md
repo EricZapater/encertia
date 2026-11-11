@@ -5,6 +5,12 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.7] - 2026-11-11
+### Added
+- **Registre automàtic de desplegaments a RawCraft Monitor (`.github/workflows/deploy.yml`)**:
+  - Afegit el pas `🚀 Registrar Desplegament a RawCraft Monitor` al job `deploy-to-vps` (`if: always()`).
+  - Envia el resultat (`SUCCESS` o `FAILED`), versió, branca, SHA/missatge de commit i autor per a `encertia-backend` i `encertia-frontend` a `https://api.monitor.ericzapater.cat/api/v1/deploys` mitjançant el secret `RAWCRAFT_API_KEY`.
+
 ## [1.8.6] - 2026-10-15
 ### Added
 - **Pestanya de Peticions Fetes a l'Auditoria amb Interval de Dates (`backend/`, `frontend/`)**:
