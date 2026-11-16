@@ -1,0 +1,78 @@
+CHANGELOG.md
+  h_42175f19913982 8-24
+VERSION
+  h_42175f19913982 1
+backend/Dockerfile
+  h_42175f19913982 55-57,59-61
+backend/cmd/api/main.go
+  h_42175f19913982 13,143-146,185,199,213
+backend/internal/auth/model.go
+  h_42175f19913982 26-35,40-51,61-70
+backend/internal/auth/repository.go
+  h_42175f19913982 45-47,67,70,77,91,107,121
+backend/internal/db/db.go
+  h_42175f19913982 103
+backend/internal/db/migrations/000019_add_can_download_videos_to_users.down.sql
+  h_42175f19913982 1
+backend/internal/db/migrations/000019_add_can_download_videos_to_users.up.sql
+  h_42175f19913982 1-5
+backend/internal/downloader/downloader_test.go
+  h_42175f19913982 1-318
+backend/internal/downloader/handler.go
+  h_42175f19913982 1-162
+backend/internal/downloader/model.go
+  h_42175f19913982 1-31
+backend/internal/downloader/service.go
+  h_42175f19913982 1-279
+backend/internal/user/model.go
+  h_42175f19913982 25-35,40-52,62-72,78-84,89-95
+backend/internal/user/repository.go
+  h_42175f19913982 119,147,173-175,195,199,204,219,239,254,275-276,290
+backend/internal/user/service.go
+  h_42175f19913982 148-154,156-165,321-325,327-336,412-414,470-472,477-482
+backend/internal/user/service_test.go
+  h_42175f19913982 829-902
+contracts/auth.openapi.yaml
+  h_42175f19913982 176-178
+contracts/downloader.openapi.yaml
+  h_42175f19913982 1-128
+contracts/user.openapi.yaml
+  h_42175f19913982 461-464,507-510,536-539
+frontend/src/components/AppNavbar.vue
+  h_42175f19913982 99-109,158-169,263-267,279
+frontend/src/i18n/locales/ca.json
+  h_42175f19913982 12,579-596
+frontend/src/i18n/locales/en.json
+  h_42175f19913982 12,579-596
+frontend/src/i18n/locales/es.json
+  h_42175f19913982 12,579-596
+frontend/src/modules/auth/types.ts
+  h_42175f19913982 20
+frontend/src/modules/downloader/__tests__/VideoDownloaderView.spec.ts
+  h_42175f19913982 1-151
+frontend/src/modules/downloader/api.ts
+  h_42175f19913982 1-32
+frontend/src/modules/downloader/types.ts
+  h_42175f19913982 1-25
+frontend/src/modules/downloader/views/VideoDownloaderView.vue
+  h_42175f19913982 1-672
+frontend/src/modules/users/types.ts
+  h_42175f19913982 23,36,47
+frontend/src/modules/users/views/UserDetailView.vue
+  h_42175f19913982 129-134,147-153
+frontend/src/modules/users/views/UserFormModal.vue
+  h_42175f19913982 57,64-65,83,92,145,149,159-160,290-309
+frontend/src/router/index.ts
+  h_42175f19913982 154-159,204-213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "01651e80321c92d6e7a42a707fdbf05182babc55",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
