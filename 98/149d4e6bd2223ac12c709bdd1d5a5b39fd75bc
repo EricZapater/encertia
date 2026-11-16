@@ -1,0 +1,24 @@
+CHANGELOG.md
+  h_42175f19913982 8-22
+VERSION
+  h_42175f19913982 1
+backend/Dockerfile
+  h_42175f19913982 60-61,77-78
+backend/internal/downloader/downloader_test.go
+  h_42175f19913982 135-138,141-149,155-163,382-417
+backend/internal/downloader/service.go
+  h_42175f19913982 35-54,66-75,169-184,187-189,195-198,219-220,239,281-282,311
+frontend/src/modules/downloader/views/VideoDownloaderView.vue
+  h_42175f19913982 129-138,636-652
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "98149d4e6bd2223ac12c709bdd1d5a5b39fd75bc",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
