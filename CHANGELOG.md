@@ -5,6 +5,20 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.9] - 2026-11-16
+### Fixed
+- **Millores i Resolució d'Errors al Descarregador de Vídeos (`backend/`, `frontend/`)**:
+  - **Detecció de Bot a YouTube ("Sign in to confirm you’re not a bot")**:
+    - Incorporat Node.js al contenidor de producció (`apk add nodejs`) per permetre que `yt-dlp` resolgui els reptes de JavaScript i signatures (n-sig / botguard) de YouTube.
+    - Actualitzat `yt-dlp` directament via pip a la versió més recent (`pip install -U "yt-dlp[default]"`).
+    - Forçat l'ús d'extractor mòbil (`--extractor-args "youtube:player_client=ios,android,mweb"`) i User-Agent de navegador modern per evitar el bloqueig web per defecte a IPs de centres de dades.
+    - Afegit el paràmetre `--playlist-items 1` per evitar timeouts i processament de llistes en enllaços complexos.
+  - **Error de xarxa a LinkedIn (`exit status 101` / `ENETUNREACH`)**:
+    - Forçat `-4` (IPv4) a totes les peticions de `yt-dlp` per prevenir fallades d'encaminament IPv6 no disponible en xarxes Docker.
+  - **Suport complet per a Cookies de Sessió**:
+    - Suport tant per a fitxers de cookies al servidor (`/app/cookies.txt`, `YTDLP_COOKIES_PATH`) com per a l'enviament directe de cookies en format Netscape des de la interfície.
+    - Nou desplegable d'"Opcions avançades (Cookies)" a `VideoDownloaderView.vue` que s'obre automàticament si una plataforma requereix autenticació o verificació.
+
 ## [1.8.8] - 2026-11-16
 ### Added
 - **Mini-eina de Descarregador de Vídeos de Xarxes Socials (`backend/`, `frontend/`)**:

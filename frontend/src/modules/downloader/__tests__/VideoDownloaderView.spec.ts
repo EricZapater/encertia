@@ -44,6 +44,7 @@ describe('VideoDownloaderView.vue', () => {
     expect(wrapper.find('[data-testid="btn-paste-url"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="btn-inspect-video"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="btn-direct-download"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="btn-toggle-advanced"]').exists()).toBe(true)
   })
 
   it('disables inspect and direct download buttons when URL is empty', () => {
@@ -76,7 +77,7 @@ describe('VideoDownloaderView.vue', () => {
     await inspectBtn.trigger('click')
     await flushPromises()
 
-    expect(downloaderApi.fetchVideoInfo).toHaveBeenCalledWith('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    expect(downloaderApi.fetchVideoInfo).toHaveBeenCalledWith('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '')
 
     // Preview card appears
     expect(wrapper.find('[data-testid="card-video-preview"]').exists()).toBe(true)
@@ -105,9 +106,35 @@ describe('VideoDownloaderView.vue', () => {
     await downloadBtn.trigger('click')
     await flushPromises()
 
-    expect(downloaderApi.downloadVideoFile).toHaveBeenCalledWith('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    expect(downloaderApi.downloadVideoFile).toHaveBeenCalledWith('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '')
     expect(createObjectURLSpy).toHaveBeenCalled()
     expect(revokeObjectURLSpy).toHaveBeenCalled()
+  })
+
+  it('toggles advanced cookies panel and passes cookies to api', async () => {
+    const wrapper = mount(VideoDownloaderView, {
+      global: {
+        plugins: [PrimeVue, ToastService]
+      }
+    })
+
+    expect(wrapper.find('[data-testid="advanced-panel"]').exists()).toBe(false)
+    await wrapper.find('[data-testid="btn-toggle-advanced"]').trigger('click')
+    expect(wrapper.find('[data-testid="advanced-panel"]').exists()).toBe(true)
+
+    const cookiesInput = wrapper.find('[data-testid="input-cookies"]')
+    await cookiesInput.setValue('test_cookie_data=123')
+
+    const urlInput = wrapper.find('[data-testid="input-video-url"]')
+    await urlInput.setValue('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+
+    await wrapper.find('[data-testid="btn-inspect-video"]').trigger('click')
+    await flushPromises()
+
+    expect(downloaderApi.fetchVideoInfo).toHaveBeenCalledWith(
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      'test_cookie_data=123'
+    )
   })
 
   it('shows error banner when inspect fails', async () => {

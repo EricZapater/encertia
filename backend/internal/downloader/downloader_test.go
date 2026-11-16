@@ -130,12 +130,23 @@ func TestGetVideoInfo(t *testing.T) {
 				if name != "yt-dlp" {
 					t.Errorf("esperat yt-dlp, obtingut: %s", name)
 				}
+				// Comprova que conté -4 per forçar IPv4
+				hasIPv4 := false
+				for _, arg := range args {
+					if arg == "-4" {
+						hasIPv4 = true
+						break
+					}
+				}
+				if !hasIPv4 {
+					t.Errorf("s'esperava el flag -4 per forçar IPv4")
+				}
 				return []byte(mockJSON), nil
 			},
 		}
 
 		svc := NewService(executor)
-		info, err := svc.GetVideoInfo(ctx, "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+		info, err := svc.GetVideoInfo(ctx, VideoInfoRequest{URL: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"})
 		if err != nil {
 			t.Fatalf("no s'esperava error: %v", err)
 		}
@@ -161,9 +172,41 @@ func TestGetVideoInfo(t *testing.T) {
 		}
 
 		svc := NewService(executor)
-		_, err := svc.GetVideoInfo(ctx, "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+		_, err := svc.GetVideoInfo(ctx, VideoInfoRequest{URL: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"})
 		if !errors.Is(err, ErrToolNotInstalled) {
 			t.Fatalf("esperat ErrToolNotInstalled, obtingut: %v", err)
+		}
+	})
+
+	t.Run("Amb cookies d'usuari", func(t *testing.T) {
+		mockJSON := `{"id":"test","title":"Test with cookies","duration":10,"extractor":"test"}`
+		cookiesReceived := false
+
+		executor := &mockExecutor{
+			runFunc: func(ctx context.Context, name string, args ...string) ([]byte, error) {
+				for i, arg := range args {
+					if arg == "--cookies" && i+1 < len(args) {
+						cookiesReceived = true
+						break
+					}
+				}
+				return []byte(mockJSON), nil
+			},
+		}
+
+		svc := NewService(executor)
+		info, err := svc.GetVideoInfo(ctx, VideoInfoRequest{
+			URL:     "https://www.youtube.com/watch?v=test",
+			Cookies: "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tLOGIN_INFO\tval",
+		})
+		if err != nil {
+			t.Fatalf("no s'esperava error: %v", err)
+		}
+		if !cookiesReceived {
+			t.Errorf("s'esperava que el flag --cookies s'hagués passat a yt-dlp")
+		}
+		if info.Title != "Test with cookies" {
+			t.Errorf("títol incorrecte: %s", info.Title)
 		}
 	})
 }
@@ -204,7 +247,7 @@ func TestDownloadVideo(t *testing.T) {
 			tempDir:  tempDir,
 		}
 
-		filePath, filename, cleanup, err := svc.DownloadVideo(ctx, "https://www.youtube.com/watch?v=sample")
+		filePath, filename, cleanup, err := svc.DownloadVideo(ctx, DownloadRequest{URL: "https://www.youtube.com/watch?v=sample"})
 		if err != nil {
 			t.Fatalf("no s'esperava error: %v", err)
 		}

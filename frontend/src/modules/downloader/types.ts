@@ -18,8 +18,10 @@ export interface VideoInfo {
 
 export interface VideoInfoRequest {
   url: string
+  cookies?: string
 }
 
 export interface DownloadRequest {
   url: string
+  cookies?: string
 }

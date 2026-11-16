@@ -2,7 +2,8 @@ package downloader
 
 // VideoInfoRequest defineix la petició d'inspecció d'un enllaç de vídeo.
 type VideoInfoRequest struct {
-	URL string `json:"url" binding:"required"`
+	URL     string `json:"url" binding:"required"`
+	Cookies string `json:"cookies,omitempty"`
 }
 
 // VideoFormat representa una opció de qualitat disponible.
@@ -27,5 +28,6 @@ type VideoInfoResponse struct {
 
 // DownloadRequest defineix la petició per descarregar el fitxer de vídeo.
 type DownloadRequest struct {
-	URL string `json:"url" binding:"required"`
+	URL     string `json:"url" binding:"required"`
+	Cookies string `json:"cookies,omitempty"`
 }

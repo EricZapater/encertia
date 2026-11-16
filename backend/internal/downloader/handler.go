@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/encertia/backend/internal/shared"
 	"github.com/encertia/backend/internal/user"
@@ -102,7 +103,7 @@ func (h *Handler) GetVideoInfo(c *gin.Context) {
 		return
 	}
 
-	info, err := h.service.GetVideoInfo(c.Request.Context(), req.URL)
+	info, err := h.service.GetVideoInfo(c.Request.Context(), req)
 	if err != nil {
 		h.handleServiceError(c, err)
 		return
@@ -122,7 +123,7 @@ func (h *Handler) DownloadVideo(c *gin.Context) {
 		return
 	}
 
-	filePath, filename, cleanup, err := h.service.DownloadVideo(c.Request.Context(), req.URL)
+	filePath, filename, cleanup, err := h.service.DownloadVideo(c.Request.Context(), req)
 	if err != nil {
 		h.handleServiceError(c, err)
 		return
@@ -154,7 +155,16 @@ func (h *Handler) handleServiceError(c *gin.Context, err error) {
 		return
 	}
 	if errors.Is(err, ErrDownloadFailed) {
-		shared.RespondWithError(c, shared.ErrBadRequest("DOWNLOAD_FAILED", err.Error(), nil))
+		errMsg := err.Error()
+		friendlyMsg := errMsg
+		if strings.Contains(errMsg, "Sign in to confirm you’re not a bot") || strings.Contains(errMsg, "confirm you're not a bot") {
+			friendlyMsg = "YouTube demana confirmació de bot. Si us plau, enganxa les teves cookies de YouTube a 'Opcions avançades'."
+		} else if strings.Contains(errMsg, "login") || strings.Contains(errMsg, "private") || strings.Contains(errMsg, "account") {
+			friendlyMsg = "Aquest vídeo requereix iniciar sessió a la plataforma (ex: publicació privada o LinkedIn). Pots indicar les teves cookies a 'Opcions avançades'."
+		}
+		shared.RespondWithError(c, shared.ErrBadRequest("DOWNLOAD_FAILED", friendlyMsg, map[string]interface{}{
+			"raw": errMsg,
+		}))
 		return
 	}
 

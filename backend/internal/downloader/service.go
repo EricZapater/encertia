@@ -25,6 +25,8 @@ var (
 	ErrDownloadFailed   = errors.New("no s'ha pogut obtenir o descarregar el vídeo de la plataforma")
 )
 
+const defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+
 // CommandExecutor permet executar processos del sistema operatiu (fàcilment mockejable per a tests).
 type CommandExecutor interface {
 	Run(ctx context.Context, name string, args ...string) ([]byte, error)
@@ -52,8 +54,8 @@ func (e *defaultExecutor) Run(ctx context.Context, name string, args ...string) 
 
 // Service defineix les operacions de negoci del descarregador de vídeos.
 type Service interface {
-	GetVideoInfo(ctx context.Context, rawURL string) (*VideoInfoResponse, error)
-	DownloadVideo(ctx context.Context, rawURL string) (filePath string, filename string, cleanup func(), err error)
+	GetVideoInfo(ctx context.Context, req VideoInfoRequest) (*VideoInfoResponse, error)
+	DownloadVideo(ctx context.Context, req DownloadRequest) (filePath string, filename string, cleanup func(), err error)
 }
 
 type service struct {
@@ -110,6 +112,42 @@ func ValidateURL(rawURL string) (*url.URL, error) {
 	return parsed, nil
 }
 
+// prepareCookies desa les cookies de l'usuari en un fitxer temporal o utilitza les cookies del servidor si estan configurades.
+func (s *service) prepareCookies(userCookies string) (string, func(), error) {
+	trimmed := strings.TrimSpace(userCookies)
+	if trimmed != "" {
+		cookieFile := filepath.Join(s.tempDir, fmt.Sprintf("cookies_%s.txt", uuid.New().String()))
+		if err := os.WriteFile(cookieFile, []byte(trimmed), 0600); err != nil {
+			return "", nil, err
+		}
+		return cookieFile, func() { _ = os.Remove(cookieFile) }, nil
+	}
+
+	if envPath := os.Getenv("YTDLP_COOKIES_PATH"); envPath != "" && fileExists(envPath) {
+		return envPath, func() {}, nil
+	}
+	if fileExists("/app/cookies.txt") {
+		return "/app/cookies.txt", func() {}, nil
+	}
+	if fileExists("/tmp/cookies.txt") {
+		return "/tmp/cookies.txt", func() {}, nil
+	}
+
+	return "", func() {}, nil
+}
+
+// buildBaseArgs construeix els arguments bàsics recomanats per a robustesa en servidors i xarxes.
+func (s *service) buildBaseArgs() []string {
+	return []string{
+		"-4", // Força IPv4 per evitar errors ENETUNREACH / Errno 101 en contenidors sense sortida IPv6
+		"--no-playlist",
+		"--no-warnings",
+		"--no-call-home",
+		"--user-agent", defaultUserAgent,
+		"--extractor-args", "youtube:player_client=ios,android,mweb",
+	}
+}
+
 // rawYtDlpJSON estructura per deserialitzar la sortida de yt-dlp --dump-single-json.
 type rawYtDlpJSON struct {
 	ID          string  `json:"id"`
@@ -121,8 +159,8 @@ type rawYtDlpJSON struct {
 	Description string  `json:"description"`
 }
 
-func (s *service) GetVideoInfo(ctx context.Context, rawURL string) (*VideoInfoResponse, error) {
-	parsedURL, err := ValidateURL(rawURL)
+func (s *service) GetVideoInfo(ctx context.Context, req VideoInfoRequest) (*VideoInfoResponse, error) {
+	parsedURL, err := ValidateURL(req.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -131,14 +169,23 @@ func (s *service) GetVideoInfo(ctx context.Context, rawURL string) (*VideoInfoRe
 	infoCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	args := []string{
+	cookiePath, cookieCleanup, err := s.prepareCookies(req.Cookies)
+	if err != nil {
+		return nil, fmt.Errorf("error preparant cookies: %w", err)
+	}
+	defer cookieCleanup()
+
+	args := s.buildBaseArgs()
+	if cookiePath != "" {
+		args = append(args, "--cookies", cookiePath)
+	}
+
+	args = append(args,
 		"--dump-single-json",
-		"--no-playlist",
-		"--no-warnings",
-		"--no-call-home",
+		"--playlist-items", "1",
 		"--max-downloads", "1",
 		parsedURL.String(),
-	}
+	)
 
 	out, err := s.executor.Run(infoCtx, "yt-dlp", args...)
 	if err != nil {
@@ -173,8 +220,8 @@ func (s *service) GetVideoInfo(ctx context.Context, rawURL string) (*VideoInfoRe
 	}, nil
 }
 
-func (s *service) DownloadVideo(ctx context.Context, rawURL string) (string, string, func(), error) {
-	parsedURL, err := ValidateURL(rawURL)
+func (s *service) DownloadVideo(ctx context.Context, req DownloadRequest) (string, string, func(), error) {
+	parsedURL, err := ValidateURL(req.URL)
 	if err != nil {
 		return "", "", nil, err
 	}
@@ -186,20 +233,29 @@ func (s *service) DownloadVideo(ctx context.Context, rawURL string) (string, str
 	// Assegura directori temporal
 	_ = os.MkdirAll(s.tempDir, 0755)
 
+	cookiePath, cookieCleanup, err := s.prepareCookies(req.Cookies)
+	if err != nil {
+		return "", "", nil, fmt.Errorf("error preparant cookies: %w", err)
+	}
+	defer cookieCleanup()
+
 	downloadID := uuid.New().String()
 	outputPathPattern := filepath.Join(s.tempDir, fmt.Sprintf("%s.%%(ext)s", downloadID))
 
-	args := []string{
-		"--no-playlist",
-		"--no-warnings",
-		"--no-call-home",
+	args := s.buildBaseArgs()
+	if cookiePath != "" {
+		args = append(args, "--cookies", cookiePath)
+	}
+
+	args = append(args,
+		"--playlist-items", "1",
 		"-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
 		"--merge-output-format", "mp4",
 		"--print", "after_move:filepath",
 		"--print", "title",
 		"-o", outputPathPattern,
 		parsedURL.String(),
-	}
+	)
 
 	out, err := s.executor.Run(dlCtx, "yt-dlp", args...)
 	if err != nil {
@@ -209,7 +265,7 @@ func (s *service) DownloadVideo(ctx context.Context, rawURL string) (string, str
 		return "", "", nil, fmt.Errorf("%w: %v", ErrDownloadFailed, err)
 	}
 
-	// Parsejar sortida: primer línia és el filepath, segona és el títol
+	// Parsejar sortida: primera línia és el filepath, segona és el títol
 	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
 	var generatedFile string
 	var title string

@@ -76,10 +76,59 @@
           />
         </div>
 
+        <!-- Botó d'Opcions Avançades (Cookies) -->
+        <div class="advanced-toggle-bar">
+          <button
+            type="button"
+            class="btn-toggle-advanced"
+            @click="showAdvanced = !showAdvanced"
+            data-testid="btn-toggle-advanced"
+          >
+            <i :class="showAdvanced ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
+            <span>{{ showAdvanced ? 'Amagar opcions avançades' : 'Opcions avançades (Cookies per a contingut privat o verificació)' }}</span>
+            <span v-if="cookiesInput.trim()" class="cookies-active-badge">Actiu</span>
+          </button>
+        </div>
+
+        <!-- Panell desplegable de cookies -->
+        <div v-if="showAdvanced" class="advanced-panel" data-testid="advanced-panel">
+          <div class="advanced-field">
+            <div class="field-header">
+              <label for="cookies-textarea" class="field-title">
+                <i class="pi pi-key"></i> Cookies de sessió (Format Netscape / cookies.txt)
+              </label>
+              <button
+                v-if="cookiesInput"
+                type="button"
+                class="clear-cookies-btn"
+                @click="cookiesInput = ''"
+              >
+                Esborrar cookies
+              </button>
+            </div>
+            <p class="field-hint">
+              Enganxa aquí les teves cookies de YouTube o LinkedIn si el vídeo requereix sessió iniciada o si la xarxa sol·licita <em>"Sign in to confirm you’re not a bot"</em>. Pots obtenir-les fàcilment amb l'extensió de navegador gratuïta <strong>Get cookies.txt LOCALLY</strong>.
+            </p>
+            <Textarea
+              id="cookies-textarea"
+              v-model="cookiesInput"
+              rows="4"
+              class="cookies-textarea"
+              placeholder="# Netscape HTTP Cookie File&#10;.youtube.com&#9;TRUE&#9;/&#9;TRUE&#9;0&#9;VISITOR_INFO1_LIVE&#9;..."
+              data-testid="input-cookies"
+            />
+          </div>
+        </div>
+
         <!-- Missatge d'error si n'hi ha -->
         <div v-if="errorMessage" class="error-banner" data-testid="downloader-error-message">
           <i class="pi pi-exclamation-circle error-icon"></i>
-          <span>{{ errorMessage }}</span>
+          <div class="error-content">
+            <span class="error-text">{{ errorMessage }}</span>
+            <span v-if="showCookieSuggestion" class="error-suggestion">
+              💡 <strong>Suggeriment:</strong> Obre les <em>Opcions avançades</em> i enganxa les teves cookies per descarregar aquest vídeo.
+            </span>
+          </div>
         </div>
 
         <!-- Badges de xarxes socials compatibles -->
@@ -184,6 +233,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -194,6 +244,8 @@ const { t } = useI18n()
 const toast = useToast()
 
 const videoUrl = ref('')
+const cookiesInput = ref('')
+const showAdvanced = ref(false)
 const isInspecting = ref(false)
 const isDownloading = ref(false)
 const videoInfo = ref<VideoInfo | null>(null)
@@ -208,6 +260,18 @@ const isValidUrl = computed(() => {
   } catch {
     return false
   }
+})
+
+const showCookieSuggestion = computed(() => {
+  const msg = errorMessage.value.toLowerCase()
+  return (
+    msg.includes('bot') ||
+    msg.includes('cookies') ||
+    msg.includes('login') ||
+    msg.includes('sign in') ||
+    msg.includes('private') ||
+    msg.includes('autenticació')
+  )
 })
 
 const formattedDuration = computed(() => {
@@ -249,16 +313,19 @@ async function handleInspect() {
   videoInfo.value = null
 
   try {
-    const info = await fetchVideoInfo(videoUrl.value.trim())
+    const info = await fetchVideoInfo(videoUrl.value.trim(), cookiesInput.value)
     videoInfo.value = info
   } catch (err: any) {
     const msg = err?.response?.data?.message || err?.message || t('downloader.downloadError')
     errorMessage.value = msg
+    if (msg.toLowerCase().includes('bot') || msg.toLowerCase().includes('cookies') || msg.toLowerCase().includes('sign in')) {
+      showAdvanced.value = true
+    }
     toast.add({
       severity: 'error',
       summary: 'Error',
       detail: msg,
-      life: 5000
+      life: 6000
     })
   } finally {
     isInspecting.value = false
@@ -272,7 +339,7 @@ async function handleDownload() {
   isDownloading.value = true
 
   try {
-    const { blob, filename } = await downloadVideoFile(videoUrl.value.trim())
+    const { blob, filename } = await downloadVideoFile(videoUrl.value.trim(), cookiesInput.value)
 
     // Disparar descàrrega al navegador
     const blobUrl = window.URL.createObjectURL(blob)
@@ -293,11 +360,14 @@ async function handleDownload() {
   } catch (err: any) {
     const msg = err?.response?.data?.message || err?.message || t('downloader.downloadError')
     errorMessage.value = msg
+    if (msg.toLowerCase().includes('bot') || msg.toLowerCase().includes('cookies') || msg.toLowerCase().includes('sign in')) {
+      showAdvanced.value = true
+    }
     toast.add({
       severity: 'error',
       summary: 'Error de descàrrega',
       detail: msg,
-      life: 5000
+      life: 6000
     })
   } finally {
     isDownloading.value = false
@@ -442,22 +512,116 @@ function truncate(str: string, maxLen: number): string {
   min-width: 150px;
 }
 
+/* Opcions Avançades */
+.advanced-toggle-bar {
+  margin-top: 1rem;
+}
+
+.btn-toggle-advanced {
+  background: transparent;
+  border: none;
+  color: var(--text-color-secondary, #64748b);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.btn-toggle-advanced:hover {
+  color: var(--primary-color, #3b82f6);
+  background: var(--surface-hover, #f8fafc);
+}
+
+.cookies-active-badge {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.advanced-panel {
+  margin-top: 0.75rem;
+  padding: 1.25rem;
+  background: var(--surface-ground, #f8fafc);
+  border: 1px solid var(--surface-border, #e2e8f0);
+  border-radius: 8px;
+}
+
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.field-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color, #334155);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--text-color-secondary, #64748b);
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.clear-cookies-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.75rem;
+  color: #ef4444;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.cookies-textarea {
+  width: 100%;
+  font-family: monospace;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}
+
 /* Error Banner */
 .error-banner {
   margin-top: 1rem;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: #b91c1c;
   border-radius: 8px;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: flex-start;
+  gap: 0.75rem;
   font-size: 0.9rem;
 }
 
+.error-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .error-icon {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.error-suggestion {
+  font-size: 0.85rem;
+  color: #991b1b;
 }
 
 /* Xarxes Suportades */
