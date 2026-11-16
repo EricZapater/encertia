@@ -32,6 +32,26 @@ type CommandExecutor interface {
 	Run(ctx context.Context, name string, args ...string) ([]byte, error)
 }
 
+func cleanStderr(raw string) string {
+	var lines []string
+	for _, line := range strings.Split(raw, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		if strings.HasPrefix(trimmed, "Deprecated Feature:") ||
+			strings.HasPrefix(trimmed, "Please remove them from your command") ||
+			strings.HasPrefix(trimmed, "See https://github.com/yt-dlp") {
+			continue
+		}
+		if strings.HasPrefix(trimmed, "WARNING:") {
+			continue
+		}
+		lines = append(lines, trimmed)
+	}
+	return strings.Join(lines, "\n")
+}
+
 // defaultExecutor executa ordres reals del sistema operatiu mitjançant exec.CommandContext.
 type defaultExecutor struct{}
 
@@ -43,6 +63,16 @@ func (e *defaultExecutor) Run(ctx context.Context, name string, args ...string) 
 
 	err := cmd.Run()
 	if err != nil {
+		var exitErr *exec.ExitError
+		// Codi de sortida 101 a yt-dlp significa MaxDownloadsReached. Si stdout té contingut, es considera èxit.
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == 101 && stdout.Len() > 0 {
+			return stdout.Bytes(), nil
+		}
+
+		cleaned := cleanStderr(stderr.String())
+		if cleaned != "" {
+			return nil, fmt.Errorf("%w: %s", err, cleaned)
+		}
 		stderrStr := strings.TrimSpace(stderr.String())
 		if stderrStr != "" {
 			return nil, fmt.Errorf("%w: %s", err, stderrStr)
@@ -136,15 +166,36 @@ func (s *service) prepareCookies(userCookies string) (string, func(), error) {
 	return "", func() {}, nil
 }
 
+// sanitizeVideoURL neteja paràmetres sobrants (com ara llistes de reproducció en URLs de vídeos únics de YouTube) per evitar múltiples peticions innecessàries.
+func sanitizeVideoURL(u *url.URL) string {
+	q := u.Query()
+	host := strings.ToLower(u.Hostname())
+	if (strings.Contains(host, "youtube.com") || strings.Contains(host, "youtu.be")) && q.Get("v") != "" {
+		if q.Has("list") {
+			q.Del("list")
+		}
+		if q.Has("index") {
+			q.Del("index")
+		}
+		u.RawQuery = q.Encode()
+	}
+	return u.String()
+}
+
 // buildBaseArgs construeix els arguments bàsics recomanats per a robustesa en servidors i xarxes.
 func (s *service) buildBaseArgs() []string {
+	cacheDir := filepath.Join(s.tempDir, ".cache")
+	_ = os.MkdirAll(cacheDir, 0755)
+
 	return []string{
 		"-4", // Força IPv4 per evitar errors ENETUNREACH / Errno 101 en contenidors sense sortida IPv6
 		"--no-playlist",
 		"--no-warnings",
-		"--no-call-home",
 		"--user-agent", defaultUserAgent,
-		"--extractor-args", "youtube:player_client=ios,android,mweb",
+		"--js-runtimes", "node",
+		"--remote-components", "ejs:github",
+		"--cache-dir", cacheDir,
+		"--extractor-args", "youtube:player_client=mweb,web,android",
 	}
 }
 
@@ -165,6 +216,8 @@ func (s *service) GetVideoInfo(ctx context.Context, req VideoInfoRequest) (*Vide
 		return nil, err
 	}
 
+	targetURL := sanitizeVideoURL(parsedURL)
+
 	// Timeout de seguretat de 30 segons per obtenir la informació
 	infoCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -183,8 +236,7 @@ func (s *service) GetVideoInfo(ctx context.Context, req VideoInfoRequest) (*Vide
 	args = append(args,
 		"--dump-single-json",
 		"--playlist-items", "1",
-		"--max-downloads", "1",
-		parsedURL.String(),
+		targetURL,
 	)
 
 	out, err := s.executor.Run(infoCtx, "yt-dlp", args...)
@@ -226,6 +278,8 @@ func (s *service) DownloadVideo(ctx context.Context, req DownloadRequest) (strin
 		return "", "", nil, err
 	}
 
+	targetURL := sanitizeVideoURL(parsedURL)
+
 	// Timeout de 10 minuts per a la descàrrega
 	dlCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
@@ -254,7 +308,7 @@ func (s *service) DownloadVideo(ctx context.Context, req DownloadRequest) (strin
 		"--print", "after_move:filepath",
 		"--print", "title",
 		"-o", outputPathPattern,
-		parsedURL.String(),
+		targetURL,
 	)
 
 	out, err := s.executor.Run(dlCtx, "yt-dlp", args...)

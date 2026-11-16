@@ -57,8 +57,8 @@ RUN apk add --no-cache ca-certificates tzdata wget python3 nodejs ffmpeg py3-pip
     && pip install --no-cache-dir --upgrade --break-system-packages "yt-dlp[default]" \
     && addgroup -g 10001 -S appgroup \
     && adduser -u 10001 -S appuser -G appgroup \
-    && mkdir -p /tmp/encertia_downloads \
-    && chown -R appuser:appgroup /tmp/encertia_downloads
+    && mkdir -p /tmp/encertia_downloads /home/appuser/.cache/yt-dlp \
+    && chown -R appuser:appgroup /tmp/encertia_downloads /home/appuser
 
 WORKDIR /app
 
@@ -74,6 +74,8 @@ USER appuser:appgroup
 # Environment defaults
 ENV PORT=8080 \
     GIN_MODE=release \
+    HOME=/home/appuser \
+    XDG_CACHE_HOME=/home/appuser/.cache \
     AGENT_DOWNLOADS_DIR=/app/downloads
 
 # Expose HTTP port

@@ -5,6 +5,21 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.10] - 2026-11-16
+### Fixed
+- **Descarregador de Vídeos (`backend/`, `frontend/`)**:
+  - **LinkedIn i descàrregues generals (`exit status 101` / `MaxDownloadsReached`)**:
+    - Eliminat el flag `--max-downloads 1` de `GetVideoInfo` que forçava `yt-dlp` a sortir amb codi `101` en assolir el límit.
+    - Afegit control a l'executor de comandes per tractar el codi `101` com a èxit si s'ha generat sortida a `stdout`.
+    - Eliminat el paràmetre obsolet `--no-call-home` que generava avisos de deprecació a `stderr`.
+    - Afegit filtre `cleanStderr` per no bloquejar ni mostrar avisos benignes com a errors crítics.
+  - **YouTube Bot Check ("Sign in to confirm you’re not a bot")**:
+    - Activats els flags oficials `--js-runtimes node` i `--remote-components ejs:github` per permetre la descàrrega i execució de scripts de repte de signatures / PO Token de YouTube.
+    - Canviat l'ordre de clients d'extractor a `youtube:player_client=mweb,web,android` per utilitzar la versió Web Mòbil (m.youtube.com) en primer lloc, molt menys restrictiva per a adreces IP de centres de dades.
+    - Neteja automàtica de paràmetres de llista/mix (`list=`, `index=`) a les URLs de vídeos de YouTube per evitar que es descarreguin metadades de tota la llista en cadena.
+    - Configurat directori de cau persistent `/home/appuser/.cache/yt-dlp` amb permisos d'escriptura al contenidor Docker (`HOME=/home/appuser`, `XDG_CACHE_HOME=/home/appuser/.cache`).
+    - Millorat el suggeriment de cookies a la interfície (`VideoDownloaderView.vue`) amb botó d'obertura directa de les opcions avançades.
+
 ## [1.8.9] - 2026-11-16
 ### Fixed
 - **Millores i Resolució d'Errors al Descarregador de Vídeos (`backend/`, `frontend/`)**:

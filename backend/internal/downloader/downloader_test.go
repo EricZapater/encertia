@@ -132,14 +132,34 @@ func TestGetVideoInfo(t *testing.T) {
 				}
 				// Comprova que conté -4 per forçar IPv4
 				hasIPv4 := false
-				for _, arg := range args {
+				hasNoCallHome := false
+				hasMaxDownloads := false
+				hasJSRuntimes := false
+				for i, arg := range args {
 					if arg == "-4" {
 						hasIPv4 = true
-						break
+					}
+					if arg == "--no-call-home" {
+						hasNoCallHome = true
+					}
+					if arg == "--max-downloads" {
+						hasMaxDownloads = true
+					}
+					if arg == "--js-runtimes" && i+1 < len(args) && args[i+1] == "node" {
+						hasJSRuntimes = true
 					}
 				}
 				if !hasIPv4 {
 					t.Errorf("s'esperava el flag -4 per forçar IPv4")
+				}
+				if hasNoCallHome {
+					t.Errorf("--no-call-home està obsolet i no hauria de ser present")
+				}
+				if hasMaxDownloads {
+					t.Errorf("--max-downloads causa exit code 101 i no hauria de ser present a GetVideoInfo")
+				}
+				if !hasJSRuntimes {
+					t.Errorf("s'esperava --js-runtimes node per a resoldre reptes de YouTube")
 				}
 				return []byte(mockJSON), nil
 			},
@@ -358,4 +378,40 @@ func TestDownloaderHandler_Permissions(t *testing.T) {
 			t.Errorf("esperat status 401, obtingut: %d", w.Code)
 		}
 	})
+}
+
+func TestSanitizeVideoURL(t *testing.T) {
+	parsed1, _ := ValidateURL("https://www.youtube.com/watch?v=jVOluNDjc5s&list=RDjVOluNDjc5s&index=1")
+	sanitized1 := sanitizeVideoURL(parsed1)
+	if strings.Contains(sanitized1, "list=") || strings.Contains(sanitized1, "index=") {
+		t.Errorf("s'esperava eliminar list i index de la URL de YouTube: %s", sanitized1)
+	}
+	if !strings.Contains(sanitized1, "v=jVOluNDjc5s") {
+		t.Errorf("s'hauria de mantenir el paràmetre v: %s", sanitized1)
+	}
+
+	// Altres plataformes no s'han de modificar
+	parsed2, _ := ValidateURL("https://www.linkedin.com/posts/activity-123456?list=sample")
+	sanitized2 := sanitizeVideoURL(parsed2)
+	if !strings.Contains(sanitized2, "list=sample") {
+		t.Errorf("no s'haurien de tocar paràmetres de LinkedIn: %s", sanitized2)
+	}
+}
+
+func TestCleanStderr(t *testing.T) {
+	raw := "Deprecated Feature: The following options have been deprecated: --no-call-home\n" +
+		"Please remove them from your command/configuration to avoid future errors.\n" +
+		"WARNING: [youtube] Some warning\n" +
+		"ERROR: [youtube] video unavailable\n"
+
+	cleaned := cleanStderr(raw)
+	if strings.Contains(cleaned, "Deprecated Feature") {
+		t.Errorf("cleanStderr hauria de filtrar avisos de deprecació")
+	}
+	if strings.Contains(cleaned, "WARNING:") {
+		t.Errorf("cleanStderr hauria de filtrar warnings comuns")
+	}
+	if !strings.Contains(cleaned, "ERROR: [youtube] video unavailable") {
+		t.Errorf("cleanStderr hauria de conservar l'error real, obtingut: %s", cleaned)
+	}
 }

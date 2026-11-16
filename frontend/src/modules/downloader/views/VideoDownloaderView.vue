@@ -126,7 +126,16 @@
           <div class="error-content">
             <span class="error-text">{{ errorMessage }}</span>
             <span v-if="showCookieSuggestion" class="error-suggestion">
-              💡 <strong>Suggeriment:</strong> Obre les <em>Opcions avançades</em> i enganxa les teves cookies per descarregar aquest vídeo.
+              💡 <strong>Suggeriment:</strong>
+              <button
+                type="button"
+                class="btn-link-suggestion"
+                @click="showAdvanced = true"
+                data-testid="btn-open-advanced-suggestion"
+              >
+                Obre les <em>Opcions avançades</em>
+              </button>
+              i enganxa les teves cookies per descarregar aquest vídeo.
             </span>
           </div>
         </div>
@@ -622,6 +631,23 @@ function truncate(str: string, maxLen: number): string {
 .error-suggestion {
   font-size: 0.85rem;
   color: #991b1b;
+}
+
+.btn-link-suggestion {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: #b91c1c;
+  text-decoration: underline;
+  cursor: pointer;
+  display: inline;
+  font-weight: 600;
+}
+
+.btn-link-suggestion:hover {
+  filter: brightness(0.8);
 }
 
 /* Xarxes Suportades */
