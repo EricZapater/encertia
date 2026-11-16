@@ -5,6 +5,23 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.8] - 2026-11-16
+### Added
+- **Mini-eina de Descarregador de Vídeos de Xarxes Socials (`backend/`, `frontend/`)**:
+  - Nova migració de base de dades `000019_add_can_download_videos_to_users` afegint el permís `can_download_videos` a la taula `users` (actiu per defecte per a administradors).
+  - Gestió granular del permís de descàrrega de vídeos des del formulari d'usuaris (`UserFormModal.vue`) i detall d'usuari (`UserDetailView.vue`), assignable per administradors a usuaris específics.
+  - Nou servei backend de descàrrega (`internal/downloader/`) integrat amb `yt-dlp` i `ffmpeg`:
+    - Endpoint `POST /api/downloader/info` per inspeccionar metadades (títol, miniatura, durada, plataforma, autor).
+    - Endpoint `POST /api/downloader/download` per transmetre el fitxer MP4 amb màxima qualitat i neteja automàtica dels fitxers temporals.
+    - Protecció anti-SSRF amb bloqueig d'adreces privades i locals.
+    - Middleware de verificació de permisos d'accés (administradors o usuaris amb `can_download_videos: true`).
+  - Nova interfície `VideoDownloaderView.vue` a `/tools/video-downloader`:
+    - Suport per a YouTube, Instagram Reels, LinkedIn, TikTok, Twitter/X i Facebook.
+    - Previsualització amb targeta de detall del vídeo i botó de descàrrega local MP4.
+    - Enllaç directe a la barra de navegació i al menú desplegable d'usuari (`AppNavbar.vue`) per a usuaris autoritzats.
+    - Protecció per navigation guard a `router/index.ts`.
+  - Actualitzat `backend/Dockerfile` per instal·lar `yt-dlp`, `ffmpeg` i dependències a la imatge de producció.
+
 ## [1.8.7] - 2026-11-11
 ### Added
 - **Registre automàtic de desplegaments a RawCraft Monitor (`.github/workflows/deploy.yml`)**:

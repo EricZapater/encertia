@@ -96,6 +96,17 @@
           <i class="pi pi-desktop"></i>
           <span>{{ $t('nav.devices') }}</span>
         </router-link>
+
+        <router-link
+          v-if="canAccessVideoDownloader"
+          to="/tools/video-downloader"
+          class="nav-link"
+          :class="{ active: isRouteActive('/tools/video-downloader') }"
+          data-testid="nav-link-video-downloader"
+        >
+          <i class="pi pi-download"></i>
+          <span>{{ $t('nav.videoDownloader') }}</span>
+        </router-link>
       </nav>
 
       <!-- Right User Controls (Desplegable) -->
@@ -142,6 +153,18 @@
             >
               <i class="pi pi-user dropdown-item-icon"></i>
               <span>{{ $t('nav.profile') }}</span>
+            </button>
+
+            <!-- Enllaç al Descarregador de Vídeos -->
+            <button
+              v-if="canAccessVideoDownloader"
+              type="button"
+              class="dropdown-item"
+              @click="goToVideoDownloader"
+              data-testid="dropdown-video-downloader-btn"
+            >
+              <i class="pi pi-download dropdown-item-icon"></i>
+              <span>{{ $t('nav.videoDownloader') }}</span>
             </button>
 
             <div class="dropdown-divider"></div>
@@ -237,6 +260,11 @@ function goToProfile() {
   router.push('/profile')
 }
 
+function goToVideoDownloader() {
+  closeDropdown()
+  router.push('/tools/video-downloader')
+}
+
 const supportedLangs: { code: SupportedLanguage; label: string }[] = [
   { code: 'ca', label: 'CA' },
   { code: 'es', label: 'ES' },
@@ -248,6 +276,7 @@ function changeLang(langCode: SupportedLanguage) {
 }
 
 const canAccessTeacherFeatures = computed(() => authStore.isAdmin || authStore.isTeacher)
+const canAccessVideoDownloader = computed(() => authStore.isAdmin || !!authStore.currentUser?.canDownloadVideos)
 
 const roleLabel = computed(() => {
   if (authStore.isAdmin) return t('nav.roles.admin')

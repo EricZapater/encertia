@@ -458,6 +458,10 @@ components:
         isActive:
           type: boolean
           example: true
+        canDownloadVideos:
+          type: boolean
+          description: Permís especial per utilitzar l'eina de descàrrega de vídeos.
+          example: false
         createdAt:
           type: string
           format: date-time
@@ -500,6 +504,10 @@ components:
           enum: [ca, es, en]
           default: ca
           example: "ca"
+        canDownloadVideos:
+          type: boolean
+          description: Permís especial per utilitzar l'eina de descàrrega de vídeos.
+          example: false
 
     UpdateUserRequest:
       type: object
@@ -524,6 +532,10 @@ components:
           example: "es"
         isActive:
           type: boolean
+          example: true
+        canDownloadVideos:
+          type: boolean
+          description: Permís especial per utilitzar l'eina de descàrrega de vídeos.
           example: true
 
     ResetPasswordRequest:

@@ -152,6 +152,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
+    path: '/tools/video-downloader',
+    name: 'video-downloader',
+    component: () => import('@/modules/downloader/views/VideoDownloaderView.vue'),
+    meta: { requiresAuth: true, requiresVideoDownloader: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
   }
@@ -190,6 +196,16 @@ router.beforeEach(async (to, _from, next) => {
   if (to.meta.roles && Array.isArray(to.meta.roles)) {
     const userRole = authStore.currentUser?.role
     if (!userRole || !to.meta.roles.includes(userRole)) {
+      next({ name: 'profile' })
+      return
+    }
+  }
+
+  // Comprovació d'accés al descarregador de vídeos (admin o permís explícit)
+  if (to.meta.requiresVideoDownloader) {
+    const user = authStore.currentUser
+    const hasAccess = user?.role === 'admin' || !!user?.canDownloadVideos
+    if (!hasAccess) {
       next({ name: 'profile' })
       return
     }

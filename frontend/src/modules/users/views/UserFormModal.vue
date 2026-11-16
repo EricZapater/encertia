@@ -54,13 +54,15 @@ const form = reactive<{
   password: string
   role: UserRole
   isActive: boolean
+  canDownloadVideos: boolean
 }>({
   firstName: '',
   lastName: '',
   email: '',
   password: '',
   role: 'student',
-  isActive: true
+  isActive: true,
+  canDownloadVideos: false
 })
 
 const errorMessage = ref<string | null>(null)
@@ -78,6 +80,7 @@ watch(
       form.password = ''
       form.role = newUser.role
       form.isActive = newUser.isActive ?? true
+      form.canDownloadVideos = newUser.canDownloadVideos ?? (newUser.role === 'admin')
     } else {
       // Mode Creació
       form.firstName = ''
@@ -86,6 +89,7 @@ watch(
       form.password = ''
       form.role = 'student'
       form.isActive = true
+      form.canDownloadVideos = false
     }
   },
   { immediate: true }
@@ -138,10 +142,11 @@ async function handleSubmit() {
         email: form.email.trim()
       }
 
-      // Només admin pot enviar canvis de role o isActive
+      // Només admin pot enviar canvis de role, isActive o canDownloadVideos
       if (isAdmin.value) {
         updatePayload.role = form.role
         updatePayload.isActive = form.isActive
+        updatePayload.canDownloadVideos = form.role === 'admin' ? true : form.canDownloadVideos
       }
 
       resultUser = await userStore.updateUser(props.user.id, updatePayload)
@@ -151,7 +156,8 @@ async function handleSubmit() {
         lastName: form.lastName.trim(),
         email: form.email.trim(),
         password: form.password,
-        role: isAdmin.value ? form.role : 'student'
+        role: isAdmin.value ? form.role : 'student',
+        canDownloadVideos: isAdmin.value ? (form.role === 'admin' ? true : form.canDownloadVideos) : false
       }
 
       resultUser = await userStore.createUser(createPayload)
@@ -278,6 +284,26 @@ async function handleSubmit() {
         </div>
         <small v-if="!isAdmin" class="field-hint">
           Només un administrador pot activar o desactivar comptes d'usuaris.
+        </small>
+      </div>
+
+      <!-- Permís de descàrrega de vídeos (configurable només per admin) -->
+      <div v-if="isAdmin" class="form-field status-field">
+        <div class="status-toggle-wrapper">
+          <div>
+            <label class="status-label">Descarregador de Vídeos</label>
+            <p class="status-desc">
+              {{ (form.canDownloadVideos || form.role === 'admin') ? 'Accés habilitat per descarregar vídeos de xarxes socials.' : 'Accés denegat al descarregador de vídeos.' }}
+            </p>
+          </div>
+          <ToggleSwitch
+            v-model="form.canDownloadVideos"
+            :disabled="form.role === 'admin' || isSubmitting"
+            data-testid="switch-can-download-videos"
+          />
+        </div>
+        <small v-if="form.role === 'admin'" class="field-hint">
+          Els administradors tenen sempre aquest permís habilitat automàticament.
         </small>
       </div>
 

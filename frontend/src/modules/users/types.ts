@@ -20,6 +20,7 @@ export interface User {
   role: UserRole
   language?: SupportedLanguage
   isActive: boolean
+  canDownloadVideos?: boolean
   createdAt: string
   updatedAt?: string
 }
@@ -32,6 +33,7 @@ export interface CreateUserRequest {
   lastName: string
   role: UserRole
   language?: SupportedLanguage
+  canDownloadVideos?: boolean
 }
 
 /** Petició de modificació d'un usuari */
@@ -42,6 +44,7 @@ export interface UpdateUserRequest {
   role?: UserRole
   language?: SupportedLanguage
   isActive?: boolean
+  canDownloadVideos?: boolean
 }
 
 /** Petició de reseteig administratiu de contrasenya */

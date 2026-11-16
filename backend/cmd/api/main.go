@@ -10,6 +10,7 @@ import (
 	"github.com/encertia/backend/internal/course"
 	"github.com/encertia/backend/internal/db"
 	"github.com/encertia/backend/internal/device"
+	"github.com/encertia/backend/internal/downloader"
 	"github.com/encertia/backend/internal/evaluation"
 	"github.com/encertia/backend/internal/group"
 	"github.com/encertia/backend/internal/match"
@@ -139,6 +140,10 @@ func main() {
 	metricsSvc := metrics.NewService(metricsRepo, dbConn)
 	metricsHandler := metrics.NewHandler(metricsSvc)
 
+	// Downloader Domain
+	downloaderSvc := downloader.NewService()
+	downloaderHandler := downloader.NewHandler(downloaderSvc, userRepo)
+
 	// Middleware
 	authMiddleware := shared.AuthMiddleware(authHandler.TokenValidatorAdapter())
 	metricsMiddleware := shared.MetricsMiddleware(metricsHandler.RecorderAdapter())
@@ -177,6 +182,7 @@ func main() {
 	groupHandler.RegisterRoutes(rootGroup, authMiddleware)
 	metricsHandler.RegisterRoutes(rootGroup, authMiddleware)
 	deviceHandler.RegisterRoutes(rootGroup, authMiddleware)
+	downloaderHandler.RegisterRoutes(rootGroup, authMiddleware)
 
 	// Also support /api prefix for proxy convenience
 	apiGroup := router.Group("/api")
@@ -190,6 +196,7 @@ func main() {
 	groupHandler.RegisterRoutes(apiGroup, authMiddleware)
 	metricsHandler.RegisterRoutes(apiGroup, authMiddleware)
 	deviceHandler.RegisterRoutes(apiGroup, authMiddleware)
+	downloaderHandler.RegisterRoutes(apiGroup, authMiddleware)
 
 	// Also support /api/v1 prefix for OpenAPI specification compliance
 	apiV1Group := router.Group("/api/v1")
@@ -203,6 +210,7 @@ func main() {
 	groupHandler.RegisterRoutes(apiV1Group, authMiddleware)
 	metricsHandler.RegisterRoutes(apiV1Group, authMiddleware)
 	deviceHandler.RegisterRoutes(apiV1Group, authMiddleware)
+	downloaderHandler.RegisterRoutes(apiV1Group, authMiddleware)
 
 	// 6. Start HTTP Server
 	addr := ":" + serverPort

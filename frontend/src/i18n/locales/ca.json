@@ -9,6 +9,7 @@
     "manual": "Manual",
     "metrics": "Auditoria",
     "devices": "Dispositius",
+    "videoDownloader": "Descarregador de Vídeos",
     "profile": "El meu perfil",
     "logout": "Tancar Sessió",
     "roles": {
@@ -575,5 +576,23 @@
     },
     "revokeSuccess": "Dispositiu revocat satisfactòriament.",
     "revokeError": "Error en revocar el dispositiu."
+  },
+  "downloader": {
+    "title": "Descarregador de Vídeos",
+    "subtitle": "Descarrega vídeos directament de YouTube, Instagram, LinkedIn i altres xarxes socials en format MP4 a la teva màquina.",
+    "urlPlaceholder": "Enganxa l'enllaç del vídeo aquí (YouTube, Instagram, LinkedIn...)",
+    "inspectBtn": "Inspeccionar Vídeo",
+    "inspecting": "Inspeccionant...",
+    "downloadBtn": "Descarregar MP4",
+    "downloading": "Descarregant fitxer...",
+    "invalidUrl": "Si us plau, introdueix una URL vàlida.",
+    "duration": "Durada",
+    "platform": "Plataforma",
+    "author": "Autor / Canal",
+    "unnamedVideo": "Vídeo sense títol",
+    "downloadSuccess": "Vídeo descarregat correctament a la teva màquina.",
+    "downloadError": "No s'ha pogut descarregar el vídeo. Comprova l'enllaç o que el vídeo no sigui privat.",
+    "paste": "Enganxar",
+    "clear": "Netejar"
   }
 }

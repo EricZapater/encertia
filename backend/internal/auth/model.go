@@ -23,30 +23,32 @@ func (r UserRole) IsValid() bool {
 
 // User represents the public user entity as defined in OpenAPI.
 type User struct {
-	ID        uuid.UUID  `json:"id"`
-	Email     string     `json:"email"`
-	FirstName string     `json:"firstName"`
-	LastName  string     `json:"lastName"`
-	Role      UserRole   `json:"role"`
-	Language  string     `json:"language"`
-	IsActive  bool       `json:"isActive"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	ID                uuid.UUID  `json:"id"`
+	Email             string     `json:"email"`
+	FirstName         string     `json:"firstName"`
+	LastName          string     `json:"lastName"`
+	Role              UserRole   `json:"role"`
+	Language          string     `json:"language"`
+	IsActive          bool       `json:"isActive"`
+	CanDownloadVideos bool       `json:"canDownloadVideos"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	UpdatedAt         *time.Time `json:"updatedAt,omitempty"`
 }
 
 // UserDB represents the user entity stored in the database.
 type UserDB struct {
-	ID           uuid.UUID  `json:"id"`
-	Email        string     `json:"email"`
-	PasswordHash string     `json:"-"`
-	FirstName    string     `json:"firstName"`
-	LastName     string     `json:"lastName"`
-	Role         UserRole   `json:"role"`
-	Language     string     `json:"language"`
-	IsActive     bool       `json:"isActive"`
-	CreatedAt    time.Time  `json:"createdAt"`
-	UpdatedAt    time.Time  `json:"updatedAt"`
-	DeletedAt    *time.Time `json:"-"`
+	ID                uuid.UUID  `json:"id"`
+	Email             string     `json:"email"`
+	PasswordHash      string     `json:"-"`
+	FirstName         string     `json:"firstName"`
+	LastName          string     `json:"lastName"`
+	Role              UserRole   `json:"role"`
+	Language          string     `json:"language"`
+	IsActive          bool       `json:"isActive"`
+	CanDownloadVideos bool       `json:"canDownloadVideos"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	UpdatedAt         time.Time  `json:"updatedAt"`
+	DeletedAt         *time.Time `json:"-"`
 }
 
 // ToUser converts UserDB to public User model.
@@ -56,15 +58,16 @@ func (u *UserDB) ToUser() User {
 		updatedAt = &u.UpdatedAt
 	}
 	return User{
-		ID:        u.ID,
-		Email:     u.Email,
-		FirstName: u.FirstName,
-		LastName:  u.LastName,
-		Role:      u.Role,
-		Language:  u.Language,
-		IsActive:  u.IsActive,
-		CreatedAt: u.CreatedAt,
-		UpdatedAt: updatedAt,
+		ID:                u.ID,
+		Email:             u.Email,
+		FirstName:         u.FirstName,
+		LastName:          u.LastName,
+		Role:              u.Role,
+		Language:          u.Language,
+		IsActive:          u.IsActive,
+		CanDownloadVideos: u.CanDownloadVideos,
+		CreatedAt:         u.CreatedAt,
+		UpdatedAt:         updatedAt,
 	}
 }
 

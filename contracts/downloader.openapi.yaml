@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: Encertia Video Downloader API
+  description: API per a la descàrrega i inspecció de vídeos des de xarxes socials (YouTube, Instagram, LinkedIn, etc.)
+  version: 1.0.0
+
+paths:
+  /api/downloader/info:
+    post:
+      summary: Obtenir informació d'un vídeo
+      description: Retorna metadades com títol, miniatura, durada i plataforma d'un vídeo a partir de la seva URL.
+      operationId: getVideoInfo
+      tags:
+        - Downloader
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoInfoRequest'
+      responses:
+        '200':
+          description: Informació del vídeo obtinguda amb èxit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoInfoResponse'
+        '400':
+          description: URL invàlida o no suportada
+        '401':
+          description: No autenticat
+        '403':
+          description: No autoritzat (manca de permís can_download_videos)
+        '503':
+          description: Motor de descàrrega no disponible
+
+  /api/downloader/download:
+    post:
+      summary: Descarregar fitxer de vídeo
+      description: Descarrega el vídeo en format MP4 i el transmet com a fitxer adjunt al client.
+      operationId: downloadVideo
+      tags:
+        - Downloader
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DownloadRequest'
+      responses:
+        '200':
+          description: Fitxer de vídeo MP4
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: URL invàlida o error durant la descàrrega
+        '401':
+          description: No autenticat
+        '403':
+          description: No autoritzat
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    VideoInfoRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          example: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+    DownloadRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          example: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+    VideoInfoResponse:
+      type: object
+      required:
+        - id
+        - title
+        - thumbnail
+        - duration
+        - extractor
+      properties:
+        id:
+          type: string
+          example: "dQw4w9WgXcQ"
+        title:
+          type: string
+          example: "Rick Astley - Never Gonna Give You Up"
+        thumbnail:
+          type: string
+          example: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
+        duration:
+          type: integer
+          description: Durada en segons
+          example: 213
+        extractor:
+          type: string
+          description: Plataforma d'origen (youtube, instagram, etc.)
+          example: "youtube"
+        uploader:
+          type: string
+          example: "Rick Astley"
+        description:
+          type: string
+          example: "The official video for..."

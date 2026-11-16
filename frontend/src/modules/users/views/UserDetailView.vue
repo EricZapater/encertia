@@ -126,6 +126,12 @@ onMounted(() => {
                   :value="user.isActive ? 'Actiu' : 'Inactiu'"
                   :severity="user.isActive ? 'success' : 'warn'"
                 />
+                <Tag
+                  v-if="user.canDownloadVideos || user.role === 'admin'"
+                  value="Descarregador Vídeos"
+                  icon="pi pi-download"
+                  severity="help"
+                />
               </div>
             </div>
           </div>
@@ -136,6 +142,13 @@ onMounted(() => {
             <div class="info-item">
               <span class="info-label">Identificador (UUID)</span>
               <span class="info-value font-mono">{{ user.id }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Descarregador de Vídeos</span>
+              <span class="info-value">
+                {{ (user.canDownloadVideos || user.role === 'admin') ? 'Permès' : 'No permès' }}
+              </span>
             </div>
 
             <div class="info-item">

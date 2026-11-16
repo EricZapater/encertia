@@ -173,6 +173,9 @@ components:
           description: Idioma de preferència de l'usuari (ca, es, en).
         isActive:
           type: boolean
+        canDownloadVideos:
+          type: boolean
+          description: Permís especial per utilitzar l'eina de descàrrega de vídeos.
         createdAt:
           type: string
           format: date-time

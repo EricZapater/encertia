@@ -116,7 +116,7 @@ func (r *sqlRepository) ListUsers(ctx context.Context, filter ListUsersFilter) (
 	offset := (page - 1) * limit
 
 	selectSQL := fmt.Sprintf(`
-		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_by, created_at, updated_at, deleted_at
+		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, can_download_videos, created_by, created_at, updated_at, deleted_at
 		FROM users
 		%s
 		ORDER BY created_at DESC
@@ -144,6 +144,7 @@ func (r *sqlRepository) ListUsers(ctx context.Context, filter ListUsersFilter) (
 			&u.Role,
 			&u.Language,
 			&u.IsActive,
+			&u.CanDownloadVideos,
 			&createdBy,
 			&u.CreatedAt,
 			&u.UpdatedAt,
@@ -169,9 +170,9 @@ func (r *sqlRepository) CreateUser(ctx context.Context, user *UserDB) error {
 		user.Language = "ca"
 	}
 	query := `
-		INSERT INTO users (id, email, password_hash, first_name, last_name, role, language, is_active, created_by, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-		RETURNING id, is_active, created_at, updated_at
+		INSERT INTO users (id, email, password_hash, first_name, last_name, role, language, is_active, can_download_videos, created_by, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		RETURNING id, is_active, can_download_videos, created_at, updated_at
 	`
 	if user.ID == uuid.Nil {
 		user.ID = uuid.New()
@@ -191,15 +192,16 @@ func (r *sqlRepository) CreateUser(ctx context.Context, user *UserDB) error {
 		user.Role,
 		user.Language,
 		user.IsActive,
+		user.CanDownloadVideos,
 		user.CreatedBy,
 		user.CreatedAt,
 		user.UpdatedAt,
-	).Scan(&user.ID, &user.IsActive, &user.CreatedAt, &user.UpdatedAt)
+	).Scan(&user.ID, &user.IsActive, &user.CanDownloadVideos, &user.CreatedAt, &user.UpdatedAt)
 }
 
 func (r *sqlRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*UserDB, error) {
 	query := `
-		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_by, created_at, updated_at, deleted_at
+		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, can_download_videos, created_by, created_at, updated_at, deleted_at
 		FROM users
 		WHERE id = $1 AND deleted_at IS NULL
 	`
@@ -214,6 +216,7 @@ func (r *sqlRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*UserDB,
 		&u.Role,
 		&u.Language,
 		&u.IsActive,
+		&u.CanDownloadVideos,
 		&createdBy,
 		&u.CreatedAt,
 		&u.UpdatedAt,
@@ -233,7 +236,7 @@ func (r *sqlRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*UserDB,
 
 func (r *sqlRepository) GetUserByEmail(ctx context.Context, email string) (*UserDB, error) {
 	query := `
-		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, created_by, created_at, updated_at, deleted_at
+		SELECT id, email, password_hash, first_name, last_name, role, language, is_active, can_download_videos, created_by, created_at, updated_at, deleted_at
 		FROM users
 		WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL
 	`
@@ -248,6 +251,7 @@ func (r *sqlRepository) GetUserByEmail(ctx context.Context, email string) (*User
 		&u.Role,
 		&u.Language,
 		&u.IsActive,
+		&u.CanDownloadVideos,
 		&createdBy,
 		&u.CreatedAt,
 		&u.UpdatedAt,
@@ -268,8 +272,8 @@ func (r *sqlRepository) GetUserByEmail(ctx context.Context, email string) (*User
 func (r *sqlRepository) UpdateUser(ctx context.Context, user *UserDB) error {
 	query := `
 		UPDATE users
-		SET email = $1, first_name = $2, last_name = $3, role = $4, language = $5, is_active = $6, updated_at = $7
-		WHERE id = $8 AND deleted_at IS NULL
+		SET email = $1, first_name = $2, last_name = $3, role = $4, language = $5, is_active = $6, can_download_videos = $7, updated_at = $8
+		WHERE id = $9 AND deleted_at IS NULL
 	`
 	now := time.Now().UTC()
 	user.UpdatedAt = now
@@ -283,6 +287,7 @@ func (r *sqlRepository) UpdateUser(ctx context.Context, user *UserDB) error {
 		user.Role,
 		user.Language,
 		user.IsActive,
+		user.CanDownloadVideos,
 		user.UpdatedAt,
 		user.ID,
 	)

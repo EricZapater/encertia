@@ -100,6 +100,7 @@ func RunMigrations(db *sql.DB) error {
 		"migrations/000016_create_authorized_devices.up.sql",
 		"migrations/000017_add_created_by_to_users.up.sql",
 		"migrations/000018_add_payload_and_response_to_audit_logs.up.sql",
+		"migrations/000019_add_can_download_videos_to_users.up.sql",
 	}
 
 	for _, file := range migrationFiles {

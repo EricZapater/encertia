@@ -17,6 +17,7 @@ export interface User {
   role: UserRole
   language?: SupportedLanguage
   isActive?: boolean
+  canDownloadVideos?: boolean
   createdAt: string
   updatedAt?: string
 }

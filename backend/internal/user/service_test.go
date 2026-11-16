@@ -826,3 +826,77 @@ func TestUser_LanguageOptionsAndUpdates(t *testing.T) {
 		t.Errorf("expected 400 when updating invalid language, got %v", appErrInvalidUpd)
 	}
 }
+
+func TestCanDownloadVideos_Permissions(t *testing.T) {
+	svc, _ := setupUserService()
+	ctx := context.Background()
+
+	adminID := uuid.New()
+
+	// 1. Admin user has canDownloadVideos = true by default
+	adminCreated, err := svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
+		Email:     "admin.downloader@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Admin",
+		LastName:  "Downloader",
+		Role:      user.RoleAdmin,
+	})
+	if err != nil {
+		t.Fatalf("failed to create admin: %v", err)
+	}
+	if !adminCreated.User.CanDownloadVideos {
+		t.Errorf("admin should have CanDownloadVideos=true by default")
+	}
+
+	// 2. Regular student has canDownloadVideos = false by default
+	studentCreated, err := svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
+		Email:     "student.nodownload@encertia.cat",
+		Password:  "Password123!",
+		FirstName: "Student",
+		LastName:  "Normal",
+		Role:      user.RoleStudent,
+	})
+	if err != nil {
+		t.Fatalf("failed to create student: %v", err)
+	}
+	if studentCreated.User.CanDownloadVideos {
+		t.Errorf("student should have CanDownloadVideos=false by default")
+	}
+
+	// 3. Admin can grant canDownloadVideos on student creation
+	trueVal := true
+	studentWithPerm, err := svc.CreateUser(ctx, adminID, "admin", user.CreateUserInput{
+		Email:             "student.candownload@encertia.cat",
+		Password:          "Password123!",
+		FirstName:         "Student",
+		LastName:          "Allowed",
+		Role:              user.RoleStudent,
+		CanDownloadVideos: &trueVal,
+	})
+	if err != nil {
+		t.Fatalf("failed to create student with download perm: %v", err)
+	}
+	if !studentWithPerm.User.CanDownloadVideos {
+		t.Errorf("expected student to have CanDownloadVideos=true")
+	}
+
+	// 4. Admin can update canDownloadVideos on existing user
+	updatedStudent, appErr := svc.UpdateUser(ctx, adminID, "admin", studentCreated.User.ID, user.UpdateUserInput{
+		CanDownloadVideos: &trueVal,
+	})
+	if appErr != nil {
+		t.Fatalf("admin failed to update CanDownloadVideos: %v", appErr)
+	}
+	if !updatedStudent.User.CanDownloadVideos {
+		t.Errorf("expected updated student to have CanDownloadVideos=true")
+	}
+
+	// 5. Non-admin cannot update canDownloadVideos
+	falseVal := false
+	_, appErrForbidden := svc.UpdateUser(ctx, studentCreated.User.ID, "student", studentCreated.User.ID, user.UpdateUserInput{
+		CanDownloadVideos: &falseVal,
+	})
+	if appErrForbidden == nil || appErrForbidden.StatusCode != 403 {
+		t.Errorf("expected 403 Forbidden for non-admin modifying CanDownloadVideos, got %v", appErrForbidden)
+	}
+}

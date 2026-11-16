@@ -52,10 +52,13 @@ RUN mkdir -p /app/downloads && \
 # Stage 2: Minimal runtime container
 FROM alpine:3.20 AS runner
 
-# Install essential runtime utilities for healthchecks and SSL/TLS certificates
-RUN apk add --no-cache ca-certificates tzdata wget \
+# Install essential runtime utilities, Python, ffmpeg and yt-dlp for video downloads
+RUN apk add --no-cache ca-certificates tzdata wget python3 ffmpeg py3-pip \
+    && (apk add --no-cache yt-dlp || pip install --no-cache-dir --break-system-packages yt-dlp) \
     && addgroup -g 10001 -S appgroup \
-    && adduser -u 10001 -S appuser -G appgroup
+    && adduser -u 10001 -S appuser -G appgroup \
+    && mkdir -p /tmp/encertia_downloads \
+    && chown -R appuser:appgroup /tmp/encertia_downloads
 
 WORKDIR /app
 

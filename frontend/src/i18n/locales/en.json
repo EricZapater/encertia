@@ -9,6 +9,7 @@
     "manual": "Manual",
     "metrics": "Audit",
     "devices": "Devices",
+    "videoDownloader": "Video Downloader",
     "profile": "My profile",
     "logout": "Log Out",
     "roles": {
@@ -575,5 +576,23 @@
     },
     "revokeSuccess": "Device revoked successfully.",
     "revokeError": "Error revoking device."
+  },
+  "downloader": {
+    "title": "Video Downloader",
+    "subtitle": "Download videos directly from YouTube, Instagram, LinkedIn and other social platforms in MP4 format to your computer.",
+    "urlPlaceholder": "Paste the video link here (YouTube, Instagram, LinkedIn...)",
+    "inspectBtn": "Inspect Video",
+    "inspecting": "Inspecting...",
+    "downloadBtn": "Download MP4",
+    "downloading": "Downloading file...",
+    "invalidUrl": "Please enter a valid URL.",
+    "duration": "Duration",
+    "platform": "Platform",
+    "author": "Author / Channel",
+    "unnamedVideo": "Untitled Video",
+    "downloadSuccess": "Video downloaded successfully to your computer.",
+    "downloadError": "Could not download the video. Please check the URL or verify the video is not private.",
+    "paste": "Paste",
+    "clear": "Clear"
   }
 }

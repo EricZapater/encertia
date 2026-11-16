@@ -145,16 +145,24 @@ func (s *userService) CreateUser(ctx context.Context, actorID uuid.UUID, actorRo
 		createdBy = &actorID
 	}
 
+	canDownload := false
+	if input.Role == RoleAdmin {
+		canDownload = true
+	} else if input.CanDownloadVideos != nil && actorRole == string(RoleAdmin) {
+		canDownload = *input.CanDownloadVideos
+	}
+
 	userDB := &UserDB{
-		ID:           uuid.New(),
-		Email:        input.Email,
-		PasswordHash: string(hashedPassword),
-		FirstName:    input.FirstName,
-		LastName:     input.LastName,
-		Role:         input.Role,
-		Language:     input.Language,
-		IsActive:     true,
-		CreatedBy:    createdBy,
+		ID:                uuid.New(),
+		Email:             input.Email,
+		PasswordHash:      string(hashedPassword),
+		FirstName:         input.FirstName,
+		LastName:          input.LastName,
+		Role:              input.Role,
+		Language:          input.Language,
+		IsActive:          true,
+		CanDownloadVideos: canDownload,
+		CreatedBy:         createdBy,
 	}
 
 	if err := s.repo.CreateUser(ctx, userDB); err != nil {
@@ -310,16 +318,22 @@ func (s *userService) BatchCreateUsers(ctx context.Context, actorID uuid.UUID, a
 			createdBy = &actorID
 		}
 
+		canDownload := false
+		if role == RoleAdmin {
+			canDownload = true
+		}
+
 		userDB := &UserDB{
-			ID:           uuid.New(),
-			Email:        email,
-			PasswordHash: string(hashedPassword),
-			FirstName:    firstName,
-			LastName:     lastName,
-			Role:         role,
-			Language:     lang,
-			IsActive:     true,
-			CreatedBy:    createdBy,
+			ID:                uuid.New(),
+			Email:             email,
+			PasswordHash:      string(hashedPassword),
+			FirstName:         firstName,
+			LastName:          lastName,
+			Role:              role,
+			Language:          lang,
+			IsActive:          true,
+			CanDownloadVideos: canDownload,
+			CreatedBy:         createdBy,
 		}
 
 		if err := s.repo.CreateUser(ctx, userDB); err != nil {
@@ -395,9 +409,9 @@ func (s *userService) UpdateUser(ctx context.Context, actorID uuid.UUID, actorRo
 		if isOwnProfile && !userDB.IsActive {
 			return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "El compte està inactiu i no pot modificar les seves dades.")
 		}
-		// Non-admin cannot modify role or isActive
-		if input.Role != nil || input.IsActive != nil {
-			return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "Només un administrador pot modificar el rol o l'estat d'activació.")
+		// Non-admin cannot modify role, isActive or canDownloadVideos
+		if input.Role != nil || input.IsActive != nil || input.CanDownloadVideos != nil {
+			return nil, shared.ErrForbidden(shared.ErrCodeForbidden, "Només un administrador pot modificar el rol, l'estat d'activació o el permís de descàrrega de vídeos.")
 		}
 	}
 
@@ -453,9 +467,18 @@ func (s *userService) UpdateUser(ctx context.Context, actorID uuid.UUID, actorRo
 			return nil, shared.ErrBadRequest(shared.ErrCodeValidation, "Rol no vàlid.", map[string]interface{}{"field": "role"})
 		}
 		userDB.Role = *input.Role
+		if *input.Role == RoleAdmin {
+			userDB.CanDownloadVideos = true
+		}
 	}
 	if input.IsActive != nil {
 		userDB.IsActive = *input.IsActive
+	}
+	if input.CanDownloadVideos != nil {
+		userDB.CanDownloadVideos = *input.CanDownloadVideos
+		if userDB.Role == RoleAdmin {
+			userDB.CanDownloadVideos = true
+		}
 	}
 
 	if err := s.repo.UpdateUser(ctx, userDB); err != nil {
