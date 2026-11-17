@@ -1,0 +1,36 @@
+CHANGELOG.md
+  h_42175f19913982 8-22
+VERSION
+  h_42175f19913982 1
+agent/build.sh
+  h_42175f19913982 62
+agent/cmd/main.go
+  h_42175f19913982 16,26-46,49,55-60
+agent/internal/downloader/downloader.go
+  h_42175f19913982 1-379
+agent/internal/downloader/downloader_test.go
+  h_42175f19913982 1-101
+backend/Dockerfile
+  h_42175f19913982 44
+frontend/src/i18n/locales/ca.json
+  h_42175f19913982 596-601
+frontend/src/i18n/locales/en.json
+  h_42175f19913982 596-601
+frontend/src/i18n/locales/es.json
+  h_42175f19913982 596-601
+frontend/src/modules/downloader/__tests__/VideoDownloaderView.spec.ts
+  h_42175f19913982 178-202
+frontend/src/modules/downloader/views/VideoDownloaderView.vue
+  h_42175f19913982 77-88,140-171,173,182,278-287,365-386,938-999
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "504ff57b510068ea5a0d90e8192b714a72b361fc",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
