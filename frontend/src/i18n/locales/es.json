@@ -593,6 +593,11 @@
     "downloadSuccess": "Vídeo descargado correctamente a tu equipo.",
     "downloadError": "No se ha podido descargar el vídeo. Comprueba el enlace o que el vídeo no sea privado.",
     "paste": "Pegar",
-    "clear": "Limpiar"
+    "clear": "Limpiar",
+    "agentDownloadBtn": "Descargar con el Agente",
+    "agentDownloadHint": "Descarga directamente en tu equipo sin bloqueos ni límites",
+    "agentLaunchingTitle": "Abriendo el Agente Encertia...",
+    "agentLaunchingDetail": "Se ha enviado la petición de descarga al agente de tu ordenador. Revisa la ventana abierta en tu escritorio.",
+    "downloadAgentBtn": "Descargar el Agente Encertia"
   }
 }

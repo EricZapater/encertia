@@ -175,4 +175,29 @@ describe('VideoDownloaderView.vue', () => {
     expect((input.element as HTMLInputElement).value).toBe('')
     expect(wrapper.find('[data-testid="card-video-preview"]').exists()).toBe(false)
   })
+
+  it('triggers agent download protocol when agent button is clicked', async () => {
+    // Mock window.location
+    const originalLocation = window.location
+    // @ts-ignore
+    delete window.location
+    window.location = { ...originalLocation, href: '' } as any
+
+    const wrapper = mount(VideoDownloaderView, {
+      global: {
+        plugins: [PrimeVue, ToastService]
+      }
+    })
+
+    const input = wrapper.find('[data-testid="input-video-url"]')
+    await input.setValue('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+
+    const agentBtn = wrapper.find('[data-testid="btn-agent-download"]')
+    expect(agentBtn.exists()).toBe(true)
+    await agentBtn.trigger('click')
+
+    expect(window.location.href).toBe('encertia://download?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DdQw4w9WgXcQ')
+
+    window.location = originalLocation
+  })
 })

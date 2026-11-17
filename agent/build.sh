@@ -59,6 +59,7 @@ Instruccions d'ús:
    .\encertia-agent-windows.exe --register
 
    Seguiu les instruccions en pantalla per vincular aquest ordinador amb el compte de docent.
+   L'agent registra automàticament el protocol encertia:// per a la descàrrega directa de vídeos a Baixades.
 
 3. (Opcional) Si Windows Defender SmartScreen mostra un avís en executar-lo:
    - Fes clic a "Més informació" i seguidament a "Executa de totes maneres".

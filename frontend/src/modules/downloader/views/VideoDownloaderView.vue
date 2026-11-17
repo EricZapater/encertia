@@ -74,6 +74,18 @@
             @click="handleDownload"
             data-testid="btn-direct-download"
           />
+
+          <Button
+            type="button"
+            icon="pi pi-desktop"
+            :label="$t('downloader.agentDownloadBtn')"
+            severity="secondary"
+            class="action-btn agent-download-btn"
+            :disabled="!isValidUrl || isDownloading"
+            @click="handleAgentDownload"
+            :title="$t('downloader.agentDownloadHint')"
+            data-testid="btn-agent-download"
+          />
         </div>
 
         <!-- Botó d'Opcions Avançades (Cookies) -->
@@ -125,8 +137,40 @@
           <i class="pi pi-exclamation-circle error-icon"></i>
           <div class="error-content">
             <span class="error-text">{{ errorMessage }}</span>
+
+            <!-- Solució ràpida amb l'Agent d'Encertia -->
+            <div class="agent-solution-box" data-testid="agent-solution-box">
+              <div class="solution-header">
+                <i class="pi pi-bolt solution-icon"></i>
+                <span class="solution-title">Solució directa des del teu equip (recomanada per a YouTube)</span>
+              </div>
+              <p class="solution-desc">
+                Com que l'Agent d'Encertia s'executa al teu ordinador amb connexió residencial, evita el bloqueig de bot de YouTube i descarrega el vídeo directament a la teva carpeta de Baixades.
+              </p>
+              <div class="solution-actions">
+                <Button
+                  type="button"
+                  icon="pi pi-desktop"
+                  :label="$t('downloader.agentDownloadBtn')"
+                  severity="success"
+                  size="small"
+                  class="btn-agent-solve"
+                  @click="handleAgentDownload"
+                  data-testid="btn-error-agent-download"
+                />
+                <a
+                  href="/downloads/encertia-agent-windows.zip"
+                  class="btn-download-agent-link"
+                  download
+                  title="Descarregar Agent Encertia per a Windows"
+                >
+                  <i class="pi pi-download"></i> {{ $t('downloader.downloadAgentBtn') }}
+                </a>
+              </div>
+            </div>
+
             <span v-if="showCookieSuggestion" class="error-suggestion">
-              💡 <strong>Suggeriment:</strong>
+              💡 <em>Opcionalment:</em>
               <button
                 type="button"
                 class="btn-link-suggestion"
@@ -135,7 +179,7 @@
               >
                 Obre les <em>Opcions avançades</em>
               </button>
-              i enganxa les teves cookies per descarregar aquest vídeo.
+              i enganxa les teves cookies de YouTube si no disposes de l'agent.
             </span>
           </div>
         </div>
@@ -231,6 +275,16 @@
             data-testid="btn-download-mp4"
             @click="handleDownload"
           />
+          <Button
+            type="button"
+            icon="pi pi-desktop"
+            :label="$t('downloader.agentDownloadBtn')"
+            severity="secondary"
+            outlined
+            class="btn-preview-agent-download"
+            data-testid="btn-preview-agent-download"
+            @click="handleAgentDownload"
+          />
         </div>
       </div>
     </div>
@@ -306,6 +360,28 @@ async function handlePaste() {
   } catch {
     // Si l'accés al portapapers no està permès, ignora
   }
+}
+
+function handleAgentDownload() {
+  const trimmed = videoUrl.value.trim()
+  if (!trimmed || !isValidUrl.value) {
+    toast.add({
+      severity: 'warn',
+      summary: t('downloader.invalidUrl'),
+      life: 3000
+    })
+    return
+  }
+
+  const protocolUri = `encertia://download?url=${encodeURIComponent(trimmed)}`
+  window.location.href = protocolUri
+
+  toast.add({
+    severity: 'info',
+    summary: t('downloader.agentLaunchingTitle'),
+    detail: t('downloader.agentLaunchingDetail'),
+    life: 7000
+  })
 }
 
 function clearUrl() {
@@ -858,5 +934,67 @@ function truncate(str: string, maxLen: number): string {
   border-radius: 8px;
   font-weight: 600;
   padding: 0 1.5rem;
+}
+
+.btn-preview-agent-download {
+  height: 42px;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0 1.25rem;
+}
+
+/* Agent Solution Box in Error Banner */
+.agent-solution-box {
+  margin-top: 0.6rem;
+  padding: 0.75rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.solution-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: #9a3412;
+  font-size: 0.9rem;
+}
+
+.solution-icon {
+  color: #ea580c;
+  font-size: 1rem;
+}
+
+.solution-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.solution-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.btn-download-agent-link {
+  font-size: 0.85rem;
+  color: var(--primary-color, #4f46e5);
+  text-decoration: underline;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.btn-download-agent-link:hover {
+  color: #3730a3;
 }
 </style>

@@ -41,7 +41,7 @@ RUN mkdir -p /app/downloads && \
         mkdir -p /tmp/winpkg && \
         cp /app/downloads/encertia-agent-windows.exe /tmp/winpkg/ && \
         if [ -f /app/downloads/encertia-codesign.cer ]; then cp /app/downloads/encertia-codesign.cer /tmp/winpkg/; fi && \
-        printf "ENCERTIA AGENT PER A WINDOWS\n============================\n\n1. Descomprimeix aquest fitxer ZIP a una carpeta.\n2. Executa: .\\\\encertia-agent-windows.exe --register\n" > /tmp/winpkg/INSTRUCCIONS.txt && \
+        printf "ENCERTIA AGENT PER A WINDOWS\n============================\n\n1. Descomprimeix aquest fitxer ZIP a una carpeta.\n2. Executa: .\\\\encertia-agent-windows.exe --register\n3. L'agent registra el protocol encertia:// per a la descarrega directa de videos a Baixades.\n" > /tmp/winpkg/INSTRUCCIONS.txt && \
         (cd /tmp/winpkg && zip -q /app/downloads/encertia-agent-windows.zip *) && \
         rm -rf /tmp/winpkg && \
         cd /app; \

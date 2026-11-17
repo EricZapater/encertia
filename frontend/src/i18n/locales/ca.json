@@ -593,6 +593,11 @@
     "downloadSuccess": "Vídeo descarregat correctament a la teva màquina.",
     "downloadError": "No s'ha pogut descarregar el vídeo. Comprova l'enllaç o que el vídeo no sigui privat.",
     "paste": "Enganxar",
-    "clear": "Netejar"
+    "clear": "Netejar",
+    "agentDownloadBtn": "Descarregar amb l'Agent",
+    "agentDownloadHint": "Descarrega directament al teu equip sense bloquejos ni límits",
+    "agentLaunchingTitle": "Obrint l'Agent d'Encertia...",
+    "agentLaunchingDetail": "S'ha enviat la petició de descàrrega a l'agent del teu ordinador. Revisa la finestra oberta al teu escriptori.",
+    "downloadAgentBtn": "Descarregar l'Agent d'Encertia"
   }
 }

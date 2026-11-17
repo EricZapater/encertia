@@ -5,6 +5,21 @@ versionat amb [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.11] - 2026-11-17
+### Added
+- **Descàrrega de Vídeos Nativa amb l'Agent d'Encertia (`agent/`, `frontend/`, `backend/`)**:
+  - **Suport del protocol natiu `encertia://download?url=...` a l'Agent**:
+    - Nou mòdul `agent/internal/downloader/` que gestiona la recepció d'ordres de descàrrega directes i per esquema de protocol.
+    - Auto-registre automàtic i silenciós del protocol `encertia://` a Windows (`HKCU\Software\Classes\encertia`) i Linux (`xdg-mime`) sense requerir permisos d'administrador.
+    - Gestió automàtica del motor autònom `yt-dlp` a la màquina de l'usuari (`~/.encertia/bin/`) si no està instal·lat prèviament al sistema.
+    - Descàrrega directa des de la connexió residencial/local de l'equip a la carpeta de **Baixades** de l'usuari, superant al 100% el bloqueig anti-bot de centres de dades de YouTube sense cap cookie ni eina de tercers.
+    - Obertura automàtica de la carpeta de destí i compte enrere per tancar la finestra en finalitzar.
+  - **Integració a la Interfície Web (`VideoDownloaderView.vue`)**:
+    - Nou botó d'acció ràpida **"Descarregar amb l'Agent"** tant a la barra principal com a la targeta de previsualització del vídeo.
+    - Caixa de recomanació destacada a la notificació d'error si el servidor topa amb el repte de bot de YouTube, permetent iniciar la descàrrega local amb 1 sol clic.
+    - Enllaç directe per descarregar l'Agent d'Encertia per als usuaris que encara no el tinguin instal·lat.
+    - Noves traduccions en català, castellà i anglès.
+
 ## [1.8.10] - 2026-11-16
 ### Fixed
 - **Descarregador de Vídeos (`backend/`, `frontend/`)**:

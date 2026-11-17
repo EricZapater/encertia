@@ -13,6 +13,7 @@ import (
 
 	"encertia-agent/internal/api"
 	"encertia-agent/internal/browser"
+	"encertia-agent/internal/downloader"
 	"encertia-agent/internal/fingerprint"
 )
 
@@ -22,12 +23,40 @@ const (
 )
 
 func main() {
+	// 0. Auto-registre transparent del protocol encertia:// al sistema operatiu
+	downloader.RegisterProtocolSilently()
+
+	// 1. Detecció d'invocació per protocol encertia:// o comanda download
+	for _, arg := range os.Args[1:] {
+		cleaned := strings.Trim(strings.TrimSpace(arg), `"'`)
+		if strings.HasPrefix(strings.ToLower(cleaned), "encertia://") {
+			downloader.HandleProtocolLaunch(cleaned)
+			return
+		}
+	}
+
+	if len(os.Args) >= 2 && os.Args[1] == "download" {
+		if len(os.Args) < 3 {
+			fmt.Println("Ús: encertia-agent download <URL_DEL_VÍDEO>")
+			os.Exit(1)
+		}
+		downloader.HandleDirectDownload(os.Args[2])
+		return
+	}
+
 	registerMode := flag.Bool("register", false, "Mode interactiu de registre d'equip per a administradors")
 	shortRegister := flag.Bool("r", false, "Mode interactiu de registre (àlies)")
+	regProtoMode := flag.Bool("register-protocol", false, "Registra el protocol encertia:// al sistema operatiu")
 	debugMode := flag.Bool("debug", false, "Mostra la informació de maquinari i sortida sense obrir el navegador")
 	apiServer := flag.String("api", defaultAPIServer, "URL base de l'API d'Encertia")
 	webURL := flag.String("web", defaultWebURL, "URL base de la plataforma web Encertia")
 	flag.Parse()
+
+	if *regProtoMode {
+		downloader.RegisterProtocolSilently()
+		fmt.Println("✅ Protocol encertia:// registrat correctament a l'equip.")
+		return
+	}
 
 	// 1. Obtenir el Hardware UUID Hash
 	hwHash, err := fingerprint.GetHardwareUUIDHash()
