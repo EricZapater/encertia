@@ -1,0 +1,16 @@
+backend/internal/device/handler.go
+  h_42175f19913982 31
+frontend/src/modules/downloader/views/VideoDownloaderView.vue
+  h_42175f19913982 162,164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "edb229236d6db4467335c24b4948f68ac7fdcfc9",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
