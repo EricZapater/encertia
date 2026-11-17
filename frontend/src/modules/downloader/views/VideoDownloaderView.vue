@@ -159,10 +159,9 @@
                   data-testid="btn-error-agent-download"
                 />
                 <a
-                  href="/downloads/encertia-agent-windows.zip"
+                  href="/admin/devices"
                   class="btn-download-agent-link"
-                  download
-                  title="Descarregar Agent Encertia per a Windows"
+                  title="Gestionar i descarregar Agent Encertia"
                 >
                   <i class="pi pi-download"></i> {{ $t('downloader.downloadAgentBtn') }}
                 </a>

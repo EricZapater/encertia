@@ -28,6 +28,7 @@ func NewHandler(service Service) *Handler {
 // RegisterRoutes registers all device routes onto the provided router group.
 func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, authMiddleware gin.HandlerFunc) {
 	rg.POST("/devices/verify", h.VerifyDevice)
+	rg.GET("/devices/download/:platform", authMiddleware, h.DownloadAgent)
 
 	adminDevices := rg.Group("/admin/devices")
 	adminDevices.Use(authMiddleware, shared.RequireRole("admin"))
