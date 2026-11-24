@@ -1,0 +1,28 @@
+frontend/src/modules/match/__tests__/HostGameView.spec.ts
+  h_42175f19913982 289-335
+frontend/src/modules/match/__tests__/store.spec.ts
+  h_42175f19913982 14-15,29-31,158-191
+frontend/src/modules/match/store.ts
+  h_42175f19913982 144-159,161-167
+frontend/src/modules/match/views/HostGameView.vue
+  h_42175f19913982 162-169,295-310,347-358,409-416,624-625,631,639-640,642-662,713,718,720-722,866-867,871-915,928,930,932-934,938-942,949-952,967-969,971,976-981,983-985,992,997,1002-1003,1013,1030-1032,1036-1039,1046-1047,1054-1055,1057,1059-1060,1064-1067,1072,1085,1089,1091-1093,1098,1100-1101,1103-1104
+frontend/src/modules/match/views/PlayerGameView.vue
+  h_42175f19913982 129-140,170-180,448-474,542-547
+frontend/src/modules/quizzes/__tests__/QuizPreviewModal.spec.ts
+  h_42175f19913982 96-144
+frontend/src/modules/quizzes/views/QuizEditorView.vue
+  h_42175f19913982 69-82,520,581-590,678-690,832-833
+frontend/src/modules/quizzes/views/QuizPreviewModal.vue
+  h_42175f19913982 9-20,50-51,55-56,59,145-148,170-173,219-232,240-254,312,320-321,323,335-336,339,345-348,355,357-370,374-384,386-402,408,411,413,430,434-435,443-446,450-451,454-456,460-462,464-467,471-474,480-482,489,491,493,495,498-499,504
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "cf2d82b5b57f055d3d548c0d8ffea987b3c26785",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
