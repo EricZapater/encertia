@@ -66,6 +66,20 @@ const questionFileInput = ref<HTMLInputElement | null>(null)
 // Modals
 const showSettingsModal = ref(false)
 const showPreviewModal = ref(false)
+const previewQuestionIndex = ref(0)
+const previewSingleQuestionMode = ref(false)
+
+function openFullPreview() {
+  previewQuestionIndex.value = 0
+  previewSingleQuestionMode.value = false
+  showPreviewModal.value = true
+}
+
+function openSingleQuestionPreview(index: number) {
+  previewQuestionIndex.value = index
+  previewSingleQuestionMode.value = true
+  showPreviewModal.value = true
+}
 
 const activeQuestion = computed<QuizQuestion | undefined>(() => {
   return currentQuiz.value.questions[selectedQuestionIndex.value]
@@ -503,7 +517,7 @@ function getShape(index: number) {
           icon="pi pi-play"
           severity="secondary"
           size="small"
-          @click="showPreviewModal = true"
+          @click="openFullPreview"
           data-testid="btn-open-preview"
         />
 
@@ -564,6 +578,16 @@ function getShape(index: number) {
 
             <!-- Botons d'acció de la miniatura -->
             <div class="thumb-actions" @click.stop>
+              <Button
+                icon="pi pi-eye"
+                text
+                rounded
+                size="small"
+                severity="info"
+                tooltip="Previsualitzar aquesta pregunta"
+                @click="openSingleQuestionPreview(qIdx)"
+                :data-testid="`btn-preview-question-${qIdx}`"
+              />
               <Button
                 icon="pi pi-arrow-up"
                 text
@@ -649,6 +673,19 @@ function getShape(index: number) {
               optionValue="value"
               class="control-select"
               data-testid="select-time-limit"
+            />
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">&nbsp;</label>
+            <Button
+              label="Provar Pregunta"
+              icon="pi pi-eye"
+              size="small"
+              severity="secondary"
+              outlined
+              @click="openSingleQuestionPreview(selectedQuestionIndex)"
+              data-testid="btn-preview-active-question"
             />
           </div>
         </div>
@@ -792,6 +829,8 @@ function getShape(index: number) {
     <QuizPreviewModal
       v-model:visible="showPreviewModal"
       :quiz="currentQuiz"
+      :initialQuestionIndex="previewQuestionIndex"
+      :singleQuestionMode="previewSingleQuestionMode"
     />
   </div>
 </template>

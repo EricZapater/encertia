@@ -11,6 +11,8 @@ vi.mock('../api', () => ({
 }))
 
 // Mock de MatchWSClient com a classe (constructor)
+let lastMockWSClient: any = null
+
 vi.mock('../wsClient', () => {
   class MockMatchWSClient {
     listeners: Record<string, Function[]> = {}
@@ -24,6 +26,9 @@ vi.mock('../wsClient', () => {
       return () => {}
     })
     off = vi.fn()
+    constructor() {
+      lastMockWSClient = this
+    }
   }
   return {
     MatchWSClient: MockMatchWSClient
@@ -149,5 +154,39 @@ describe('useMatchStore', () => {
     expect(store.pin).toBeNull()
     expect(store.role).toBeNull()
     expect(store.players).toEqual([])
+  })
+
+  it('la imatge no s’arrossega entre preguntes si la segona no en té', async () => {
+    const store = useMatchStore()
+    await store.connectAsPlayer('123456')
+
+    const previewHandler = lastMockWSClient.listeners['match:question_preview'][0]
+
+    // 1. Arriba la pregunta 1 amb imatge
+    previewHandler({
+      questionIndex: 0,
+      totalQuestions: 2,
+      questionId: 'q-1',
+      text: 'Pregunta 1',
+      imageUrl: 'https://cdn.encertia.cat/p1.png',
+      questionType: 'single_choice',
+      timeLimitSeconds: 20
+    })
+
+    expect(store.currentQuestion?.id).toBe('q-1')
+    expect(store.currentQuestion?.imageUrl).toBe('https://cdn.encertia.cat/p1.png')
+
+    // 2. Arriba la pregunta 2 sense imatge
+    previewHandler({
+      questionIndex: 1,
+      totalQuestions: 2,
+      questionId: 'q-2',
+      text: 'Pregunta 2',
+      questionType: 'multiple_choice',
+      timeLimitSeconds: 30
+    })
+
+    expect(store.currentQuestion?.id).toBe('q-2')
+    expect(store.currentQuestion?.imageUrl).toBeNull()
   })
 })

@@ -6,10 +6,18 @@ import Tag from 'primevue/tag'
 import type { QuizDetail, QuizQuestion } from '../types'
 import { KAHOOT_THEME_SHAPES } from '../types'
 
-const props = defineProps<{
-  visible: boolean
-  quiz: QuizDetail | null
-}>()
+const props = withDefaults(
+  defineProps<{
+    visible: boolean
+    quiz: QuizDetail | null
+    initialQuestionIndex?: number
+    singleQuestionMode?: boolean
+  }>(),
+  {
+    initialQuestionIndex: 0,
+    singleQuestionMode: false
+  }
+)
 
 const emit = defineEmits<{
   (e: 'update:visible', val: boolean): void
@@ -39,14 +47,16 @@ watch(
     } else {
       stopTimer()
     }
-  }
+  },
+  { immediate: true }
 )
 
 function startQuiz() {
-  currentQuestionIndex.value = 0
+  const startIndex = Math.max(0, Math.min(props.initialQuestionIndex ?? 0, Math.max(0, questions.value.length - 1)))
+  currentQuestionIndex.value = startIndex
   correctCount.value = 0
   isQuizCompleted.value = false
-  loadQuestion(0)
+  loadQuestion(startIndex)
 }
 
 function loadQuestion(index: number) {
@@ -132,6 +142,10 @@ function submitAnswer() {
 }
 
 function handleNextQuestion() {
+  if (props.singleQuestionMode) {
+    handleClose()
+    return
+  }
   loadQuestion(currentQuestionIndex.value + 1)
 }
 
@@ -153,8 +167,10 @@ onUnmounted(() => {
   <Dialog
     :visible="visible"
     modal
-    :header="`Previsualització: ${quiz?.title || 'Qüestionari'}`"
-    :style="{ width: '95vw', maxWidth: '840px' }"
+    maximized
+    :header="`Previsualització: ${quiz?.title || 'Qüestionari'}${singleQuestionMode ? ' (Pregunta ' + (currentQuestionIndex + 1) + ')' : ''}`"
+    :style="{ width: '100vw', height: '100vh', maxWidth: '100vw', maxHeight: '100vh', margin: 0 }"
+    :contentStyle="{ height: 'calc(100vh - 65px)', display: 'flex', flexDirection: 'column', padding: '1.5rem 2.5rem', boxSizing: 'border-box' }"
     @update:visible="handleClose"
     data-testid="quiz-preview-dialog"
   >
@@ -200,8 +216,20 @@ onUnmounted(() => {
       <div v-else class="question-screen" data-testid="preview-question-screen">
         <!-- Barra d'estat de la pregunta -->
         <div class="question-header-bar">
-          <div class="question-index-tag">
-            Pregunta {{ currentQuestionIndex + 1 }} de {{ questions.length }}
+          <div class="header-left-group">
+            <div class="question-index-tag">
+              Pregunta {{ currentQuestionIndex + 1 }} de {{ questions.length }}
+              <span v-if="singleQuestionMode" class="single-mode-label">(Mode Individual)</span>
+            </div>
+
+            <div
+              v-if="currentQuestion.questionType === 'multiple_choice'"
+              class="preview-multichoice-badge"
+              data-testid="preview-multichoice-badge"
+            >
+              <i class="pi pi-check-square" />
+              <span>Múltiples correctes</span>
+            </div>
           </div>
 
           <div class="timer-box" :class="{ 'timer-urgent': timeLeft <= 5 }">
@@ -209,10 +237,21 @@ onUnmounted(() => {
             <span class="timer-value" data-testid="preview-timer-value">{{ timeLeft }}s</span>
           </div>
 
-          <Tag
-            :value="currentQuestion.questionType === 'single_choice' ? 'Una sola correcta' : 'Múltiples correctes'"
-            :severity="currentQuestion.questionType === 'single_choice' ? 'info' : 'warn'"
-          />
+          <div class="header-right-group">
+            <Tag
+              :value="currentQuestion.questionType === 'single_choice' ? 'Una sola correcta' : 'Múltiples correctes'"
+              :severity="currentQuestion.questionType === 'single_choice' ? 'info' : 'warn'"
+            />
+            <Button
+              icon="pi pi-times"
+              severity="secondary"
+              rounded
+              text
+              tooltip="Tancar previsualització"
+              @click="handleClose"
+              data-testid="btn-close-preview-top"
+            />
+          </div>
         </div>
 
         <!-- Text de la pregunta -->
@@ -270,6 +309,7 @@ onUnmounted(() => {
             label="Enviar Resposta"
             icon="pi pi-check"
             severity="primary"
+            size="large"
             :disabled="selectedAnswerIds.length === 0"
             @click="submitAnswer"
             data-testid="btn-submit-preview-multiple"
@@ -277,9 +317,10 @@ onUnmounted(() => {
 
           <Button
             v-if="isAnswerSubmitted"
-            :label="currentQuestionIndex + 1 >= questions.length ? 'Finalitzar simulació' : 'Següent Pregunta'"
-            icon="pi pi-arrow-right"
+            :label="singleQuestionMode ? 'Tornar a l\'Editor' : (currentQuestionIndex + 1 >= questions.length ? 'Finalitzar simulació' : 'Següent Pregunta')"
+            :icon="singleQuestionMode ? 'pi pi-check' : 'pi pi-arrow-right'"
             severity="success"
+            size="large"
             @click="handleNextQuestion"
             data-testid="btn-next-preview-question"
           />
@@ -291,40 +332,85 @@ onUnmounted(() => {
 
 <style scoped>
 .preview-modal-body {
-  min-height: 420px;
+  width: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .question-screen {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  flex: 1;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .question-header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 0.75rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid #e2e8f0;
+  width: 100%;
+}
+
+.header-left-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-right-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .question-index-tag {
+  font-weight: 800;
+  color: #334155;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.single-mode-label {
+  color: #2563eb;
+  font-size: 0.85rem;
   font-weight: 700;
-  color: #475569;
-  font-size: 0.95rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+}
+
+.preview-multichoice-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff7ed;
+  border: 1.5px solid #f97316;
+  color: #ea580c;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
 }
 
 .timer-box {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   background-color: #f1f5f9;
   border: 1px solid #cbd5e1;
-  padding: 0.35rem 0.85rem;
+  padding: 0.4rem 1.1rem;
   border-radius: 9999px;
-  font-weight: 700;
+  font-weight: 800;
   color: #0f172a;
 }
 
@@ -341,11 +427,12 @@ onUnmounted(() => {
 }
 
 .timer-icon {
-  font-size: 1rem;
+  font-size: 1.15rem;
 }
 
 .timer-value {
-  font-size: 1.05rem;
+  font-size: 1.25rem;
+  font-weight: 900;
 }
 
 .question-content {
@@ -353,55 +440,68 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  gap: 1.5rem;
+  flex: 1;
+  padding: 1rem 0;
 }
 
 .question-text {
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: clamp(1.8rem, 3.2vw, 3rem);
+  font-weight: 800;
   color: #0f172a;
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.3;
+  max-width: 90%;
+  word-break: break-word;
 }
 
 .question-image-container {
-  max-width: 380px;
-  max-height: 200px;
-  border-radius: 0.5rem;
+  max-width: 90%;
+  max-height: 40vh;
+  border-radius: 0.75rem;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .question-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  max-height: 40vh;
+  max-width: 100%;
+  width: auto;
+  object-fit: contain;
 }
 
 .answers-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.85rem;
+  gap: 1.25rem;
+  width: 100%;
+  margin-top: 1rem;
 }
 
 .kahoot-answer-card {
   display: flex;
   align-items: center;
   border: 2px solid transparent;
-  border-radius: 0.5rem;
+  border-radius: 0.85rem;
   color: #ffffff;
-  padding: 0.85rem 1rem;
+  padding: 1.25rem 1.75rem;
   cursor: pointer;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.2s ease;
-  min-height: 68px;
+  min-height: 85px;
   position: relative;
   text-align: left;
+  font-size: clamp(1.15rem, 1.8vw, 1.6rem);
+  font-weight: 700;
 }
 
 .kahoot-answer-card:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
   filter: brightness(1.05);
 }
 

@@ -159,6 +159,14 @@ function handleExitHost() {
           class="group-header-badge"
           data-testid="host-header-group-name"
         />
+        <div
+          v-if="matchStore.currentQuestion?.type === 'multiple_choice' && (matchStore.status === 'question_preview' || matchStore.status === 'question_active' || matchStore.status === 'question_results')"
+          class="header-multichoice-pill"
+          data-testid="header-multichoice-pill"
+        >
+          <i class="pi pi-check-square" />
+          <span>Multiresposta</span>
+        </div>
       </div>
 
       <div class="host-header-center">
@@ -284,8 +292,22 @@ function handleExitHost() {
       data-testid="host-phase-preview"
     >
       <div class="preview-center-card">
-        <div class="question-index-tag">
-          Pregunta {{ matchStore.questionNumber }} de {{ matchStore.totalQuestions }}
+        <div class="preview-top-row">
+          <div
+            v-if="matchStore.currentQuestion?.type === 'multiple_choice'"
+            class="host-multichoice-badge"
+            data-testid="host-multichoice-badge-preview"
+          >
+            <i class="pi pi-check-square" />
+            <span>MÚLTIPLES RESPOSTES</span>
+          </div>
+          <div v-else class="multichoice-placeholder" />
+
+          <div class="question-index-tag">
+            Pregunta {{ matchStore.questionNumber }} de {{ matchStore.totalQuestions }}
+          </div>
+
+          <div class="preview-top-spacer" />
         </div>
 
         <h1 class="host-question-title" data-testid="host-preview-title">
@@ -322,8 +344,18 @@ function handleExitHost() {
     >
       <!-- Barra superior: Enunciat + Timer + Comptador de respostes -->
       <div class="active-top-bar">
-        <div class="active-timer-circle" data-testid="host-active-timer">
-          <span class="timer-number">{{ matchStore.timerSeconds }}</span>
+        <div class="active-left-group">
+          <div class="active-timer-circle" data-testid="host-active-timer">
+            <span class="timer-number">{{ matchStore.timerSeconds }}</span>
+          </div>
+          <div
+            v-if="matchStore.currentQuestion?.type === 'multiple_choice'"
+            class="host-multichoice-badge active-mode"
+            data-testid="host-multichoice-badge-active"
+          >
+            <i class="pi pi-check-square" />
+            <span>MÚLTIPLES RESPOSTES</span>
+          </div>
         </div>
 
         <h2 class="active-question-heading">{{ matchStore.currentQuestion?.title }}</h2>
@@ -374,6 +406,14 @@ function handleExitHost() {
       data-testid="host-phase-results"
     >
       <div class="results-heading-box">
+        <div
+          v-if="matchStore.currentQuestion?.type === 'multiple_choice'"
+          class="host-multichoice-badge results-mode mb-3"
+          data-testid="host-multichoice-badge-results"
+        >
+          <i class="pi pi-check-square" />
+          <span>MÚLTIPLES RESPOSTES</span>
+        </div>
         <h2 class="results-question-text">{{ matchStore.currentQuestion?.title }}</h2>
       </div>
 
@@ -581,11 +621,14 @@ function handleExitHost() {
 <style scoped>
 .host-container {
   min-height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
   display: flex;
   flex-direction: column;
   background-color: #0b1329;
   color: #ffffff;
   font-family: inherit;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -593,9 +636,30 @@ function handleExitHost() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1.5rem;
-  background: rgba(15, 23, 42, 0.9);
+  padding: 0.75rem 2rem;
+  background: rgba(15, 23, 42, 0.95);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.host-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-multichoice-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #ea580c;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.4);
 }
 
 .quiz-title-badge {
@@ -646,15 +710,16 @@ function handleExitHost() {
   border-radius: 9999px;
 }
 
-/* Main wrapper */
+/* Main wrapper: 100% fluid width for projector screens */
 .host-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  max-width: 1400px;
+  padding: 1.5rem 2.5rem;
   width: 100%;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 /* LOBBY */
@@ -797,13 +862,57 @@ function handleExitHost() {
 
 /* PREVIEW */
 .preview-center-card {
-  max-width: 900px;
   width: 100%;
-  margin: auto;
+  max-width: 100%;
+  margin: auto 0;
   text-align: center;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 1.5rem;
-  padding: 3rem 2rem;
+  padding: 2.5rem 3rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.preview-top-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.multichoice-placeholder,
+.preview-top-spacer {
+  min-width: 160px;
+  flex: 1;
+}
+
+.host-multichoice-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.25), rgba(249, 115, 22, 0.15));
+  border: 1.5px solid #f97316;
+  color: #fb923c;
+  font-weight: 800;
+  font-size: clamp(0.95rem, 1.2vw, 1.25rem);
+  letter-spacing: 0.05em;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+}
+
+.host-multichoice-badge.active-mode {
+  font-size: clamp(0.85rem, 1.1vw, 1.1rem);
+  padding: 0.4rem 1rem;
+  white-space: nowrap;
+}
+
+.host-multichoice-badge.results-mode {
+  font-size: 1rem;
+  padding: 0.4rem 1.2rem;
 }
 
 .question-index-tag {
@@ -813,26 +922,34 @@ function handleExitHost() {
   font-weight: 800;
   padding: 0.4rem 1.2rem;
   border-radius: 9999px;
-  margin-bottom: 1.5rem;
 }
 
 .host-question-title {
-  font-size: 2.5rem;
+  font-size: clamp(2.2rem, 4vw, 4.2rem);
   font-weight: 900;
-  line-height: 1.3;
+  line-height: 1.25;
   margin-bottom: 2rem;
+  width: 100%;
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .host-question-img-wrapper {
-  max-height: 320px;
+  max-height: 48vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   border-radius: 1rem;
   overflow: hidden;
   margin-bottom: 2rem;
 }
 
 .host-question-img {
-  max-height: 320px;
-  object-fit: cover;
+  max-height: 48vh;
+  max-width: 100%;
+  width: auto;
+  object-fit: contain;
   border-radius: 1rem;
 }
 
@@ -847,32 +964,43 @@ function handleExitHost() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 2rem;
+  width: 100%;
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.06);
-  padding: 1rem 1.5rem;
+  padding: 1rem 2rem;
   border-radius: 1rem;
   margin-bottom: 1.5rem;
 }
 
+.active-left-group {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
 .active-timer-circle {
-  width: 70px;
-  height: 70px;
+  width: 75px;
+  height: 75px;
+  min-width: 75px;
   border-radius: 50%;
   background: #f59e0b;
   color: #0f172a;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 900;
 }
 
 .active-question-heading {
-  font-size: 1.75rem;
+  font-size: clamp(1.8rem, 3vw, 3.2rem);
   font-weight: 800;
   flex: 1;
   text-align: center;
   margin: 0;
+  line-height: 1.3;
+  word-break: break-word;
 }
 
 .active-stats-pill {
@@ -882,6 +1010,7 @@ function handleExitHost() {
   background: rgba(255, 255, 255, 0.1);
   padding: 0.5rem 1.25rem;
   border-radius: 0.75rem;
+  min-width: 100px;
 }
 
 .stats-num {
@@ -898,38 +1027,49 @@ function handleExitHost() {
 .active-image-strip {
   text-align: center;
   margin-bottom: 1.5rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .active-img {
-  max-height: 200px;
+  max-height: 38vh;
+  max-width: 100%;
+  width: auto;
+  object-fit: contain;
   border-radius: 0.75rem;
 }
 
 .host-options-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
+  gap: 1.5rem;
+  width: 100%;
   flex: 1;
 }
 
 .host-option-card {
   display: flex;
   align-items: center;
-  padding: 1.5rem;
-  border-radius: 1rem;
+  padding: 1.75rem 2.25rem;
+  border-radius: 1.25rem;
   color: #ffffff;
-  font-size: 1.5rem;
+  font-size: clamp(1.35rem, 2.2vw, 2.4rem);
   font-weight: 700;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  min-height: 110px;
 }
 
 .host-shape-box {
-  font-size: 2rem;
-  margin-right: 1.25rem;
+  font-size: clamp(2rem, 3.2vw, 3.5rem);
+  margin-right: 1.5rem;
+  display: flex;
+  align-items: center;
 }
 
 .host-option-text {
   flex: 1;
+  word-break: break-word;
 }
 
 .active-actions-footer {
@@ -942,21 +1082,26 @@ function handleExitHost() {
 .results-heading-box {
   text-align: center;
   margin-bottom: 2rem;
+  width: 100%;
 }
 
 .results-question-text {
-  font-size: 2rem;
+  font-size: clamp(2rem, 3.2vw, 3.5rem);
   font-weight: 800;
+  line-height: 1.3;
+  word-break: break-word;
+  width: 100%;
 }
 
 .results-bars-container {
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   align-items: flex-end;
-  gap: 2rem;
+  gap: 1.5rem;
+  width: 100%;
   flex: 1;
-  min-height: 340px;
-  padding-bottom: 1rem;
+  min-height: 360px;
+  padding-bottom: 1.5rem;
 }
 
 .bar-column {

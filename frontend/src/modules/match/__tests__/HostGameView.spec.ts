@@ -286,4 +286,51 @@ describe('HostGameView.vue', () => {
     await nextQuestionBtn.trigger('click')
     expect(matchStore.nextQuestion).toHaveBeenCalled()
   })
+
+  it('mostra l’indicador de multiresposta quan la pregunta és multiple_choice', async () => {
+    const authStore = useAuthStore()
+    authStore.user = {
+      id: 'u1',
+      firstName: 'Teacher',
+      lastName: 'Ensenya',
+      email: 'prof@encertia.cat',
+      role: 'teacher',
+      isActive: true,
+      createdAt: '2026-08-21T10:00:00Z',
+      updatedAt: '2026-08-21T10:00:00Z'
+    }
+    authStore.accessToken = 'fake-token'
+    authStore.isInitialized = true
+
+    const matchStore = useMatchStore()
+    matchStore.matchId = 'm123'
+    matchStore.pin = '654321'
+    matchStore.status = 'question_preview'
+    matchStore.role = 'host'
+    matchStore.currentQuestionIndex = 0
+    matchStore.totalQuestions = 3
+    matchStore.currentQuestion = {
+      id: 'q1',
+      orderIndex: 0,
+      title: 'Quines d’aquestes ciutats són catalanes?',
+      type: 'multiple_choice',
+      timeLimitSeconds: 30,
+      points: 1,
+      options: []
+    }
+
+    const wrapper = mount(HostGameView, {
+      global: {
+        stubs: {
+          Tag: { template: '<span><slot /></span>' },
+          Button: { template: '<button>{{ label }}<slot /></button>', props: ['label'] },
+          Dialog: { template: '<div></div>' }
+        }
+      }
+    })
+
+    expect(wrapper.find('[data-testid="header-multichoice-pill"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="host-multichoice-badge-preview"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="host-multichoice-badge-preview"]').text()).toContain('MÚLTIPLES RESPOSTES')
+  })
 })

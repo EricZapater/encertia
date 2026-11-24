@@ -126,8 +126,18 @@ function handleExit() {
       class="game-card screen-preview"
       data-testid="screen-player-preview"
     >
-      <div class="question-meta-badge">
-        Pregunta {{ matchStore.questionNumber }} de {{ matchStore.totalQuestions || '?' }}
+      <div class="preview-meta-row">
+        <div class="question-meta-badge">
+          Pregunta {{ matchStore.questionNumber }} de {{ matchStore.totalQuestions || '?' }}
+        </div>
+        <div
+          v-if="matchStore.currentQuestion?.type === 'multiple_choice'"
+          class="player-multichoice-badge"
+          data-testid="player-multichoice-badge"
+        >
+          <i class="pi pi-check-square" />
+          <span>Múltiples respostes</span>
+        </div>
       </div>
 
       <h2 class="preview-statement">
@@ -157,7 +167,17 @@ function handleExit() {
       <!-- Barra superior de temps -->
       <div class="timer-bar-container">
         <div class="timer-info">
-          <span class="timer-count">{{ matchStore.timerSeconds }}s</span>
+          <div class="timer-left-group">
+            <span class="timer-count">{{ matchStore.timerSeconds }}s</span>
+            <div
+              v-if="matchStore.currentQuestion?.type === 'multiple_choice'"
+              class="player-multichoice-badge active-mode"
+              data-testid="player-multichoice-badge-active"
+            >
+              <i class="pi pi-check-square" />
+              <span>Múltiples respostes</span>
+            </div>
+          </div>
           <span class="question-pill">
             {{ matchStore.questionNumber }} / {{ matchStore.totalQuestions }}
           </span>
@@ -425,6 +445,33 @@ function handleExit() {
 }
 
 /* Screen Preview */
+.preview-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.player-multichoice-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(249, 115, 22, 0.2);
+  border: 1px solid #f97316;
+  color: #fb923c;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+}
+
+.player-multichoice-badge.active-mode {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.7rem;
+}
+
 .question-meta-badge {
   background: rgba(59, 130, 246, 0.2);
   color: #60a5fa;
@@ -433,7 +480,6 @@ function handleExit() {
   border-radius: 9999px;
   font-weight: 700;
   font-size: 0.9rem;
-  margin-bottom: 1rem;
 }
 
 .preview-statement {
@@ -491,6 +537,12 @@ function handleExit() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+}
+
+.timer-left-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .timer-count {

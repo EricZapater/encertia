@@ -141,14 +141,30 @@ export const useMatchStore = defineStore('match', () => {
         percentage: opt.percentage
       }))
 
+      const incomingId = raw.questionId || raw.id || qObj.questionId || qObj.id || ''
+      const incomingIndex = raw.questionIndex ?? raw.orderIndex ?? qObj.questionIndex ?? qObj.orderIndex
+      let isSameQuestion = false
+      if (existing) {
+        if (incomingId && existing.id) {
+          isSameQuestion = incomingId === existing.id
+        } else if (incomingIndex !== undefined && existing.orderIndex !== undefined) {
+          isSameQuestion = incomingIndex === existing.orderIndex
+        }
+      }
+      const resolvedExisting = isSameQuestion ? existing : null
+
+      // Obtenim la imatge explícita de la càrrega útil actual.
+      // Si la pregunta nova no té imatge, ha de ser null, MAI arrossegar la imatge d'una pregunta anterior.
+      const rawImageUrl = raw.imageUrl !== undefined ? raw.imageUrl : qObj.imageUrl !== undefined ? qObj.imageUrl : null
+
       return {
-        id: raw.questionId || raw.id || qObj.questionId || qObj.id || existing?.id || '',
-        orderIndex: raw.questionIndex ?? raw.orderIndex ?? qObj.questionIndex ?? qObj.orderIndex ?? existing?.orderIndex ?? 0,
-        title: raw.text || raw.title || qObj.text || qObj.title || existing?.title || '',
-        type: (raw.questionType || raw.type || qObj.questionType || qObj.type || existing?.type || 'single_choice') as any,
-        timeLimitSeconds: raw.timeLimitSeconds || qObj.timeLimitSeconds || existing?.timeLimitSeconds || 20,
-        points: raw.points || qObj.points || existing?.points || 1,
-        imageUrl: raw.imageUrl || qObj.imageUrl || existing?.imageUrl,
+        id: incomingId || resolvedExisting?.id || '',
+        orderIndex: raw.questionIndex ?? raw.orderIndex ?? qObj.questionIndex ?? qObj.orderIndex ?? resolvedExisting?.orderIndex ?? 0,
+        title: raw.text || raw.title || qObj.text || qObj.title || resolvedExisting?.title || '',
+        type: (raw.questionType || raw.type || qObj.questionType || qObj.type || resolvedExisting?.type || 'single_choice') as any,
+        timeLimitSeconds: raw.timeLimitSeconds || qObj.timeLimitSeconds || resolvedExisting?.timeLimitSeconds || 20,
+        points: raw.points || qObj.points || resolvedExisting?.points || 1,
+        imageUrl: rawImageUrl !== null ? rawImageUrl : (resolvedExisting?.imageUrl ?? null),
         options: options
       }
     }

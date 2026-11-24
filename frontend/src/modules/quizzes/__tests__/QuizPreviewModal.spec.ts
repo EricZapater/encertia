@@ -93,4 +93,53 @@ describe('QuizPreviewModal Component', () => {
     expect(wrapper.text()).toContain('Simulació Completada!')
     expect(wrapper.text()).toContain('100%')
   })
+
+  it('suporta mode individual (singleQuestionMode) per previsualitzar només una pregunta', async () => {
+    const multiQuiz: QuizDetail = {
+      ...sampleQuiz,
+      questions: [
+        sampleQuiz.questions[0],
+        {
+          id: 'q-2',
+          text: 'Segona pregunta específica',
+          imageUrl: null,
+          questionType: 'multiple_choice',
+          timeLimitSeconds: 15,
+          orderIndex: 1,
+          answers: [
+            { id: 'ans-5', text: 'Opcio A', isCorrect: true, orderIndex: 0 },
+            { id: 'ans-6', text: 'Opcio B', isCorrect: false, orderIndex: 1 }
+          ]
+        }
+      ]
+    }
+
+    const wrapper = mount(QuizPreviewModal, {
+      props: {
+        visible: true,
+        quiz: multiQuiz,
+        initialQuestionIndex: 1,
+        singleQuestionMode: true
+      },
+      global: {
+        plugins: [PrimeVue],
+        stubs: dialogStub
+      }
+    })
+
+    expect(wrapper.find('[data-testid="preview-question-text"]').text()).toBe('Segona pregunta específica')
+    expect(wrapper.text()).toContain('(Mode Individual)')
+    expect(wrapper.find('[data-testid="preview-multichoice-badge"]').exists()).toBe(true)
+
+    // Respondre
+    await wrapper.find('[data-testid="preview-answer-btn-0"]').trigger('click')
+    await wrapper.find('[data-testid="btn-submit-preview-multiple"]').trigger('click')
+
+    // El botó final és 'Tornar a l\'Editor'
+    const finishBtn = wrapper.find('[data-testid="btn-next-preview-question"]')
+    expect(finishBtn.text()).toContain("Tornar a l'Editor")
+
+    await finishBtn.trigger('click')
+    expect(wrapper.emitted('update:visible')?.[0]).toEqual([false])
+  })
 })
