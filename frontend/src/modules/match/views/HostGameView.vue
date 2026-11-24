@@ -9,6 +9,8 @@ import { KAHOOT_THEMES, type MatchAnswerOption, type MatchPlayer } from '../type
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
+import FormattedQuestionText from '@/components/FormattedQuestionText.vue'
+import { hasInlineImageTag } from '@/utils/textFormat'
 
 const route = useRoute()
 const router = useRouter()
@@ -310,11 +312,17 @@ function handleExitHost() {
           <div class="preview-top-spacer" />
         </div>
 
-        <h1 class="host-question-title" data-testid="host-preview-title">
-          {{ matchStore.currentQuestion?.title }}
-        </h1>
+        <FormattedQuestionText
+          :text="matchStore.currentQuestion?.title || ''"
+          :imageUrl="hasInlineImageTag(matchStore.currentQuestion?.title) ? matchStore.currentQuestion?.imageUrl : null"
+          customClass="host-question-title"
+          data-testid="host-preview-title"
+        />
 
-        <div v-if="matchStore.currentQuestion?.imageUrl" class="host-question-img-wrapper">
+        <div
+          v-if="matchStore.currentQuestion?.imageUrl && !hasInlineImageTag(matchStore.currentQuestion?.title)"
+          class="host-question-img-wrapper"
+        >
           <img
             :src="matchStore.currentQuestion.imageUrl"
             alt="Imatge de la pregunta"
@@ -358,7 +366,11 @@ function handleExitHost() {
           </div>
         </div>
 
-        <h2 class="active-question-heading">{{ matchStore.currentQuestion?.title }}</h2>
+        <FormattedQuestionText
+          :text="matchStore.currentQuestion?.title || ''"
+          :imageUrl="hasInlineImageTag(matchStore.currentQuestion?.title) ? matchStore.currentQuestion?.imageUrl : null"
+          customClass="active-question-heading"
+        />
 
         <div class="active-stats-pill" data-testid="host-answers-count">
           <span class="stats-num">{{ matchStore.answeredCount }} / {{ matchStore.activePlayersCount }}</span>
@@ -366,8 +378,11 @@ function handleExitHost() {
         </div>
       </div>
 
-      <!-- Imatge opcional al centre -->
-      <div v-if="matchStore.currentQuestion?.imageUrl" class="active-image-strip">
+      <!-- Imatge opcional al centre (només si no està inserida inline) -->
+      <div
+        v-if="matchStore.currentQuestion?.imageUrl && !hasInlineImageTag(matchStore.currentQuestion?.title)"
+        class="active-image-strip"
+      >
         <img :src="matchStore.currentQuestion.imageUrl" alt="Imatge" class="active-img" />
       </div>
 
@@ -414,7 +429,11 @@ function handleExitHost() {
           <i class="pi pi-check-square" />
           <span>MÚLTIPLES RESPOSTES</span>
         </div>
-        <h2 class="results-question-text">{{ matchStore.currentQuestion?.title }}</h2>
+        <FormattedQuestionText
+          :text="matchStore.currentQuestion?.title || ''"
+          :imageUrl="hasInlineImageTag(matchStore.currentQuestion?.title) ? matchStore.currentQuestion?.imageUrl : null"
+          customClass="results-question-text"
+        />
       </div>
 
       <!-- Gràfic de barres estil Kahoot -->

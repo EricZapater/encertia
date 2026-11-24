@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuizStore } from '../store'
 import type {
@@ -22,6 +22,8 @@ import { useToast } from 'primevue/usetoast'
 
 import QuizSettingsModal from './QuizSettingsModal.vue'
 import QuizPreviewModal from './QuizPreviewModal.vue'
+import FormattedQuestionText from '@/components/FormattedQuestionText.vue'
+import { hasInlineImageTag } from '@/utils/textFormat'
 
 const route = useRoute()
 const router = useRouter()
@@ -79,6 +81,54 @@ function openSingleQuestionPreview(index: number) {
   previewQuestionIndex.value = index
   previewSingleQuestionMode.value = true
   showPreviewModal.value = true
+}
+
+const questionTextareaRef = ref<any>(null)
+
+function insertFormatTag(prefix: string, suffix: string = '') {
+  if (!activeQuestion.value) return
+  const textarea = questionTextareaRef.value?.$el || questionTextareaRef.value
+  if (!textarea) {
+    activeQuestion.value.text = `${activeQuestion.value.text || ''}${prefix}${suffix}`
+    return
+  }
+
+  const start = textarea.selectionStart ?? activeQuestion.value.text.length
+  const end = textarea.selectionEnd ?? activeQuestion.value.text.length
+  const originalText = activeQuestion.value.text || ''
+  const selectedText = originalText.substring(start, end)
+
+  const newText = originalText.substring(0, start) + prefix + selectedText + suffix + originalText.substring(end)
+  activeQuestion.value.text = newText
+
+  nextTick(() => {
+    textarea.focus()
+    const newCursorPos = selectedText.length > 0
+      ? start + prefix.length + selectedText.length + suffix.length
+      : start + prefix.length
+    textarea.setSelectionRange(newCursorPos, newCursorPos)
+  })
+}
+
+function insertHeading(level: 1 | 2) {
+  const prefix = level === 1 ? '# ' : '## '
+  insertFormatTag(`\n${prefix}`, '')
+}
+
+function insertBold() {
+  insertFormatTag('**', '**')
+}
+
+function insertItalic() {
+  insertFormatTag('*', '*')
+}
+
+function insertUnderline() {
+  insertFormatTag('<u>', '</u>')
+}
+
+function insertImageTag() {
+  insertFormatTag(' [imatge] ')
 }
 
 const activeQuestion = computed<QuizQuestion | undefined>(() => {
@@ -690,16 +740,103 @@ function getShape(index: number) {
           </div>
         </div>
 
-        <!-- Input d'Enunciat de la pregunta -->
+        <!-- Input d'Enunciat de la pregunta amb Toolbar de Format -->
         <div class="question-prompt-container">
+          <div class="question-text-toolbar" data-testid="question-text-toolbar">
+            <div class="toolbar-btn-group">
+              <button
+                type="button"
+                class="toolbar-btn"
+                title="Títol principal (#)"
+                @click="insertHeading(1)"
+                data-testid="btn-format-h1"
+              >
+                H1
+              </button>
+              <button
+                type="button"
+                class="toolbar-btn"
+                title="Subtítol (##)"
+                @click="insertHeading(2)"
+                data-testid="btn-format-h2"
+              >
+                H2
+              </button>
+              <div class="toolbar-divider" />
+              <button
+                type="button"
+                class="toolbar-btn"
+                title="Negreta (**text**)"
+                @click="insertBold"
+                data-testid="btn-format-bold"
+              >
+                <strong>B</strong>
+              </button>
+              <button
+                type="button"
+                class="toolbar-btn"
+                title="Cursiva (*text*)"
+                @click="insertItalic"
+                data-testid="btn-format-italic"
+              >
+                <em>I</em>
+              </button>
+              <button
+                type="button"
+                class="toolbar-btn"
+                title="Subratllat (<u>text</u>)"
+                @click="insertUnderline"
+                data-testid="btn-format-underline"
+              >
+                <u>U</u>
+              </button>
+              <div class="toolbar-divider" />
+              <button
+                type="button"
+                class="toolbar-btn toolbar-btn-img"
+                title="Inserir tag [imatge] a la posició del cursor"
+                @click="insertImageTag"
+                data-testid="btn-insert-image-tag"
+              >
+                <i class="pi pi-image" />
+                <span>[imatge]</span>
+              </button>
+            </div>
+
+            <div class="toolbar-help-hint">
+              <span v-if="hasInlineImageTag(activeQuestion.text)" class="tag-detected-badge">
+                <i class="pi pi-check-circle" /> Imatge inline activada
+              </span>
+              <span v-else class="tag-hint-text">
+                Usa <code>[imatge]</code> per ubicar la foto al text
+              </span>
+            </div>
+          </div>
+
           <Textarea
+            ref="questionTextareaRef"
             v-model="activeQuestion.text"
-            rows="2"
+            rows="3"
             autoResize
             class="question-prompt-input"
-            placeholder="Escriu aquí l'enunciat de la pregunta..."
+            placeholder="Escriu aquí l'enunciat de la pregunta... (Pots usar negreta, cursiva, títols o [imatge])"
             data-testid="input-question-text"
           />
+
+          <!-- Caixa de Previsualització en viu de l'Enunciat -->
+          <div
+            v-if="activeQuestion.text && (activeQuestion.text.includes('*') || activeQuestion.text.includes('#') || activeQuestion.text.includes('<u>') || hasInlineImageTag(activeQuestion.text))"
+            class="question-live-preview-box"
+            data-testid="question-live-preview"
+          >
+            <div class="live-preview-label">
+              <i class="pi pi-eye" /> Vista prèvia de l'enunciat:
+            </div>
+            <FormattedQuestionText
+              :text="activeQuestion.text"
+              :imageUrl="activeQuestion.imageUrl"
+            />
+          </div>
         </div>
 
         <!-- Zona d'Imatge de la Pregunta -->
@@ -1062,16 +1199,125 @@ function getShape(index: number) {
   width: 100%;
 }
 
+.question-text-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-bottom: none;
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.toolbar-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.15s ease;
+}
+
+.toolbar-btn:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.toolbar-btn-img {
+  color: #0284c7;
+  border-color: #bae6fd;
+  background: #f0f9ff;
+  font-weight: 700;
+}
+
+.toolbar-btn-img:hover {
+  background: #e0f2fe;
+  border-color: #0284c7;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background-color: #cbd5e1;
+  margin: 0 0.25rem;
+}
+
+.toolbar-help-hint {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.tag-detected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #15803d;
+  font-weight: 700;
+  background: #dcfce7;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+.tag-hint-text code {
+  background: #e2e8f0;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  color: #0369a1;
+  font-weight: 700;
+}
+
 .question-prompt-input {
   width: 100%;
   font-size: 1.25rem;
   font-weight: 600;
   text-align: center;
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   border: 1px solid #cbd5e1;
   background-color: #ffffff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.question-live-preview-box {
+  margin-top: 0.75rem;
+  padding: 1rem 1.25rem;
+  background-color: #ffffff;
+  border: 1.5px dashed #93c5fd;
+  border-radius: 0.75rem;
+  text-align: center;
+}
+
+.live-preview-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3b82f6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
 }
 
 .question-media-zone {

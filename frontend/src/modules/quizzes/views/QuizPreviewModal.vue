@@ -5,6 +5,8 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import type { QuizDetail, QuizQuestion } from '../types'
 import { KAHOOT_THEME_SHAPES } from '../types'
+import FormattedQuestionText from '@/components/FormattedQuestionText.vue'
+import { hasInlineImageTag } from '@/utils/textFormat'
 
 const props = withDefaults(
   defineProps<{
@@ -254,11 +256,19 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Text de la pregunta -->
+        <!-- Text de la pregunta amb format segur i suport d'imatge inline -->
         <div class="question-content">
-          <h3 class="question-text" data-testid="preview-question-text">{{ currentQuestion.text || '(Enunciat de la pregunta)' }}</h3>
+          <FormattedQuestionText
+            :text="currentQuestion.text || '(Enunciat de la pregunta)'"
+            :imageUrl="hasInlineImageTag(currentQuestion.text) ? currentQuestion.imageUrl : null"
+            customClass="question-text"
+            data-testid="preview-question-text"
+          />
 
-          <div v-if="currentQuestion.imageUrl" class="question-image-container">
+          <div
+            v-if="currentQuestion.imageUrl && !hasInlineImageTag(currentQuestion.text)"
+            class="question-image-container"
+          >
             <img :src="currentQuestion.imageUrl" alt="Imatge de la pregunta" class="question-image" />
           </div>
         </div>

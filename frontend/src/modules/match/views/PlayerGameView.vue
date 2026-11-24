@@ -8,6 +8,8 @@ import { KAHOOT_THEMES, type MatchAnswerOption } from '../types'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import ProgressBar from 'primevue/progressbar'
+import FormattedQuestionText from '@/components/FormattedQuestionText.vue'
+import { hasInlineImageTag } from '@/utils/textFormat'
 
 const route = useRoute()
 const router = useRouter()
@@ -140,11 +142,16 @@ function handleExit() {
         </div>
       </div>
 
-      <h2 class="preview-statement">
-        {{ matchStore.currentQuestion?.title || "Atenció a l'enunciat..." }}
-      </h2>
+      <FormattedQuestionText
+        :text="matchStore.currentQuestion?.title || 'Atenció a l\'enunciat...'"
+        :imageUrl="hasInlineImageTag(matchStore.currentQuestion?.title) ? matchStore.currentQuestion?.imageUrl : null"
+        customClass="preview-statement"
+      />
 
-      <div v-if="matchStore.currentQuestion?.imageUrl" class="preview-image-wrapper">
+      <div
+        v-if="matchStore.currentQuestion?.imageUrl && !hasInlineImageTag(matchStore.currentQuestion?.title)"
+        class="preview-image-wrapper"
+      >
         <img
           :src="matchStore.currentQuestion.imageUrl"
           alt="Imatge de la pregunta"

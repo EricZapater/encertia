@@ -244,4 +244,29 @@ describe('QuizEditorView Component', () => {
     expect(callArg.questions[0].answers[0].id).toBe(validAnswerId)
     expect(callArg.questions[0].answers[1].id).toBeUndefined()
   })
+
+  it('inserts format tags when formatting toolbar buttons are clicked', async () => {
+    mockRoute.params.id = ''
+    const wrapper = mount(QuizEditorView, {
+      global: {
+        plugins: [PrimeVue],
+        stubs: dialogStub
+      }
+    })
+    await flushPromises()
+
+    const boldBtn = wrapper.find('[data-testid="btn-format-bold"]')
+    expect(boldBtn.exists()).toBe(true)
+    await boldBtn.trigger('click')
+
+    const textarea = wrapper.find('textarea')
+    expect(textarea.element.value).toContain('****')
+
+    const imgTagBtn = wrapper.find('[data-testid="btn-insert-image-tag"]')
+    expect(imgTagBtn.exists()).toBe(true)
+    await imgTagBtn.trigger('click')
+
+    expect(textarea.element.value).toContain('[imatge]')
+    expect(wrapper.find('[data-testid="question-live-preview"]').exists()).toBe(true)
+  })
 })
