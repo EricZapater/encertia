@@ -1,0 +1,16 @@
+backend/internal/evaluation/handler.go
+  h_42175f19913982 4,87-91
+backend/internal/evaluation/repository.go
+  h_42175f19913982 333,336,347,357,381,408,414-417,453,457-458,476,505,522
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "0e2c854a4a79884352d5ee9115d0da7d1315cc27",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
