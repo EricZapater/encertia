@@ -1,0 +1,28 @@
+frontend/src/components/FormattedQuestionText.vue
+  h_42175f19913982 1-87
+frontend/src/modules/match/views/HostGameView.vue
+  h_42175f19913982 12-13,315-320,322-325,369-373,381-385,432-436
+frontend/src/modules/match/views/PlayerGameView.vue
+  h_42175f19913982 11-12,145-149,151-154
+frontend/src/modules/quizzes/__tests__/QuizEditorView.spec.ts
+  h_42175f19913982 247-271
+frontend/src/modules/quizzes/views/QuizEditorView.vue
+  h_42175f19913982 2,25-26,86-133,743,745-815,817,819,822,825-839,1202-1285,1292-1295,1301-1322
+frontend/src/modules/quizzes/views/QuizPreviewModal.vue
+  h_42175f19913982 8-9,259,261-266,268-271
+frontend/src/utils/__tests__/textFormat.spec.ts
+  h_42175f19913982 1-56
+frontend/src/utils/textFormat.ts
+  h_42175f19913982 1-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "68df336d8f383d3985f43311298f2c2ee5bf429f",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
