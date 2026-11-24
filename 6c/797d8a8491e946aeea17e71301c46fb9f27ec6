@@ -1,0 +1,20 @@
+backend/internal/evaluation/model.go
+  h_42175f19913982 48-57
+backend/internal/evaluation/repository.go
+  h_42175f19913982 313,318-324,331,333,405,407,437-438,450,454-455,457,460
+frontend/src/modules/evaluations/types.ts
+  h_42175f19913982 45
+frontend/src/modules/evaluations/views/QuizEvaluationView.vue
+  h_42175f19913982 157,159-176,194,197-201,203-205,207-215,218-247,249-251,268,294-296,303,305-306,309,311,318-338,631-654,750-755
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "6c797d8a8491e946aeea17e71301c46fb9f27ec6",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
