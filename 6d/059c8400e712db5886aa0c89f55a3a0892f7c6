@@ -1,0 +1,20 @@
+frontend/src/i18n/locales/ca.json
+  h_42175f19913982 218-219,225-226
+frontend/src/i18n/locales/es.json
+  h_42175f19913982 218-219,225-226
+frontend/src/modules/evaluations/__tests__/EvaluationsViews.spec.ts
+  h_42175f19913982 2,12-59,281-327
+frontend/src/modules/evaluations/views/QuizEvaluationView.vue
+  h_42175f19913982 126-134,136,157-169,177,181-246,259-261,282-334,579-646,687-712
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "6d059c8400e712db5886aa0c89f55a3a0892f7c6",
+  "prompts": {},
+  "humans": {
+    "h_42175f19913982": {
+      "author": "Èric Zapater <ericzm@ext.inditex.com>"
+    }
+  }
+}
