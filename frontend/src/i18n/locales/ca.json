@@ -215,13 +215,15 @@
       "matches": "Partides",
       "calculatedGrade": "Nota Calculada (Última Partida)",
       "finalGrade": "Nota Definitiva",
-      "pending": "Pendent"
+      "pending": "Pendent",
+      "answers": "Respostes (OK/KO)"
     },
     "actions": {
       "back": "Tornar",
       "viewEvaluation": "Veure Avaluació",
       "grade": "Qualificar",
-      "editGrade": "Editar Nota"
+      "editGrade": "Editar Nota",
+      "viewAnswers": "Veure Respostes"
     }
   },
   "manual": {

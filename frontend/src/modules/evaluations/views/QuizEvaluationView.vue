@@ -123,8 +123,17 @@
 
       <!-- Secció B: Taula d'Alumnes -->
       <Panel :header="$t('evaluations.panels.studentResults')" :toggleable="true" class="results-panel mb-4">
-        <DataTable :value="filteredStudents" class="p-datatable-sm" paginator :rows="10">
+        <DataTable
+          v-model:expandedRows="expandedRows"
+          :value="filteredStudents"
+          dataKey="studentId"
+          class="p-datatable-sm"
+          paginator
+          :rows="10"
+          @row-expand="onRowExpand"
+        >
           <template #empty>{{ $t('common.noResults') }}</template>
+          <Column expander style="width: 3.5rem" />
           <Column field="studentName" :header="$t('evaluations.table.studentName')" sortable />
           <Column field="groupName" :header="$t('evaluations.table.group')" sortable>
             <template #body="slotProps">
@@ -145,6 +154,19 @@
               <span v-else class="pending-grade-text">{{ $t('evaluations.table.pending') }}</span>
             </template>
           </Column>
+          <Column :header="$t('evaluations.table.answers') || 'Respostes (OK/KO)'" align="center" style="width: 170px">
+            <template #body="slotProps">
+              <Button
+                :label="expandedRows[slotProps.data.studentId] ? 'Amagar' : ($t('evaluations.actions.viewAnswers') || 'Veure Respostes')"
+                :icon="expandedRows[slotProps.data.studentId] ? 'pi pi-chevron-up' : 'pi pi-list-check'"
+                size="small"
+                severity="info"
+                outlined
+                @click="toggleStudentRow(slotProps.data)"
+                :data-testid="`btn-toggle-answers-${slotProps.data.studentId}`"
+              />
+            </template>
+          </Column>
           <Column :header="$t('evaluations.table.actions')" align="center">
             <template #body="slotProps">
               <Button
@@ -152,9 +174,76 @@
                 :icon="slotProps.data.isGraded ? 'pi pi-pencil' : 'pi pi-check-circle'"
                 :class="slotProps.data.isGraded ? 'p-button-sm p-button-outlined' : 'p-button-sm p-button-success'"
                 @click="navigateToStudentEvaluation(slotProps.data.studentId)"
+                :data-testid="`btn-grade-${slotProps.data.studentId}`"
               />
             </template>
           </Column>
+
+          <!-- Fila expandible amb detall de respostes OK/KO -->
+          <template #expansion="slotProps">
+            <div class="student-expansion-container" :data-testid="`student-answers-${slotProps.data.studentId}`">
+              <div v-if="loadingStudentMap[slotProps.data.studentId]" class="expansion-loading">
+                <i class="pi pi-spin pi-spinner mr-2"></i> Carregant respostes de l'alumne...
+              </div>
+              <div v-else-if="studentDetailsCache[slotProps.data.studentId]">
+                <div
+                  v-if="studentDetailsCache[slotProps.data.studentId].matches && studentDetailsCache[slotProps.data.studentId].matches.length > 0"
+                  class="student-matches-wrapper"
+                >
+                  <div
+                    v-for="(match, mIdx) in studentDetailsCache[slotProps.data.studentId].matches"
+                    :key="match.matchId"
+                    class="match-evaluation-card"
+                  >
+                    <div class="match-card-header">
+                      <div class="match-meta">
+                        <span class="match-badge">Partida {{ studentDetailsCache[slotProps.data.studentId].matches.length - mIdx }}</span>
+                        <span class="match-date"><i class="pi pi-calendar mr-1"></i>{{ formatDate(match.matchDate) }}</span>
+                      </div>
+                      <div class="match-stats">
+                        <Tag :severity="match.score === match.totalQuestions ? 'success' : match.score >= match.totalQuestions / 2 ? 'info' : 'warn'">
+                          {{ match.score }} / {{ match.totalQuestions }} encerts ({{ Math.round((match.score / (match.totalQuestions || 1)) * 100) }}%)
+                        </Tag>
+                      </div>
+                    </div>
+
+                    <DataTable :value="match.answers" class="p-datatable-sm answers-subtable">
+                      <Column field="questionIndex" header="#" style="width: 50px" align="center">
+                        <template #body="ansProps">
+                          <strong>P{{ ansProps.data.questionIndex + 1 }}</strong>
+                        </template>
+                      </Column>
+                      <Column field="questionText" header="Pregunta">
+                        <template #body="ansProps">
+                          <FormattedQuestionText :text="ansProps.data.questionText" />
+                        </template>
+                      </Column>
+                      <Column header="Resultat" align="center" style="width: 120px">
+                        <template #body="ansProps">
+                          <Tag
+                            :severity="ansProps.data.isCorrect ? 'success' : 'danger'"
+                            class="ok-ko-tag"
+                            :data-testid="ansProps.data.isCorrect ? 'badge-answer-ok' : 'badge-answer-ko'"
+                          >
+                            <i :class="ansProps.data.isCorrect ? 'pi pi-check mr-1' : 'pi pi-times mr-1'"></i>
+                            {{ ansProps.data.isCorrect ? 'OK' : 'KO' }}
+                          </Tag>
+                        </template>
+                      </Column>
+                      <Column header="Temps de Resposta" align="center" style="width: 140px">
+                        <template #body="ansProps">
+                          <span>{{ (ansProps.data.responseTimeMs / 1000).toFixed(1) }}s</span>
+                        </template>
+                      </Column>
+                    </DataTable>
+                  </div>
+                </div>
+                <div v-else class="p-3 text-muted">
+                  Aquest alumne no té cap partida registrada per a aquest qüestionari.
+                </div>
+              </div>
+            </div>
+          </template>
         </DataTable>
       </Panel>
     </div>
@@ -167,6 +256,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useEvaluationStore } from '../store'
 import { useGroupStore } from '@/modules/groups/store'
 import { useQuizStore } from '@/modules/quizzes/store'
+import { getStudentEvaluation } from '../api'
+import type { StudentEvaluationDetail, StudentEvaluationSummary } from '../types'
+import FormattedQuestionText from '@/components/FormattedQuestionText.vue'
 import Button from 'primevue/button'
 import Panel from 'primevue/panel'
 import DataTable from 'primevue/datatable'
@@ -186,6 +278,59 @@ const toast = useToast()
 const selectedGroupId = ref<string | null>(null)
 const selectedQuizId = ref<string | null>((route.params.quizId as string) || null)
 const selectedDate = ref<Date | null>(null)
+
+// Estat d'expansió de files i memòria cau de respostes dels alumnes
+const expandedRows = ref<Record<string, boolean>>({})
+const studentDetailsCache = ref<Record<string, StudentEvaluationDetail>>({})
+const loadingStudentMap = ref<Record<string, boolean>>({})
+
+async function loadStudentAnswers(studentId: string): Promise<StudentEvaluationDetail | null> {
+  if (studentDetailsCache.value[studentId]) {
+    return studentDetailsCache.value[studentId]
+  }
+  loadingStudentMap.value[studentId] = true
+  try {
+    const detail = await getStudentEvaluation(quizId.value, studentId)
+    studentDetailsCache.value[studentId] = detail
+    return detail
+  } catch (err) {
+    console.error('Error carregant respostes de l alumne:', err)
+    return null
+  } finally {
+    loadingStudentMap.value[studentId] = false
+  }
+}
+
+async function onRowExpand(event: any) {
+  const student = event.data as StudentEvaluationSummary
+  if (student?.studentId) {
+    await loadStudentAnswers(student.studentId)
+  }
+}
+
+async function toggleStudentRow(student: StudentEvaluationSummary) {
+  if (expandedRows.value[student.studentId]) {
+    const copy = { ...expandedRows.value }
+    delete copy[student.studentId]
+    expandedRows.value = copy
+  } else {
+    expandedRows.value = { ...expandedRows.value, [student.studentId]: true }
+    await loadStudentAnswers(student.studentId)
+  }
+}
+
+function formatDate(d: string | Date | undefined): string {
+  if (!d) return ''
+  const date = typeof d === 'string' ? new Date(d) : d
+  if (isNaN(date.getTime())) return ''
+  return date.toLocaleDateString('ca-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 const groupOptions = computed(() => {
   return groupStore.groups.map((g) => ({
@@ -431,6 +576,74 @@ function navigateToStudentEvaluation(studentId: string) {
   font-style: italic;
 }
 
+/* Expansió de Respostes d'Alumne */
+.student-expansion-container {
+  padding: 1rem;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin: 0.5rem 0;
+}
+
+.expansion-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.match-evaluation-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.match-evaluation-card:last-child {
+  margin-bottom: 0;
+}
+
+.match-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.match-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.match-badge {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #1e293b;
+}
+
+.match-date {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.ok-ko-tag {
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.5rem;
+}
+
+.answers-subtable {
+  background: #ffffff;
+}
+
 /* Suport Mode Fosc */
 :global(.dark-mode) .page-title {
   color: #f8fafc;
@@ -469,6 +682,32 @@ function navigateToStudentEvaluation(studentId: string) {
 
 :global(.dark-mode) .correct-answer {
   color: #4ade80;
+}
+
+:global(.dark-mode) .student-expansion-container {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+:global(.dark-mode) .match-evaluation-card {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+:global(.dark-mode) .match-card-header {
+  border-bottom-color: #334155;
+}
+
+:global(.dark-mode) .match-badge {
+  color: #f1f5f9;
+}
+
+:global(.dark-mode) .match-date {
+  color: #94a3b8;
+}
+
+:global(.dark-mode) .answers-subtable {
+  background-color: #1e293b;
 }
 
 @media (prefers-color-scheme: dark) {

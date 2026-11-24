@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import ToastService from 'primevue/toastservice'
@@ -8,6 +8,54 @@ import QuizEvaluationView from '../views/QuizEvaluationView.vue'
 import { useEvaluationStore } from '../store'
 import { useGroupStore } from '@/modules/groups/store'
 import { useQuizStore } from '@/modules/quizzes/store'
+
+vi.mock('../api', () => ({
+  listEvaluations: vi.fn().mockResolvedValue({ evaluations: [] }),
+  getQuizEvaluation: vi.fn().mockResolvedValue({
+    quizId: 'q-test-1',
+    quizTitle: 'Test Quiz',
+    totalMatches: 1,
+    stats: [],
+    students: []
+  }),
+  getStudentEvaluation: vi.fn().mockResolvedValue({
+    evaluationId: 'e-1',
+    studentId: 's1',
+    studentName: 'Joan Garcia',
+    calculatedGrade: 9.0,
+    finalGrade: null,
+    isGraded: false,
+    matches: [
+      {
+        matchId: 'm-1',
+        matchDate: '2026-08-21T10:00:00Z',
+        score: 1,
+        totalQuestions: 2,
+        answers: [
+          {
+            questionId: 'q1',
+            questionText: 'Pregunta 1',
+            questionIndex: 0,
+            selectedAnswerIds: ['ans1'],
+            correctAnswerIds: ['ans1'],
+            isCorrect: true,
+            responseTimeMs: 2500
+          },
+          {
+            questionId: 'q2',
+            questionText: 'Pregunta 2',
+            questionIndex: 1,
+            selectedAnswerIds: ['ans3'],
+            correctAnswerIds: ['ans4'],
+            isCorrect: false,
+            responseTimeMs: 4000
+          }
+        ]
+      }
+    ]
+  }),
+  gradeStudent: vi.fn()
+}))
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({
@@ -229,6 +277,53 @@ describe('Evaluations Views', () => {
     await clearBtn.trigger('click')
 
     expect(fetchQuizSpy).toHaveBeenCalled()
+  })
+
+  it('toggles student answers expansion and shows OK/KO badges', async () => {
+    const evalStore = useEvaluationStore()
+    vi.spyOn(evalStore, 'fetchQuizEvaluation').mockImplementation(async () => {})
+    vi.spyOn(evalStore, 'fetchEvaluationsList').mockImplementation(async () => {})
+
+    evalStore.activeQuizEvaluation = {
+      quizId: 'q-test-1',
+      quizTitle: 'Quiz Test',
+      totalMatches: 1,
+      stats: [],
+      students: [
+        {
+          studentId: 's1',
+          studentName: 'Joan Garcia',
+          groupId: 'g1',
+          groupName: '1A',
+          matchesCount: 1,
+          calculatedGrade: 9.0,
+          finalGrade: null,
+          isGraded: false,
+          lastMatchAt: '2026-08-21T10:00:00Z'
+        }
+      ]
+    }
+
+    const wrapper = mount(QuizEvaluationView, {
+      global: {
+        plugins: [PrimeVue, ToastService],
+        mocks: {
+          $t: (key: string) => key
+        }
+      }
+    })
+    await flushPromises()
+
+    const toggleBtn = wrapper.find('[data-testid="btn-toggle-answers-s1"]')
+    expect(toggleBtn.exists()).toBe(true)
+    await toggleBtn.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="student-answers-s1"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="badge-answer-ok"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="badge-answer-ko"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('OK')
+    expect(wrapper.text()).toContain('KO')
   })
 })
 
