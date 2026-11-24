@@ -42,6 +42,7 @@ export interface StudentEvaluationSummary {
   isGraded: boolean
   lastMatchAt?: string | null
   matchDate?: string | null
+  answers?: StudentAnswerDetail[]
 }
 
 export interface QuizEvaluationResponse {

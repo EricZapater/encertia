@@ -310,9 +310,17 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 		if lastMatchAt.Valid {
 			s.LastMatchAt = &lastMatchAt.Time
 		}
+		s.Answers = []StudentAnswerDetail{}
 		students = append(students, s)
 	}
 	resp.Students = students
+
+	for i := range resp.Students {
+		stDetail, err := r.GetStudentEvaluation(quizID, resp.Students[i].StudentID)
+		if err == nil && len(stDetail.Matches) > 0 {
+			resp.Students[i].Answers = stDetail.Matches[0].Answers
+		}
+	}
 
 	return &resp, nil
 }
@@ -320,8 +328,9 @@ func (r *repository) GetQuizEvaluation(quizID string, groupID string) (*QuizEval
 func (r *repository) GetStudentEvaluation(quizID, studentID string) (*StudentEvaluationDetail, error) {
 	var detail StudentEvaluationDetail
 	detail.StudentID = studentID
+	detail.Matches = []StudentMatchResult{}
 
-	err := r.db.QueryRow("SELECT TRIM(CONCAT(first_name, ' ', last_name)) FROM users WHERE id = $1", studentID).Scan(&detail.StudentName)
+	err := r.db.QueryRow("SELECT COALESCE(NULLIF(TRIM(CONCAT(first_name, ' ', last_name)), ''), email, username, 'Alumne') FROM users WHERE id = $1", studentID).Scan(&detail.StudentName)
 	if err != nil {
 		// If not found in users, check match_players
 		errMp := r.db.QueryRow("SELECT nickname FROM match_players WHERE id = $1", studentID).Scan(&detail.StudentName)
@@ -393,9 +402,9 @@ func (r *repository) GetStudentEvaluation(quizID, studentID string) (*StudentEva
 		detail.IsGraded = false
 	}
 
-	// Fetch matches
+	// Fetch matches with player_id explicitly
 	mRows, err := r.db.Query(`
-		SELECT m.id, m.created_at, mp.score,
+		SELECT m.id, m.created_at, mp.score, mp.id::text AS player_id,
 		       (SELECT COUNT(*) FROM quiz_questions WHERE quiz_id = $1) AS total_questions,
 		       g.id AS group_id,
 		       g.name AS group_name
@@ -425,7 +434,8 @@ func (r *repository) GetStudentEvaluation(quizID, studentID string) (*StudentEva
 	for mRows.Next() {
 		var mr StudentMatchResult
 		var matchGroupID, matchGroupName sql.NullString
-		if err := mRows.Scan(&mr.MatchID, &mr.MatchDate, &mr.Score, &mr.TotalQuestions, &matchGroupID, &matchGroupName); err != nil {
+		var playerID string
+		if err := mRows.Scan(&mr.MatchID, &mr.MatchDate, &mr.Score, &playerID, &mr.TotalQuestions, &matchGroupID, &matchGroupName); err != nil {
 			return nil, err
 		}
 		if matchGroupID.Valid {
@@ -437,32 +447,17 @@ func (r *repository) GetStudentEvaluation(quizID, studentID string) (*StudentEva
 			mr.GroupName = &gname
 		}
 
-		// Fetch answers for this match & questions
+		// Fetch answers for this match & questions using the exact playerID
 		qRows, err := r.db.Query(`
 			SELECT qq.id, qq.text, qq.order_index,
 			       COALESCE(ma.selected_answer_ids, '{}') AS selected,
-				   COALESCE(ma.is_correct, false) AS is_correct,
-				   COALESCE(ma.response_time_ms, 0) AS response_time
+			       COALESCE(ma.is_correct, false) AS is_correct,
+			       COALESCE(ma.response_time_ms, 0) AS response_time
 			FROM quiz_questions qq
-			INNER JOIN match_players mp ON mp.match_id = $1 AND (
-				mp.user_id = $2 OR
-				mp.id::text = $2 OR
-				(mp.user_id IS NULL AND EXISTS (
-					SELECT 1 FROM matches m2
-					JOIN group_students gs2 ON gs2.group_id = m2.group_id AND gs2.student_id = $2
-					JOIN users u2 ON u2.id = $2
-					WHERE m2.id = $1 AND (
-						LOWER(TRIM(CONCAT(u2.first_name, ' ', u2.last_name))) = LOWER(TRIM(mp.nickname)) OR
-						LOWER(TRIM(u2.first_name)) = LOWER(TRIM(mp.nickname)) OR
-						LOWER(TRIM(u2.email)) = LOWER(TRIM(mp.nickname)) OR
-						LOWER(TRIM(SPLIT_PART(u2.email, '@', 1))) = LOWER(TRIM(mp.nickname))
-					)
-				))
-			)
-			LEFT JOIN match_answers ma ON ma.match_id = $1 AND ma.question_id = qq.id AND ma.player_id = mp.id
+			LEFT JOIN match_answers ma ON ma.match_id = $1 AND ma.question_id = qq.id AND ma.player_id = $2
 			WHERE qq.quiz_id = $3
 			ORDER BY qq.order_index ASC
-		`, mr.MatchID, studentID, quizID)
+		`, mr.MatchID, playerID, quizID)
 		if err != nil {
 			return nil, err
 		}

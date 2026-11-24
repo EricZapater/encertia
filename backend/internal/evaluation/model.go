@@ -45,15 +45,16 @@ type QuestionStats struct {
 }
 
 type StudentEvaluationSummary struct {
-	StudentID       string     `json:"studentId"`
-	StudentName     string     `json:"studentName"`
-	GroupID         *string    `json:"groupId"`
-	GroupName       *string    `json:"groupName"`
-	MatchesCount    int        `json:"matchesCount"`
-	CalculatedGrade float64    `json:"calculatedGrade"`
-	FinalGrade      *float64   `json:"finalGrade"`
-	IsGraded        bool       `json:"isGraded"`
-	LastMatchAt     *time.Time `json:"lastMatchAt,omitempty"`
+	StudentID       string                `json:"studentId"`
+	StudentName     string                `json:"studentName"`
+	GroupID         *string               `json:"groupId"`
+	GroupName       *string               `json:"groupName"`
+	MatchesCount    int                   `json:"matchesCount"`
+	CalculatedGrade float64               `json:"calculatedGrade"`
+	FinalGrade      *float64              `json:"finalGrade"`
+	IsGraded        bool                  `json:"isGraded"`
+	LastMatchAt     *time.Time            `json:"lastMatchAt,omitempty"`
+	Answers         []StudentAnswerDetail `json:"answers"`
 }
 
 type QuizEvaluationResponse struct {

@@ -154,17 +154,26 @@
               <span v-else class="pending-grade-text">{{ $t('evaluations.table.pending') }}</span>
             </template>
           </Column>
-          <Column :header="$t('evaluations.table.answers') || 'Respostes (OK/KO)'" align="center" style="width: 170px">
+          <Column :header="$t('evaluations.table.answers') || 'Respostes (OK/KO)'" align="center" style="min-width: 180px">
             <template #body="slotProps">
-              <Button
-                :label="expandedRows[slotProps.data.studentId] ? 'Amagar' : ($t('evaluations.actions.viewAnswers') || 'Veure Respostes')"
-                :icon="expandedRows[slotProps.data.studentId] ? 'pi pi-chevron-up' : 'pi pi-list-check'"
-                size="small"
-                severity="info"
-                outlined
-                @click="toggleStudentRow(slotProps.data)"
-                :data-testid="`btn-toggle-answers-${slotProps.data.studentId}`"
-              />
+              <div class="answers-col-container">
+                <Tag
+                  v-if="slotProps.data.answers && slotProps.data.answers.length > 0"
+                  :severity="slotProps.data.answers.filter((a: any) => a.isCorrect).length === slotProps.data.answers.length ? 'success' : 'info'"
+                  class="answers-count-badge"
+                >
+                  {{ slotProps.data.answers.filter((a: any) => a.isCorrect).length }}/{{ slotProps.data.answers.length }} OK
+                </Tag>
+                <Button
+                  :label="expandedRows[slotProps.data.studentId] ? 'Amagar' : ($t('evaluations.actions.viewAnswers') || 'Veure Respostes')"
+                  :icon="expandedRows[slotProps.data.studentId] ? 'pi pi-chevron-up' : 'pi pi-list-check'"
+                  size="small"
+                  severity="info"
+                  outlined
+                  @click="toggleStudentRow(slotProps.data)"
+                  :data-testid="`btn-toggle-answers-${slotProps.data.studentId}`"
+                />
+              </div>
             </template>
           </Column>
           <Column :header="$t('evaluations.table.actions')" align="center">
@@ -182,65 +191,64 @@
           <!-- Fila expandible amb detall de respostes OK/KO -->
           <template #expansion="slotProps">
             <div class="student-expansion-container" :data-testid="`student-answers-${slotProps.data.studentId}`">
-              <div v-if="loadingStudentMap[slotProps.data.studentId]" class="expansion-loading">
+              <div v-if="loadingStudentMap[slotProps.data.studentId] && getStudentMatches(slotProps.data).length === 0" class="expansion-loading">
                 <i class="pi pi-spin pi-spinner mr-2"></i> Carregant respostes de l'alumne...
               </div>
-              <div v-else-if="studentDetailsCache[slotProps.data.studentId]">
+              <div v-else-if="errorStudentMap[slotProps.data.studentId] && getStudentMatches(slotProps.data).length === 0" class="expansion-error">
+                <span><i class="pi pi-exclamation-triangle mr-2"></i> Error: {{ errorStudentMap[slotProps.data.studentId] }}</span>
+                <Button label="Reintentar" icon="pi pi-refresh" size="small" severity="danger" text @click="loadStudentAnswers(slotProps.data.studentId)" />
+              </div>
+              <div v-else-if="getStudentMatches(slotProps.data).length > 0" class="student-matches-wrapper">
                 <div
-                  v-if="studentDetailsCache[slotProps.data.studentId].matches && studentDetailsCache[slotProps.data.studentId].matches.length > 0"
-                  class="student-matches-wrapper"
+                  v-for="(match, mIdx) in getStudentMatches(slotProps.data)"
+                  :key="match.matchId"
+                  class="match-evaluation-card"
                 >
-                  <div
-                    v-for="(match, mIdx) in studentDetailsCache[slotProps.data.studentId].matches"
-                    :key="match.matchId"
-                    class="match-evaluation-card"
-                  >
-                    <div class="match-card-header">
-                      <div class="match-meta">
-                        <span class="match-badge">Partida {{ studentDetailsCache[slotProps.data.studentId].matches.length - mIdx }}</span>
-                        <span class="match-date"><i class="pi pi-calendar mr-1"></i>{{ formatDate(match.matchDate) }}</span>
-                      </div>
-                      <div class="match-stats">
-                        <Tag :severity="match.score === match.totalQuestions ? 'success' : match.score >= match.totalQuestions / 2 ? 'info' : 'warn'">
-                          {{ match.score }} / {{ match.totalQuestions }} encerts ({{ Math.round((match.score / (match.totalQuestions || 1)) * 100) }}%)
-                        </Tag>
-                      </div>
+                  <div class="match-card-header">
+                    <div class="match-meta">
+                      <span class="match-badge">Partida {{ getStudentMatches(slotProps.data).length - mIdx }}</span>
+                      <span class="match-date"><i class="pi pi-calendar mr-1"></i>{{ formatDate(match.matchDate) }}</span>
                     </div>
-
-                    <DataTable :value="match.answers" class="p-datatable-sm answers-subtable">
-                      <Column field="questionIndex" header="#" style="width: 50px" align="center">
-                        <template #body="ansProps">
-                          <strong>P{{ ansProps.data.questionIndex + 1 }}</strong>
-                        </template>
-                      </Column>
-                      <Column field="questionText" header="Pregunta">
-                        <template #body="ansProps">
-                          <FormattedQuestionText :text="ansProps.data.questionText" />
-                        </template>
-                      </Column>
-                      <Column header="Resultat" align="center" style="width: 120px">
-                        <template #body="ansProps">
-                          <Tag
-                            :severity="ansProps.data.isCorrect ? 'success' : 'danger'"
-                            class="ok-ko-tag"
-                            :data-testid="ansProps.data.isCorrect ? 'badge-answer-ok' : 'badge-answer-ko'"
-                          >
-                            <i :class="ansProps.data.isCorrect ? 'pi pi-check mr-1' : 'pi pi-times mr-1'"></i>
-                            {{ ansProps.data.isCorrect ? 'OK' : 'KO' }}
-                          </Tag>
-                        </template>
-                      </Column>
-                      <Column header="Temps de Resposta" align="center" style="width: 140px">
-                        <template #body="ansProps">
-                          <span>{{ (ansProps.data.responseTimeMs / 1000).toFixed(1) }}s</span>
-                        </template>
-                      </Column>
-                    </DataTable>
+                    <div class="match-stats">
+                      <Tag :severity="match.score === match.totalQuestions ? 'success' : match.score >= match.totalQuestions / 2 ? 'info' : 'warn'">
+                        {{ match.score }} / {{ match.totalQuestions }} encerts ({{ Math.round((match.score / (match.totalQuestions || 1)) * 100) }}%)
+                      </Tag>
+                    </div>
                   </div>
+
+                  <DataTable :value="match.answers" class="p-datatable-sm answers-subtable">
+                    <Column field="questionIndex" header="#" style="width: 50px" align="center">
+                      <template #body="ansProps">
+                        <strong>P{{ ansProps.data.questionIndex + 1 }}</strong>
+                      </template>
+                    </Column>
+                    <Column field="questionText" header="Pregunta">
+                      <template #body="ansProps">
+                        <FormattedQuestionText :text="ansProps.data.questionText" />
+                      </template>
+                    </Column>
+                    <Column header="Resultat" align="center" style="width: 120px">
+                      <template #body="ansProps">
+                        <Tag
+                          :severity="ansProps.data.isCorrect ? 'success' : 'danger'"
+                          class="ok-ko-tag"
+                          :data-testid="ansProps.data.isCorrect ? 'badge-answer-ok' : 'badge-answer-ko'"
+                        >
+                          <i :class="ansProps.data.isCorrect ? 'pi pi-check mr-1' : 'pi pi-times mr-1'"></i>
+                          {{ ansProps.data.isCorrect ? 'OK' : 'KO' }}
+                        </Tag>
+                      </template>
+                    </Column>
+                    <Column header="Temps de Resposta" align="center" style="width: 140px">
+                      <template #body="ansProps">
+                        <span>{{ (ansProps.data.responseTimeMs / 1000).toFixed(1) }}s</span>
+                      </template>
+                    </Column>
+                  </DataTable>
                 </div>
-                <div v-else class="p-3 text-muted">
-                  Aquest alumne no té cap partida registrada per a aquest qüestionari.
-                </div>
+              </div>
+              <div v-else class="p-3 text-muted">
+                Aquest alumne no té cap partida registrada per a aquest qüestionari.
               </div>
             </div>
           </template>
@@ -257,7 +265,7 @@ import { useEvaluationStore } from '../store'
 import { useGroupStore } from '@/modules/groups/store'
 import { useQuizStore } from '@/modules/quizzes/store'
 import { getStudentEvaluation } from '../api'
-import type { StudentEvaluationDetail, StudentEvaluationSummary } from '../types'
+import type { StudentEvaluationDetail, StudentEvaluationSummary, StudentMatchResult } from '../types'
 import FormattedQuestionText from '@/components/FormattedQuestionText.vue'
 import Button from 'primevue/button'
 import Panel from 'primevue/panel'
@@ -283,22 +291,49 @@ const selectedDate = ref<Date | null>(null)
 const expandedRows = ref<Record<string, boolean>>({})
 const studentDetailsCache = ref<Record<string, StudentEvaluationDetail>>({})
 const loadingStudentMap = ref<Record<string, boolean>>({})
+const errorStudentMap = ref<Record<string, string>>({})
+
+const quizId = computed(() => (route.params.quizId as string) || selectedQuizId.value || evalData.value?.quizId || '')
 
 async function loadStudentAnswers(studentId: string): Promise<StudentEvaluationDetail | null> {
   if (studentDetailsCache.value[studentId]) {
     return studentDetailsCache.value[studentId]
   }
   loadingStudentMap.value[studentId] = true
+  delete errorStudentMap.value[studentId]
   try {
-    const detail = await getStudentEvaluation(quizId.value, studentId)
+    const qId = quizId.value
+    const detail = await getStudentEvaluation(qId, studentId)
     studentDetailsCache.value[studentId] = detail
     return detail
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error carregant respostes de l alumne:', err)
+    errorStudentMap.value[studentId] = err?.message || 'Error carregant dades'
     return null
   } finally {
     loadingStudentMap.value[studentId] = false
   }
+}
+
+function getStudentMatches(student: StudentEvaluationSummary): StudentMatchResult[] {
+  const cached = studentDetailsCache.value[student.studentId]
+  if (cached?.matches && cached.matches.length > 0) {
+    return cached.matches
+  }
+  if (student.answers && student.answers.length > 0) {
+    const total = student.answers.length
+    const score = student.answers.filter((a) => a.isCorrect).length
+    return [
+      {
+        matchId: `m-cached-${student.studentId}`,
+        matchDate: student.lastMatchAt || student.matchDate || new Date().toISOString(),
+        score,
+        totalQuestions: total,
+        answers: student.answers
+      }
+    ]
+  }
+  return []
 }
 
 async function onRowExpand(event: any) {
@@ -356,7 +391,6 @@ const quizOptions = computed(() => {
   }))
 })
 
-const quizId = computed(() => route.params.quizId as string)
 const evalData = computed(() => store.activeQuizEvaluation)
 
 function toLocalDateString(d: Date | string | null | undefined): string {
@@ -594,6 +628,30 @@ function navigateToStudentEvaluation(studentId: string) {
   font-weight: 500;
 }
 
+.expansion-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  color: #ef4444;
+  font-weight: 500;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+}
+
+.answers-col-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.answers-count-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .match-evaluation-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -687,6 +745,12 @@ function navigateToStudentEvaluation(studentId: string) {
 :global(.dark-mode) .student-expansion-container {
   background-color: #0f172a;
   border-color: #334155;
+}
+
+:global(.dark-mode) .expansion-error {
+  background-color: #450a0a;
+  border-color: #7f1d1d;
+  color: #f87171;
 }
 
 :global(.dark-mode) .match-evaluation-card {
