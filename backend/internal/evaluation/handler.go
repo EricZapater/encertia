@@ -1,6 +1,7 @@
 package evaluation
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -83,6 +84,11 @@ func (h *Handler) GetStudentEvaluation(c *gin.Context) {
 			shared.RespondWithError(c, shared.ErrNotFound("NOT_FOUND", "Alumne no trobat"))
 			return
 		}
+		if err.Error() == "quiz not found" {
+			shared.RespondWithError(c, shared.ErrNotFound("NOT_FOUND", "Qüestionari no trobat"))
+			return
+		}
+		log.Printf("[Evaluation] GetStudentEvaluation internal error: quizID=%s, studentID=%s, err=%v", quizID, studentID, err)
 		shared.RespondWithError(c, shared.ErrInternal(err))
 		return
 	}
